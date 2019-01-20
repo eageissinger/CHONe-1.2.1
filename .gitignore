@@ -1,0 +1,7 @@
+data/
+output/
+shapefiles/
+*.Rmd
+*.html
+*.Rhistory
+code/*.Rhistory
