@@ -101,7 +101,7 @@ pulse_range2<-pulse_range%>%
   select(-diff,-plusmax,-minusmin,-max_final,-lagmin,-max1)%>% #get rid of useless columns
   ungroup()
 #View(pulse_range2)
-# add 20 above and below pulse range
+# add 2sd above and below pulse range
 pulse_range3<-pulse_range2%>%
   group_by(date)%>%
   mutate(adjustmax=ceiling(2*sd))%>%
@@ -147,15 +147,14 @@ range_final%>%
 # need to create a data frame that fills in all possible length 
 # possibilities for every pulse option
 
-# next step: use the above functions and apply to entire dataset
+# next step: use the below functions and apply to entire dataset
 
 pulse_assign<-data.frame(trip=rep(range_final$trip,range_final$max-range_final$min+1),
                          date=rep(range_final$date,range_final$max-range_final$min+1),
                          cohort=rep(range_final$cohort,range_final$max-range_final$min+1),
                          pulse=rep(range_final$dummy_pulse,range_final$max-range_final$min+1),
                          mmSL=unlist(mapply(seq,range_final$min,range_final$max)))
-# addign additinal info such as date, cohort, pulse so that it is present
-# in dataframe
+# add additinal info such as date, cohort, pulse so that it is present in dataframe
 #View(pulse_assign)
 #is.na(pulse_assign)
 summary(pulse_assign)
