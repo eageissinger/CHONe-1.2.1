@@ -15,6 +15,7 @@ library(tidyr)
 library(stringr)
 library(lubridate)
 library(mixdist)
+library(rlist)
 
 #load data
 length<-read.csv("./data/data-working/newman-length.csv")
@@ -110,7 +111,6 @@ coef.mix(fit1)
 head(age1.1996)
 july96<-bind_cols(fit1$parameters,fit1$se)%>%
   mutate(year=1996,month=7,day=24,dist="gamma")# date = July 24 (mid between Trip 13 and 14)
-
 july96<-mutate(july96,dummy_pulse=rev(seq(1:nrow(july96))))
 
 mixtures<-july96
@@ -152,6 +152,7 @@ fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
           emsteps=5,usecondit = FALSE,print.level = 0)
 summary(fit1)
 plot(fit1)
+
 plot(fit1, root=T)
 anova(fit1)
 coef.mix(fit1)
@@ -161,7 +162,6 @@ coef.mix(fit1)
 head(age1.1996)
 sept96<-bind_cols(fit1$parameters,fit1$se)%>%
   mutate(year=1996,month=9,day=26,dist="gamma")# date = Sept 26
-
 sept96<-mutate(sept96,dummy_pulse=rev(seq(1:nrow(sept96))))
 
 mixtures<-bind_rows(mixtures,sept96)
@@ -351,6 +351,7 @@ group2000<-select(age1.2000,mmSL)
 
 # convert to frequency table
 age1group<-mixgroup(group2000, breaks = c(0,seq(90,140,5),145),xname=NULL, k = NULL, usecondit = FALSE)
+
 # plot frequency data
 plot(age1group)
 
@@ -399,6 +400,7 @@ group2000<-select(age1.2000,mmSL)
 
 # convert to frequency table
 age1group<-mixgroup(group2000, breaks = c(0,seq(105,145,5),150),xname=NULL, k = NULL, usecondit = FALSE)
+
 # plot frequency data
 plot(age1group)
 
@@ -416,6 +418,8 @@ plot(fit1)
 plot(fit1, root=T)
 anova(fit1)
 coef.mix(fit1)
+
+
 
 # store results
 head(age1.2000)
@@ -440,6 +444,7 @@ group2000<-select(age1.2000,mmSL)
 
 # convert to frequency table
 age1group<-mixgroup(group2000, breaks = c(0,seq(115,180,5),185),xname=NULL, k = NULL, usecondit = FALSE)
+
 # plot frequency data
 plot(age1group)
 
@@ -481,6 +486,7 @@ group2000<-select(age1.2000,mmSL)
 
 # convert to frequency table
 age1group<-mixgroup(group2000, breaks = c(0,seq(115,160,5),165),xname=NULL, k = NULL, usecondit = FALSE)
+
 # plot frequency data
 plot(age1group)
 
@@ -528,6 +534,7 @@ group2000<-select(age1.2000,mmSL)
 
 # convert to frequency table
 age1group<-mixgroup(group2000, breaks = c(0,seq(115,190,5),195),xname=NULL, k = NULL, usecondit = FALSE)
+
 # plot frequency data
 plot(age1group)
 
@@ -666,6 +673,7 @@ group2001<-select(age1.2001,mmSL)
 
 # convert to frequency table
 age1group<-mixgroup(group2001, breaks = c(0,seq(105,170,5),175),xname=NULL, k = NULL, usecondit = FALSE)
+
 # plot frequency data
 plot(age1group)
 
@@ -744,6 +752,7 @@ group2001<-select(age1.2001,mmSL)
 
 # convert to frequency table
 age1group<-mixgroup(group2001, breaks = c(0,seq(130,200,5),205),xname=NULL, k = NULL, usecondit = FALSE)
+
 # plot frequency data
 plot(age1group)
 
@@ -806,6 +815,7 @@ fit2<-mix(age1group,age1param,dist="gamma",mixconstr(consigma = "CCV"),
 summary(fit2)
 plot(fit2)
 plot(fit2,root=T)
+
 
 # fit1..
 # poor model fit
@@ -871,6 +881,7 @@ group2002<-select(age1.2002,mmSL)
 
 # convert to frequency table
 age1group<-mixgroup(group2002, breaks = c(0,seq(60,115,5),120),xname=NULL, k = NULL, usecondit = FALSE)
+
 # plot frequency data
 plot(age1group)
 
@@ -995,6 +1006,7 @@ fit2<-mix(age1group,age1param2,dist="gamma",mixconstr(consigma = "CCV"),
 summary(fit2)
 plot(fit2)
 plot(fit2,root=T)
+
 
 # Fit 1 is the best I can do, won't let me drop to 2....
 head(age1.2003)
@@ -1227,6 +1239,7 @@ group2003<-select(age1.2003,mmSL)
 
 # convert to frequency table
 age1group<-mixgroup(group2003, breaks = c(0,seq(105,185,5),190),xname=NULL, k = NULL, usecondit = FALSE)
+
 # plot frequency data
 plot(age1group)
 
@@ -1298,6 +1311,7 @@ plot(fit2,root=T)
 head(age1.2003)
 oct03wk2<-bind_cols(fit1$parameters,fit1$se)%>%
   mutate(year=2003,month=10,day=24,dist="gamma") # oct 24
+oct03wk2<-mutate(oct03wk2,dummy_pulse=rev(seq(1:nrow(oct03wk2))))
 
 # add to mixtures
 mixtures<-bind_rows(mixtures,oct03wk2)
@@ -1534,11 +1548,15 @@ summary(fit2)
 plot(fit2)
 plot(fit2,root=T)
 
+fit3<-mix(age1group,age1param,dist="lnorm",mixconstr(consigma = "CCV"),
+          emsteps = 5, usecondit = FALSE,print.level = 0)
+summary(fit3)
+plot(fit3)
 
 # fit 1 model results
 head(age1.2005)
 oct05<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2005,month=10,day=18,dist="gamma")
+  mutate(year=2005,month=10,day=18,dist="norm")
 oct05<-mutate(oct05,dummy_pulse=rev(seq(1:nrow(oct05))))
 
 # add to mixtures
@@ -1809,7 +1827,7 @@ plot(fit1,root=T)
 # store model results
 head(age1.2008)
 july08w1<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2008,month=7,day=3,dist="gamma")
+  mutate(year=2008,month=7,day=3,dist="norm")
 july08w1<-mutate(july08w1,dummy_pulse=rev(seq(1:nrow(july08w1))))
 
 # add to mixtures
@@ -2395,6 +2413,7 @@ summary(fit1)
 plot(fit1)
 plot(fit1,root=T)
 
+
 # Fit 1
 head(age1.2012)
 oct12<-bind_cols(fit1$parameters,fit1$se)%>%
@@ -2638,6 +2657,7 @@ summary(fit1)
 plot(fit1)
 plot(fit1,root=T)
 
+
 # fit 1
 head(age1.2013)
 nov13wk2<-bind_cols(fit1$parameters,fit1$se)%>%
@@ -2646,6 +2666,7 @@ nov13wk2<-mutate(nov13wk2,dummy_pulse=rev(seq(1:nrow(nov13wk2))))
 
 # add to mixtures
 mixtures<-bind_rows(mixtures,nov13wk2)
+
 
 # ---- age 1 2014 -----
 # May
@@ -2698,6 +2719,7 @@ plot(fit3,root=T)
 # store fit 1 results..
 head(age1.2014)
 may14<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2014,month=5,day=27,dist="gamma")
 may14<-mutate(may14,dummy_pulse=rev(seq(1:nrow(may14))))
 
 # add to mixtures
@@ -2719,6 +2741,7 @@ group2014<-select(age1.2014,mmSL)
 
 # convert to frequency table
 age1group<-mixgroup(group2014, breaks = c(0,seq(65,140,5),145),xname=NULL, k = NULL, usecondit = FALSE)
+
 # plot frequency data
 plot(age1group)
 
@@ -2915,7 +2938,7 @@ plot(fit1)
 # store model results
 head(age1.2014)
 nov14wk2<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2014,month=11,day=18,dist="gamma")
+  mutate(year=2014,month=11,day=18,dist="lnorm")
 nov14wk2<-mutate(nov14wk2,dummy_pulse=rev(seq(1:nrow(nov14wk2))))
 
 # add to mixtures
@@ -2954,7 +2977,7 @@ plot(fit1,root=T)
 # store results
 head(age1.2015)
 may15<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2015,month=5,day=19,dist="gamma")
+  mutate(year=2015,month=5,day=19,dist="lnorm")
 may15<-mutate(may15,dummy_pulse=rev(seq(1:nrow(may15))))
 
 # add to mixtures
@@ -3032,6 +3055,7 @@ summary(fit1)
 plot(fit1)
 plot(fit1,root=T)
 
+
 # go with fit 1
 head(age1.2015)
 sept15<-bind_cols(fit1$parameters,fit1$se)%>%
@@ -3090,7 +3114,7 @@ plot(fit2)
 # store fit 1 results
 head(age1.2016)
 may16<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2016,month=5,day=16,dist="gamma")
+  mutate(year=2016,month=5,day=16,dist="lnorm")
 may16<-mutate(may16,dummy_pulse=rev(seq(1:nrow(may16))))
 
 # add to mixtures
@@ -3338,7 +3362,7 @@ plot(fit1,root=T)
 # store model results
 head(age1.2016)
 sept16wk1<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2016,month=9,day=13, dist="gamma")
+  mutate(year=2016,month=9,day=13, dist="lnorm")
 sept16wk1<-mutate(sept16wk1,dummy_pulse=rev(seq(1:nrow(sept16wk1))))
 
 # add to mixtures
@@ -3373,6 +3397,7 @@ fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
 summary(fit1)
 plot(fit1)
 plot(fit1,root=T)
+
 
 # fit 1, but poor fit
 # add to mixtures df
@@ -3460,6 +3485,8 @@ fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
 summary(fit1)
 plot(fit1)
 plot(fit1,root=T)
+
+
 
 # fit 1
 head(age1.2016)
