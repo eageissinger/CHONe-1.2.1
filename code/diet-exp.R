@@ -1,7 +1,7 @@
 #### Food consumption ####
 
 # --- set working directory ----
-setwd("C:/Users/Emilie/Dropbox/Thesis/Research/CHONe-1.2.1/")
+setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
 
 # ---- load data ----
 total<-read.csv("./data/data-working/diet_feeding-exp.csv")
