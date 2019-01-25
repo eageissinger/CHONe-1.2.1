@@ -602,47 +602,46 @@ ggplot(data=sgr_all,aes(x=percent,y=sgr_w,colour=size))+geom_point()
 
 #---- SGR Models -----
 # weight
-sgrw.m1<-lmer(sgr_w~percent+size+(percent|tank)+(size|tank),data=sgr_all)
-sgrw.m1
-summary(sgrw.m1)
+sgrw.m1<-lm(sgr_w~percent*size,data=sgr_all)
+
 plot(sgrw.m1)
 hist(resid(sgrw.m1))
 qqnorm(resid(sgrw.m1))
 Anova(sgrw.m1,type="III")
-anova(sgrw.m1)
-exp(logLik(sgrw.m1))
-# take out size
-sgrw.m2<-lmer(sgr_w~percent+(percent|tank),data=sgr_all)
-sgrw.m2
-summary(sgrw.m2)
+sgrw.m2<-lm(sgr_w~percent+size,data=sgr_all)
 plot(sgrw.m2)
 hist(resid(sgrw.m2))
-qqnorm(resid(sgrw.m2))
 Anova(sgrw.m2,type="III")
-anova(sgrw.m2)
-exp(logLik(sgrw.m2))
+summary(sgrw.m2)
 
-anova(sgrw.m1,sgrw.m2)
+sgrw.m3<-lm(sgr_w~percent,data=sgr_all)
+plot(sgrw.m3)
+hist(resid(sgrw.m3))
+Anova(sgrw.m3,type="III")
+summary(sgrw.m3)
+
+exp(logLik(sgrw.m1))
+exp(logLik(sgrw.m2))
+exp(logLik(sgrw.m3))
+
 
 # Length
-sgrl.m1<-lmer(sgr_sl~percent*size+(1|tank),data=sgr_all)
+sgrl.m1<-lm(sgr_sl~percent*size,data=sgr_all)
 sgrl.m1
 summary(sgrl.m1)
 plot(sgrl.m1)
-Anova(sgrl.m1)
+Anova(sgrl.m1,type="III")
 
 # take out size
-sgrl.m2<-lmer(sgr_sl~percent+(1|tank),data=sgr_all)
-sgrl.m2
-summary(sgrl.m2)
-plot(sgrl.m2)
-Anova(sgrl.m2)
+sgrl.m2<-lm(sgr_sl~percent+size,data=sgr_all)
 
-anova(sgrl.m1,sgrl.m2)
+plot(sgrl.m2)
+hist(resid(sgrl.m2))
+Anova(sgrl.m2,type="III")
+
 
 # model 2 is better!
-# Try GLMM to see if there are improvements
-# don't know what distribution to use
+
 
 #when size=large, add .1 to percent
 #when size=small, subtract .1 from percent
@@ -714,29 +713,6 @@ ggplot(sgr_adjusted,aes(x=percent_adj,sgr_length,fill=size))+
   
   
   
-  
-  
-weight.m1<-lm(sgr_w~ration*size,data=lw)
-summary(weight.m1)
-par(mfrow=c(2,2))
-plot(weight.m1)
-
-weight.m2<-lm(sgr_w~ration+size,data=lw)
-summary(weight.m2)
-plot(weight.m2)
-
-
-
-length.m1<-lm(sgr_sl~ration*size,data=lw)
-summary(length.m1)
-plot(length.m1)
-
-length.m2<-lm(sgr_sl~ration+size,data=lw)
-summary(length.m2)
-plot(length.m2)
-
-
-
 
 #Relative Rate of increase
 names(lw)
@@ -771,7 +747,6 @@ growth<-mutate(length_weight,julian_date=replace(julian_date,julian_date>364,0))
 
 length_weight$tank<-as.factor(length_weight$tank)
 ggplot(tank36,aes(x=julian_date,y=length_mm))+
-  stat_smooth_func(geom="text",method="lm",hjust=-0.5,vjust=-4,parse=TRUE)+
   geom_smooth(method='lm')+
   geom_point()
 
@@ -784,7 +759,6 @@ growth.graph<-function(growth,na.rm=TRUE, ...){
   for (i in seq_along(tank_list)) {
     plot<-ggplot(subset(growth,growth$tank==tank_list[i]),
                  aes(x=julian_date,y=length_mm,group=tank))+
-      stat_smooth_func(geom="text",method="lm",hjust=-0.5,vjust=-4,parse=TRUE)+
       geom_smooth(method='lm')+
       geom_point()+
       theme_bw()+
@@ -822,7 +796,6 @@ growth2.graph<-function(growth2,na.rm=TRUE, ...){
     plot<-ggplot(subset(growth2,growth2$tank==tank_list[i]),
                  aes(x=julian_date,y=sl,group=tank))+
       geom_pointrange(aes(ymin=sl-se,ymax=sl+se),size=.75)+
-      stat_smooth_func(geom="text",method="lm",hjust=-0.5,vjust=-4,parse=TRUE)+
       geom_smooth(method='lm')+
       geom_point()+
       theme_bw()+
@@ -878,7 +851,3 @@ exp(logLik(m1))
 exp(logLik(m2))
 exp(logLik(m3))
 
-
-# Try with survival data?
-summary(survival)
-m4<-betareg(perc_surv~julian_date,data=survival)
