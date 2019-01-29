@@ -165,7 +165,7 @@ ggplot(may,aes(x=sl))+
 
 mrkdata<-data%>%
   filter(age<2 & sl>=55)%>%
-  select(date,animal_id,sl,mark)%>%
+  select(date,animal_id,sl,mark,AD)%>%
   data.frame()
 
 # Determine time-steps
