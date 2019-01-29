@@ -1,7 +1,7 @@
 ### Mark-recapture ###
 
 # ---- set working directory ----
-setwd("C:/Users/Emilie/Dropbox/Thesis/Research/CHONe-1.2.1/")
+setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
 
 # ---- load required packages ----
 library(tidyr)
@@ -12,12 +12,11 @@ library(lubridate)
 library(RMark)
 
 # ---- load data ----
-data<-read.csv("./data/data-working/mark-history-field.csv")
+data<-read.csv("./data/data-working/mark-history-field-adj.csv")
 subsample<-read.csv("./data/data-working/subsample_wk1-2-field.csv")
 
 # ---- check data ----
 names(data)
-data<-select(data,year,month,day,site,animal_id,sl,age,mark)
 str(data)
 summary(data)
 head(data)
