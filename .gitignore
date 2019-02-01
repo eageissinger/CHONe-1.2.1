@@ -5,3 +5,7 @@ shapefiles/
 *.html
 *.Rhistory
 code/*.Rhistory
+*.inp
+*.out
+*.res
+*.vcv
