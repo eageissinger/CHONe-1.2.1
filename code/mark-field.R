@@ -184,14 +184,25 @@ collection.dates<-collection.dates[1:4,]
 
 
 # ---- format for RMark ----
+
+# exclude fish that were culled mid study
+unique(mrkdata$date)
+mrkdata1<-mrkdata%>%
+  filter(date=="2016-10-14" & AD == 0 | 
+           date == "2016-10-19" & AD ==0 |
+           date == "2016-10-28" & AD == 0 |
+           date == "2017-05-24")
+
+
 # melt then cast, equivalent to gather then spread
 
-mrkdata2<-spread(mrkdata,date,mark,fill=0)
+mrkdata2<-spread(mrkdata1,date,mark,fill=0)
 # adjust data frame to account for fish taken out of the population
 # -1 means taken out of population
 
 
-mrkdata3<-unite(mrkdata2,ch,c("2016-10-14","2016-10-19","2016-10-28","2017-05-24"),
+
+mrkdata3<-unite(mrkdata2,ch,c("2016-10-14","2016-10-19","2017-05-24"),
            sep="",remove=TRUE)
 View(mrkdata3)
 unique(mrkdata3$ch)
@@ -214,7 +225,7 @@ nb.all<-nb%>%
 nb.model<-function()
 {
   # process data for CJS model and make default design data
-  nb.processed<-process.data(nb.all,time.intervals = c(5,9,208))
+  nb.processed<-process.data(nb.all,time.intervals = c(5,217))
   nb.ddl<-make.design.data(nb.processed)
   # define models for Phi
   Phi.dot<-list(formula=~1)
@@ -230,39 +241,60 @@ nb.model<-function()
 nb.results<-nb.model()
 nb.results
 
-summary(nb.results[[3]])
-PIMS(nb.results[[3]],"Phi")
-PIMS(nb.results[[3]],"p")
+summary(nb.results[[1]])
+PIMS(nb.results[[1]],"Phi")
+PIMS(nb.results[[1]],"p")
 
+
+# ---- October only ----
 # ---- Add individual covariates -----
-nb.sl<-select(nb,ch,sl)
+# exclude fish that were culled mid study
+unique(mrkdata$date)
+mrkoct<-mrkdata%>%
+  filter(date=="2016-10-14" & AD == 0 | 
+           date == "2016-10-19" & AD ==0 |
+           date == "2016-10-28")
 
-nb.covariate.model<-function()
+
+# melt then cast, equivalent to gather then spread
+
+mrkoct2<-spread(mrkoct,date,mark,fill=0)
+# adjust data frame to account for fish taken out of the population
+# -1 means taken out of population
+
+mrkoct3<-unite(mrkoct2,ch,c("2016-10-14","2016-10-19","2016-10-28"),
+                sep="",remove=TRUE)
+# ---- CJS October Run ----
+# Newbridge and October only
+# time and dependent - no length yet
+oct<-mrkoct3[str_detect(mrkoct3$animal_id,"NB"),]
+oct$sl<-as.numeric(oct$sl)
+oct.all<-oct%>%
+  select(ch)%>%
+  data.frame()
+
+
+oct.model<-function()
 {
   # process data for CJS model and make default design data
-  nb.processed<-process.data(nb.sl,time.intervals = c(5,9,208))
-  nb.ddl<-make.design.data(nb.processed)
+  oct.processed<-process.data(oct.all,time.intervals = c(5,9))
+  oct.ddl<-make.design.data(oct.processed)
   # define models for Phi
   Phi.dot<-list(formula=~1)
   Phi.time<-list(formula=~time)
-  # add sl for Phi
-  Phi.sl<-list(formula=~sl)
-  Phi.sl.plus.time<-list(formula=~sl+time)
-  Phi.slxtime<-list(formula=~sl*time)
   # define models for p
   p.dot<-list(formula=~1)
   p.time<-list(formula=~time)
   # create model list
   cml<-create.model.list("CJS")
   # run and return models
-  return(mark.wrapper(cml,data=nb.processed,ddl=nb.ddl))
+  return(mark.wrapper(cml,data=oct.processed,ddl=oct.ddl))
 }
-nb.covariate.results<-nb.covariate.model()
-nb.covariate.results
+oct.results<-oct.model()
+oct.results
 
-nb.covariate.results[[5]]$design.matrix
+summary(oct.results[[1]])
+PIMS(nb.results[[1]],"Phi")
+PIMS(nb.results[[1]],"p")
 
-PIMS(nb.covariate.results[[5]],"Phi")
-PIMS(nb.covariate.results[[5]],"p")
-
-
+# Next step: assign pulse to data
