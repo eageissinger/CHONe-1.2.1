@@ -2,7 +2,7 @@
 # Purpose: assign dummy pulses to length data for all age 1 cod
 
 # ---- set working directory ----
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-master/")
+setwd("C:/Users/USER//Documents/Research/CHONe-1.2.1/")
 
 # ---- load packages ----
 library(lubridate)
