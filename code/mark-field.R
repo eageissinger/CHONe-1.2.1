@@ -112,7 +112,32 @@ final%>%
   filter(month!=5)%>%
   ggplot(aes(y=sl,x=date,colour=factor(pulse)))+
   geom_jitter()
+# fill in missing pulses for week between trip 19 and trip 20
+test<-final[1:305,]
 
+test$id<-as.numeric(str_sub(test$animal_id,start=4))
+
+test1<-test%>%
+  filter(id<1)
+test2<-test%>%
+  filter(AD==1)
+test3<-bind_rows(test1,test2)
+
+ggplot(test3,aes(x=date,y=sl,colour=factor(pulse)))+
+  geom_point()
+
+test4<-final%>%
+  mutate(pulse=replace(pulse,date=="2016-10-28" & is.na(pulse),3))%>%
+  mutate(pulse=replace(pulse,date=="2016-10-19" & is.na(pulse) & sl<50,3))%>%
+  mutate(pulse=replace(pulse,date=="2016-10-19" & is.na(pulse) & sl<75,2))%>%
+  mutate(pulse=replace(pulse,date=="2016-10-19" & is.na(pulse) & sl>75,1))
+
+test4%>%
+  filter(month!=5)%>%
+  ggplot(aes(x=date,y=sl,colour=factor(pulse)))+
+  geom_jitter()
+
+final<-test4
 # ---- preliminary analysis: size distribution ----
 
 # select individual fish, size, and last date captured
