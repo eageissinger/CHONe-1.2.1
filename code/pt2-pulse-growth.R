@@ -1,21 +1,18 @@
 ### Growth rates - Pulse data ###
 
 # ---- set working directory ----
-setwd("C:/Users/Emilie/Dropbox/Thesis/Research/CHONe-1.2.1/")
+setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
 
 # ---- load packages ----
 library(lubridate)
-library(dplyr)
-library(tidyr)
-library(ggplot2)
-library(stringr)
+library(tidyverse)
 
 # ---- load data -----
 age0<-read.csv("./data/data-working/age-0-pulse-range.csv")
 age1<-read.csv("./data/data-working/age-1-mixture-dist.csv")
 count<-read.csv("./data/data-working/catch-pulse-newman.csv")
 fullcount<-read.csv("./data/data-working/newman-catch.csv")
-trips<-read.csv("./data/data-working/trip-dates-newman.csv")
+trips<-read.csv("./data/data-working/newman-trips.csv")
 
 # --- check data ----
 # age 0
@@ -63,17 +60,8 @@ names(trips)
 
 # ---- Date manipulation ----
 
-# Trip Dates
-trips$year<-as.numeric(str_sub(trips$Date,start = 1,end = 4))
-trips$month<-as.numeric(str_sub(trips$Date,start=5,end=6))
-trips$day<-as.numeric(str_sub(trips$Date,start=7,end=8))
-
-tripdates<-trips%>%
-  rename(trip=Trip)%>%
-  select(trip,year,month,day)
-
 # Add trip dates to age 0 data
-age0<-left_join(age0,tripdates)
+age0<-left_join(age0,trips)
 
 #format date
 age0$date<-ymd(paste(age0$year,age0$month,age0$day,sep="-"))

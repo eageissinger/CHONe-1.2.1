@@ -2,16 +2,13 @@
 setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-master/")
 
 # --- load packages ----
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-library(stringr)
+library(tidyverse)
 library(mixdist)
 library(lubridate)
 
 # --- load data ----
 length<-read.csv("./data/data-working/newman-length.csv")
-trips<-read.csv("./data/data-working/trip-dates-newman.csv")
+trips<-read.csv("./data/data-working/newman-trips.csv")
 catch<-read.csv("./data/data-working/newman-catch.csv")
 haul<-read.csv("./data/data-working/catch_haul.csv")
 
@@ -20,16 +17,6 @@ head(length)
 length$date<-ymd(paste(length$year,length$month,length$day,sep="-"))
 # remove current trips column
 length<-select(length,-trip)
-
-head(trips)
-trips<-rename(trips,trip=Trip)
-
-trips$year<-as.numeric(str_sub(trips$Date,start=1,end=4))
-trips$month<-as.numeric(str_sub(trips$Date,start=5,end=6))
-trips$day<-as.numeric(str_sub(trips$Date,start=7,8))
-trips<-select(trips,-Date)
-trips$date<-ymd(paste(trips$year,trips$month,trips$day,sep="-"))
-head(trips)
 
 head(catch)
 catch<-left_join(catch,trips)
@@ -246,7 +233,7 @@ pulse.growth$date<-ymd(paste(pulse.growth$year,pulse.growth$month,pulse.growth$d
 ggplot(pulse.growth,aes(x=date,y=mean,shape=factor(pulse)))+geom_point(size=2)+
   geom_errorbar(aes(ymin=min,ymax=max),width=0)+
   theme_bw()+
-  ggtitle("2015 Cohort")+
+  ggtitle("2007 Cohort")+
   xlab("Date")+ylab("Standard length (mm)")+
   scale_x_date(date_breaks="1 month",
                date_labels="%b")+
@@ -271,16 +258,14 @@ count1<-catch%>%
 
 # age 0 by pulse
 # tables
-catch2<-haul%>%
+table1<-haul%>%
   select(year,month,trip,age,total_catch,total_measured,extrap_1,extrap_2,
          extrap_3,extrap_4,extrap_5,extrap_6,extrap_unknown,total)%>%
   gather(key="extrap",value = "catch_haul",c(7:13),na.rm = FALSE)%>%
   mutate(total_measured=replace(total_measured,total_catch==0,0))%>%
   mutate(catch_haul=replace(catch_haul,total_catch==0,0))%>%
   mutate(pulse=str_sub(extrap,start=8,end = 8))%>%
-  mutate(pulse=replace(pulse,pulse=="u",NA))
-
-table1<-catch2%>%
+  mutate(pulse=replace(pulse,pulse=="u",NA))%>%
   group_by(year,month,trip,age,pulse,total_catch,total_measured)%>%
   summarise(catch_per_haul=mean(catch_haul))
 
@@ -372,11 +357,17 @@ age1final<-age1.length.pulse %>%
   mutate(pulse=replace(pulse, trip == 12 & pulse == 1,2))
 
 # combine updated age 1 length data with length data
-all.length <- length %>%
-  filter(age != 1 & year != 2008)
+age0length <- length %>%
+  filter(age!=1)
+age1length<-length%>%
+  filter(age==1 & year <2008)
+test<-length%>%
+  filter(age==1 & year>2008)
 age12008<-length%>%
   filter(age==1 & year ==2008)
-dim(all.length)
+dim(test)
+dim(age0length)
+dim(age1length)
 dim(age12008)
 dim(length) # not sure why the above filters do not work
 all.length %>% filter(age == 1 & year == 2008)

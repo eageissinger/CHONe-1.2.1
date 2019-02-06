@@ -10,11 +10,9 @@ length<-read.csv("./data/data-working/newman-length.csv")
 catch<-read.csv("./data/data-working/catch_haul.csv")
 
 # ---- load packages -----
-library(dplyr)
-library(tidyr)
+library(tidyverse)
 library(lubridate)
-library(stringr)
-library(ggplot2)
+
 
 # ---- format Dataframe -----
 # fix date in age1pulse and length

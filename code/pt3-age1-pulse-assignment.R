@@ -2,18 +2,16 @@
 # Purpose: assign dummy pulses to length data for all age 1 cod
 
 # ---- set working directory ----
-setwd("C:/Users/USER//Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-master/")
 
 # ---- load packages ----
 library(lubridate)
-library(stringr)
-library(dplyr)
-library(tidyr)
+library(tidyverse)
 
 # ---- load data ----
 length<-read.csv("./data/data-working/newman-length.csv")
 age1pulse<-read.csv("./data/data-working/age-1-mixture-dist.csv")
-tripdate<-read.csv("./data/data-working/trip-dates-newman.csv")
+tripdate<-read.csv("./data/data-working/newman-trips.csv")
 
 
 # ---- check data ----
@@ -38,17 +36,8 @@ names(tripdate)
 # format dates
 length$date<-ymd(paste(length$year,length$month,length$day,sep="-"))
 age1pulse$date<-ymd(paste(age1pulse$year,age1pulse$month,age1pulse$day,sep="-"))
-
-# format trip dates
-# split 'date' column into year, month, day
-tripdate$year<-as.integer(str_sub(tripdate$Date,start = 1,end = 4))
-tripdate$month<-as.integer(str_sub(tripdate$Date,5,6))
-tripdate$day<-as.integer(str_sub(tripdate$Date,7,8))
-# put year month day back as date (formated properly)
 tripdate$date<-ymd(paste(tripdate$year,tripdate$month,tripdate$day, sep="-"))
-tripdate<-select(tripdate,-Date)
-names(tripdate)
-tripdate<-rename(tripdate,trip=Trip)
+
 
 # make dataframe with min and max pulse ranges
 # use +/- standard deviation for "min" and "max"
@@ -80,9 +69,6 @@ freq_test1<-left_join(age1l,freq_test1)
 test<-freq_test1%>%
   group_by(cohort,trip,pulse)%>%
   filter(mmSL)
-
-
-
 
 
 # incorporate the 'in between' ranges
