@@ -326,8 +326,6 @@ nb$sl<-as.numeric(nb$sl)
 nb.all<-nb%>%
   select(ch)%>%
   data.frame()
-duplicated(nb.all)
-nb.all<-distinct(nb.all)
 
 nb.model<-function()
 {
@@ -348,11 +346,11 @@ nb.model<-function()
 nb.results<-nb.model()
 nb.results
 
-summary(nb.results[[4]])
+summary(nb.results[[1]])
 PIMS(nb.results[[1]],"Phi")
 PIMS(nb.results[[1]],"p")
 nb.results$model.table
-nb.results[[4]]$output
+nb.results[[1]]$output
 
 # ---- October only ----
 # ---- Add individual covariates -----
@@ -377,16 +375,16 @@ mrkoct3<-unite(mrkoct2,ch,c("2016-10-14","2016-10-19","2016-10-28"),
 # ---- CJS October Run ----
 # Newbridge and October only
 # time and dependent - no length yet
-oct<-mrkoct3[str_detect(mrkoct3$animal_id,"NB"),]
+oct<-mrkoct3
+duplicated(oct)
 oct$sl<-as.numeric(oct$sl)
 oct.all<-oct%>%
   select(ch)%>%
   data.frame()
-unique(oct.all$ch)
+
 oct.all<-oct.all%>%
   filter(ch!="000")
-duplicated(oct.all)
-oct.all<-distinct(oct.all)
+
 oct.model<-function()
 {
   # process data for CJS model and make default design data
@@ -406,11 +404,11 @@ oct.model<-function()
 oct.results<-oct.model()
 oct.results
 
-summary(oct.results[[4]])
+summary(oct.results[[1]])
 PIMS(nb.results[[1]],"Phi")
 PIMS(nb.results[[1]],"p")
 
-oct.results[[4]]$output
+oct.results[[1]]$output
 
 # ---- survival by pulse ----
 # Newbridge only
@@ -421,8 +419,7 @@ nb.pulse<-nb%>%
 unique(nb.pulse$pulse)
 nb.pulse$pulse<-as.factor(nb.pulse$pulse)
 str(nb.pulse)
-duplicated(nb.pulse)
-nb.pulse<-distinct(nb.pulse)
+
 
 pulse.model<-function()
 {
@@ -447,7 +444,8 @@ pulse.model<-function()
   return(mark.wrapper(cml,data=nb.processed,ddl=nb.ddl))
 }
 pulse.results<-pulse.model()
+
 pulse.results
 
-summary(pulse.results[[5]])
+summary(pulse.results[[1]])
 pulse.results[[5]]$output
