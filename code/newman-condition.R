@@ -5,25 +5,25 @@
 # and age1_dummypulse (for now)
 
 # ----- set working directory -----
-setwd("C:/Users/Emilie/Dropbox/Thesis/Research/CHONe-1.2.1/")
+setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
 
 
 # ---- load packages ----
 library(MASS)
-library(tidyr)
+library(tidyverse)
 library(lubridate)
-library(stringr)
-library(ggplot2)
-library(dplyr)
 library(pscl)
 library(boot)
 library(car)
 library(betareg)
+library(corrplot)
+library(GLMMadaptive)
+library(glmmTMB)
 
 # ---- load data ----
-condition<-read.delim("./data/data-working/condition-newman.txt")
-range_final<-read.csv("./data/data-working/pulse_range_mayjuly.csv")
-trips<-read.csv("./data/data-working/trip-dates-newman.csv")
+condition<-read.csv("./data/data-working/condition-newman.csv")
+range_final<-read.csv("./data/data-working/age1-pulse-range.csv")
+trips<-read.csv("./data/data-working/newman-trips.csv")
 winter<-read.csv("./data/data-working/newman-winter-summary.csv")
 catch_haul<-read.csv("./data/data-working/catch_haul.csv")
 pulse_range0<-read.csv("./data/data-working/pulse_range0.csv")
@@ -33,10 +33,9 @@ pulse_range0<-read.csv("./data/data-working/pulse_range0.csv")
 # check data
 dim(condition)
 names(condition)
-names(condition)<-c('date','site','species','age','pulse','mmSL','weight',
-                    'x','fulton.k','notes')
+
 condition<-condition%>%
-  select(-x,-fulton.k) # take out blank column and fulton calc
+  select(-Date,-fulton.k) # take out blank column and fulton calc
 str(condition) # get rid of empty rows
 condition%>%
   filter(is.na(mmSL)) # confirm that all NA for mmSL are blank rows
@@ -48,7 +47,7 @@ test<-condition
 test$weight<-as.character(test$weight)
 test$weight<-as.numeric(test$weight)
 test%>%filter(is.na(weight)) # found the comma value
-condition%>%filter(date=="2015-08-26" & site== "Mount Stamford" &
+condition%>%filter(year==2015 & month == 8 & day == 26 & site== "Mount Stamford" &
                      mmSL==53) # find matching entry
 condition$weight<-as.character(condition$weight)
 condition<-condition%>%
@@ -70,13 +69,10 @@ condition$age<-as.integer(condition$age)
 str(condition)
 
 # fix date
-condition$date<-as.character(condition$date)
-condition$year<-as.numeric(str_sub(condition$date,start=1,end = 4))
-condition$month<-as.numeric(str_sub(condition$date,start=6,end = 7))
-condition$day<-as.numeric(str_sub(condition$date,start=9,end = 10))
 condition$date<-ymd(paste(condition$year,condition$month,condition$day,sep="-"))
 str(condition)
-
+summary(condition)
+summary(pulse_range0)
 # update pulse assignments for age 0
 pulse_range0$date<-ymd(paste(pulse_range0$year,pulse_range0$month,pulse_range0$day,sep="-"))
 
@@ -90,16 +86,17 @@ pulse_assign0<-pulse_assign0%>%
 
 # update pulse assignments for age 1
 str(range_final)
+range_final<-range_final%>%select(-date)
 range_final$date<-ymd(paste(range_final$year,range_final$month,range_final$day,sep="-"))
 
 pulse_assign1<-data.frame(trip=rep(range_final$trip,range_final$max-range_final$min+1),
-                         date=rep(range_final$date,range_final$max-range_final$min+1),
+                         year=rep(range_final$year,range_final$max-range_final$min+1),
+                         month=rep(range_final$month,range_final$max-range_final$min+1),
                          cohort=rep(range_final$cohort,range_final$max-range_final$min+1),
-                         pulse=rep(range_final$pulse,range_final$max-range_final$min+1),
+                         pulse=rep(range_final$dummy_pulse,range_final$max-range_final$min+1),
                          mmSL=unlist(mapply(seq,range_final$min,range_final$max)))
 pulse_assign1<-pulse_assign1%>%
   mutate(year=cohort+1)%>%
-  select(-date)%>%
   data.frame()
 
 # assign pulse to age 0 condition
@@ -125,13 +122,13 @@ cond0<-condition%>%
   filter(age == 0)%>%
   filter(month == 10 | month ==11)%>%
   mutate(K=100*(weight/((mmSL*.1)^3)))%>%
-  group_by(year,cohort,age,pulse,month)%>%
+  group_by(year,cohort,age,trip,pulse,month)%>%
   summarise(fulton=mean(K),sd=sd(K))
 cond1<-condition%>%
   filter(age==1)%>%
   filter(month == 5 | month == 7)%>%
   mutate(K=100*(weight/((mmSL*.1)^3)))%>%
-  group_by(year,cohort,age,pulse,month)%>%
+  group_by(year,cohort,age,trip,pulse,month)%>%
   summarise(fulton=mean(K),sd=sd(K))
 cond<-bind_rows(cond0,cond1)
 
@@ -159,8 +156,8 @@ catch<-catch_haul%>%
   mutate(pulse=replace(pulse,pulse=="u",NA))%>%
   select(-extrap)%>%
   rename(count=catch_haul)%>%
-  group_by(year,month,age,pulse)%>%
-  summarise(count=mean(count))%>%
+  group_by(year,month,age,trip,pulse)%>%
+  summarise(count=sum(count))%>%
   filter(!is.na(month))%>%
   filter(!is.na(pulse))
 View(catch)
@@ -173,8 +170,7 @@ catch1<-catch%>%
   filter(month == 5 | month ==7)%>%
   mutate(cohort=year-1)
 abundance<-bind_rows(catch0,catch1)
-abundance<-abundance%>%
-  mutate(count2=ceiling(count))
+
 
 # ---- combine all data ----
 nrow(cond)
@@ -183,12 +179,13 @@ nrow(abundance)
 
 # determine pulse selection
 # determine start year
-summary(cond) # start with 1999 cohort, end with 2015 (for now)
+summary(condition)
+summary(cond) # start with 1999 cohort, end with 2016 (for now)
 cond<-cond%>%
-  filter(cohort<2016)
-winter<-winter%>% filter(cohort>1998 & cohort < 2016)
+  filter(cohort<2017)
+winter<-winter%>% filter(cohort>1998 & cohort < 2017)
 abundance<-abundance%>%
-  filter(cohort>1998 & cohort<2016)
+  filter(cohort>1998 & cohort<2017)
 nrow(cond)
 nrow(winter)
 nrow(abundance)
@@ -198,8 +195,9 @@ cond_all<-left_join(cond,abundance)
 cond_all<-left_join(cond_all,winter)
 names(cond_all)
 head(cond_all)
-cond_all<-cond_all%>%
-  filter(!is.na(pulse))
+str(cond_all)
+#cond_all<-cond_all%>%
+ # filter(!is.na(pulse))
 # creat pre and post condition, and initial and final abundance
 df<-cond_all%>%
   filter(month==10 |month==11 | month == 5 | month == 7)%>%
@@ -234,7 +232,7 @@ names(alldata)
 str(alldata)
 summary(alldata)
 
-ggplot(mydata,aes(x=cohort,y=ratio,colour=preK,size=days_below_1,shape=pulse))+
+ggplot(alldata,aes(x=cohort,y=ratio,colour=preK,size=days_below_1,shape=pulse))+
   geom_point()+theme_bw()+
   scale_colour_gradient(low = "red", 
                         high = "green",
@@ -245,81 +243,19 @@ ggplot(mydata,aes(x=cohort,y=ratio,colour=preK,size=days_below_1,shape=pulse))+
 # ---- model ----
 mydata<-as.data.frame(alldata)
 mydata<-mydata%>%filter(pulse!=6)
-m0<-lm(ratio~preK+postK+factor(pulse)+days_below_1+cohort,data=mydata)
-m0
-ggplot(m0,aes(x=fitted(m0),y=resid(m0)))+geom_point()+
-  xlab("Fitted Values")+ylab("Residuals")+
-  geom_hline(yintercept = 0,colour='red',linetype='dashed')+
-  theme_classic()
-hist(resid(m0))
-qqnorm(resid(m0))
-ggplot(m0,aes(x=lag(resid(m0)),y=resid(m0)))+geom_point()+
-  xlab("Lagged Residuals")+ylab("Residuals")+
-  theme_classic()
-res<-resid(m0)
-fit<-fitted(m0)
-plot(x=fit,y=res)
-plot(m0)
-anova(m0)
-
-
-
-m1<-glm(ratio~preK+postK+factor(pulse)+days_below_1+cohort,data=mydata,family=poisson(link = "log"))
-ggplot(m1,aes(x=fitted(m1),y=resid(m1)))+geom_point()+
-  xlab("Fitted Values")+ylab("Residuals")+
-  geom_hline(yintercept = 0,colour='red',linetype='dashed')+
-  theme_classic()
-hist(resid(m1))
-qqnorm(resid(m1))
-ggplot(m1,aes(x=lag(resid(m1)),y=resid(m1)))+geom_point()+
-  xlab("Lagged Residuals")+ylab("Residuals")+
-  theme_classic()
-anova(m1)
-warnings()
-
-m2<-glm.nb(ratio~preK+postK+factor(pulse)+days_below_1+cohort,
-           data=mydata,link="log")
-ggplot(m2,aes(x=fitted(m2),y=resid(m2)))+geom_point()+
-  xlab("Fitted Values")+ylab("Residuals")+
-  geom_hline(yintercept = 0,colour='red',linetype='dashed')+
-  theme_classic()
-hist(resid(m2))
-qqnorm(resid(m2))
-ggplot(m2,aes(x=lag(resid(m2)),y=resid(m2)))+geom_point()+
-  xlab("Lagged Residuals")+ylab("Residuals")+
-  theme_classic()
-
-exp(logLik(m0))
-exp(logLik(m1))
-exp(logLik(m2))
-exp(logLik(m5))
-exp(logLik(m6))
-Anova(m2)
-anova(m2)
-av<-anova(m2)
-
-# Likelihood
-exp(4.2343/2)
-2*log(8.307)
-exp(13.5636/2)
-exp(0.9181/2)
-exp(0.2360/2)
-
-
 
 
 # raw count
-m3<-glm(postCount~preCount+preK+postK+cohort+factor(pulse)+days_below_1,
+m0<-glm(postCount~preCount+preK+cohort+factor(pulse)+days_below_1,
              data=mydata,family=poisson(link = "log"))
-m3
-res<-resid(m3)
-fit<-fitted(m3)
-plot(x=fit,y=res)
-hist(resid(m3))
+m0
+hist(resid(m0))
+plot(m0)
 
-m4<-glm.nb(postCount~preCount+preK+postK+cohort+factor(pulse)+days_below_1,
+m1<-glm.nb(postCount~preCount+preK+cohort+factor(pulse)+days_below_1,
         data=mydata,link="log")
 m4
+plot(m4)
 res<-resid(m4)
 fit<-fitted(m4)
 plot(x=fit,y=res)
@@ -327,57 +263,91 @@ hist(resid(m4))
 qqnorm(resid(m4))
 summary(m4)
 anova(m4)
-m5<-zeroinfl(postCount~preK+postK+factor(pulse)+
-               days_below_1+cohort|preCount,data=mydata)
-m5
-res5<-resid(m5)
-fit5<-fitted(m5)
-plot(x=fit,y=res)
-hist(resid(m5))
-qqnorm(resid(m5))     
-summary(m5)
-exp(logLik(m5))
-df5<-as.data.frame(cbind(res5,fit5))
 
-ggplot(df5,aes(x=fit5,y=res5))+geom_point()+
+
+#---- collinearity check ----
+mydata$cohort<-as.numeric(mydata$cohort)
+mydata$pulse<-as.numeric(mydata$pulse)
+mydata<-mydata%>%select(-ratio)
+mat1<-as.matrix(mydata)
+cor1<-cor.mtest(mydata)
+corrplot(cor(mydata),method="shade",shade.col=NA,tl.col="black", tl.srt=45)
+
+
+# ---- zero inflated ----
+
+ggplot(data=mydata,aes(x=cohort,y=postCount))+geom_point()
+ggplot(data=mydata,aes(x=cohort,y=preCount))+geom_point()
+
+m1<-zeroinfl(postCount~preK+factor(pulse)+days_below_1+cohort|
+              preCount,data=mydata,dist = "poisson")
+res1<-resid(m1)
+fit1<-fitted(m1)
+plot(x=fit1,y=res1)
+hist(resid(m1))
+qqnorm(resid(m1))     
+summary(m1)
+exp(logLik(m1))
+df1<-as.data.frame(cbind(res1,fit1))
+ggplot(df1,aes(x=fit1,y=res1))+geom_point()+
   xlab("Fitted Values")+ylab("Residuals")+
   geom_hline(yintercept = 0,colour='red',linetype='dashed')+
   theme_classic()
-hist(resid(m5))
-qqnorm(resid(m5))
-ggplot(df5,aes(x=lag(res5),y=res5))+geom_point()+
+ggplot(df1,aes(x=lag(res1),y=res1))+geom_point()+
   xlab("Lagged Residuals")+ylab("Residuals")+
   theme_classic()
+summary(m1)
+Anova(m1,type="III")
 
+# neg binomial with mean temp
+m2<-zeroinfl(postCount~preK+factor(pulse)+mean_temp+cohort|
+               preCount,data=mydata,dist = "negbin")
+summary(m2)
+Anova(m2,type="III")
+res2<-resid(m2)
+fit2<-fitted(m2)
+df2<-as.data.frame(cbind(res2,fit2))
 
-
-
-m6<-zeroinfl(postCount~preK+postK+factor(pulse)+
-               days_below_1+cohort|preCount,data=mydata,
-             dist="negbin")
-res6<-resid(m6)
-fit6<-fitted(m6)
-df6<-as.data.frame(cbind(res6,fit6))
-
-ggplot(df6,aes(x=fit6,y=res6))+geom_point()+
+ggplot(df2,aes(x=fit2,y=res2))+geom_point()+
   xlab("Fitted Values")+ylab("Residuals")+
   geom_hline(yintercept = 0,colour='red',linetype='dashed')+
   theme_classic()
-hist(resid(m6))
-qqnorm(resid(m6))
-ggplot(df6,aes(x=lag(res6),y=res6))+geom_point()+
+hist(resid(m2))
+qqnorm(resid(m2))
+
+ggplot(df2,aes(x=lag(res2),y=res2))+geom_point()+
   xlab("Lagged Residuals")+ylab("Residuals")+
   theme_classic()
-exp(logLik(m6))
-exp(logLik(m5))
+exp(logLik(m1))
+exp(logLik(m2))
 
-summary(m6)
+# model 1 is better
 
-m6$fitted.values
-m6$residuals
-resid<-m6$residuals
-SSresid<-(sum(resid^2))
-SSresid
+# zero inflated mixed effect model
+m3<-mixed_model(postCount~preCount+cohort,
+                random=~1|cohort,data=mydata,
+                family=zi.poisson(),zi_fixed = ~preCount)
+res<-resid(m3)
+fit<-fitted(m3)
+plot(x=res,y=fit)
+
+hist(resid(m3))
+
+m4<-mixed_model(postCount~preCount+mean_temp+cohort,
+                random=~1|cohort,data=mydata,
+                family=zi.poisson(),zi_fixed = ~preCount)
+res<-resid(m4)
+fit<-fitted(m4)
+plot(x=res,y=fitted)
+hist(resid(m4))
+qqnorm(resid(m4))
+
+summary(m4)
+
+m4<-mixed_model(postCount~preCount+mean_temp+factor(pulse)+cohort,
+                random=~1|cohort,data=mydata,
+                family=zi.poisson(),zi_fixed = ~preCount)
+
 
 m.null<-update(m6,.~1)
 anova(m6,m.null)

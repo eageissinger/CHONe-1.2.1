@@ -6,6 +6,8 @@ tank_survival<-read.csv("./data/data-working/tank-survival-exp.csv",header=TRUE)
 
 # ---- load packages ----
 library(tidyverse)
+library(lubridate)
+library(survival)
 
 # data manimpulation
 glimpse(tank_survival)
@@ -29,3 +31,10 @@ df3<-bind_rows(df1,df2)
 # check if it worked
 df3%>%filter(tank==13,month == 3 & day ==5)
 
+# Format date
+df3$date<-ymd(paste(df3$year,df3$month,df3$day,sep="-"))
+df3$time<-yday(df3$date)
+
+# build standard suvival object
+so<-with(df3,Surv(time,size,ration,status))
+head(so,80)

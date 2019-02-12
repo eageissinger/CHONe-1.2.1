@@ -1,22 +1,22 @@
-setwd("C:/Users/Emilie/Dropbox/Thesis/Research/CHONe-1.2.1/")
+setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
 
-data<-read.csv("./data/data-working/age-1-mixture-dist.csv")
+data<-read.csv("./data/data-working/mixture-dist-statscourse.csv")
 
 library(betareg)
 library(dplyr)
-library(lmtest)
-library(stringr)
-library(lubridate)
 library(ggplot2)
+
+library(lmtest)
+library(lubridate)
 library(gridExtra)
 library(grid)
 
 summary(data)
 names(data)
 str(data)
+min(data$pi)
+max(data$pi)
 
-data<-data%>%
-  filter(mu<500)
 m1<-lm(pi~year*month*factor(dummy_pulse),data=data)
 plot(m1)
 hist(resid(m1))
@@ -69,7 +69,6 @@ qqline(resid(m1),col='red')
 plot(m1,which=4,main=NULL)
 
 # Export, save plot with width 829, height 590
-
 
 m2<-betareg(pi~year+month+factor(dummy_pulse),data=data,link="logit")
 plot(m2)

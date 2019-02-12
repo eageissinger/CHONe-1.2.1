@@ -188,9 +188,6 @@ survival<-separate(survival,group,c("size","ration"), sep=' ', convert=TRUE)
 
 survival<-left_join(survival,tempdata)
 
-
-
-
 # ---- Live condition data ------
 #data summary 
 # format data to have early terminations in as well....
@@ -291,28 +288,39 @@ Anova(lc.m2,type="III")
 
 hist(resid(lc.m2))
 
+lc.m3<-lm(kavg~ration+size+julian_date+ration*julian_date+size*julian_date,
+          data=lc)
+
+lc.m3
+plot(lc.m3)
+hist(resid(lc.m3))
+summary(lc.m3)
+Anova(lc.m3,type="III")
+
+lc.m4<-lmer(kavg~ration+size+julian_date+ration*julian_date+size*julian_date+
+              (1|tank),data=lc)
+lc.m4
+plot(lc.m4)
+hist(resid(lc.m4))
+qqnorm(resid(lc.m4))
+summary(lc.m4)
+Anova(lc.m4,type="III")
+table1<-lc%>%group_by(julian_date,ration)%>%
+  summarise(mean=mean(kavg))
+
 limitse<-aes(ymin=kavg-sek,ymax=kavg+sek)
 lc%>%
   rename(Ration=ration)%>%
   ggplot(aes(x=julian_date,y=kavg,colour=Ration,linetype=size))+
-  geom_jitter(aes(shape=Ration,colour=Ration,fill=Ration),size=3)+
+  geom_jitter(aes(shape=Ration,colour=Ration,fill=Ration))+
   stat_smooth(method="lm",se=FALSE)+
   geom_errorbar(limitse,width=1)+
-  theme_bw(base_rect_size = 2)+
+  theme_bw(base_rect_size = 1)+
   ylab("Condition factor (K)")+xlab("Day of experiment")+
-  theme(axis.text.x=element_text(size=20,face='bold'))+
-  theme(axis.text.y=element_text(size=20,face='bold'))+
-  theme(legend.title=element_text(size=16,face='bold'))+
-  ylim(0.6,1.0)+
-  theme(axis.title=element_text(size=20))+
-  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
-  theme(legend.position=c(0.85,0.26))+
   scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
   scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
   scale_shape_manual(values=c(22:25))+
-  theme(panel.grid=element_blank())+
-  theme(legend.text = element_text(size=16))+
-  theme(plot.margin = unit(c(0.75,0.75,0.75,0.75),"cm"))
+  theme(panel.grid=element_blank())
 
 
 # ----- Final Condition analysis ------
@@ -359,14 +367,20 @@ qqnorm(resid(d.m1))
 Anova(d.m1,type = "III")
 exp(logLik(d.m1))
 
-d.m2<-glm(dry~percent+size,data=finalK,
+d.m2<-glm(dry~ration+size,data=finalK,
             family=Gamma(link = "log"))
+
 d.m2
 summary(d.m2)
 plot(d.m2)
 hist(resid(d.m2))
 qqnorm(resid(d.m2))
 Anova(d.m2,type="III")
+
+table2<-finalK%>%
+  group_by(ration)%>%
+  summarise(mean(dry),mean(wet))
+
 
 # Generalized Least Sqaures
 
@@ -602,19 +616,19 @@ ggplot(data=sgr_all,aes(x=percent,y=sgr_w,colour=size))+geom_point()
 
 #---- SGR Models -----
 # weight
-sgrw.m1<-lm(sgr_w~percent*size,data=sgr_all)
+sgrw.m1<-lm(sgr_w~ration*size,data=sgr_all)
 
 plot(sgrw.m1)
 hist(resid(sgrw.m1))
 qqnorm(resid(sgrw.m1))
 Anova(sgrw.m1,type="III")
-sgrw.m2<-lm(sgr_w~percent+size,data=sgr_all)
+sgrw.m2<-lm(sgr_w~ration+size,data=sgr_all)
 plot(sgrw.m2)
 hist(resid(sgrw.m2))
 Anova(sgrw.m2,type="III")
 summary(sgrw.m2)
 
-sgrw.m3<-lm(sgr_w~percent,data=sgr_all)
+sgrw.m3<-lm(sgr_w~ration,data=sgr_all)
 plot(sgrw.m3)
 hist(resid(sgrw.m3))
 Anova(sgrw.m3,type="III")
@@ -624,21 +638,26 @@ exp(logLik(sgrw.m1))
 exp(logLik(sgrw.m2))
 exp(logLik(sgrw.m3))
 
+dfsubset<-sgr_all%>%filter(ration!="0.0%")
+sgrw.m4<-lm(sgr_w~ration+size,data=dfsubset)
+plot(sgrw.m4)
+Anova(sgrw.m4,type="III")
+summary(sgrw.m4)
 
 # Length
-sgrl.m1<-lm(sgr_sl~percent*size,data=sgr_all)
+sgrl.m1<-lm(sgr_sl~ration*size,data=sgr_all)
 sgrl.m1
 summary(sgrl.m1)
 plot(sgrl.m1)
 Anova(sgrl.m1,type="III")
 
 # take out size
-sgrl.m2<-lm(sgr_sl~percent+size,data=sgr_all)
+sgrl.m2<-lm(sgr_sl~ration+size,data=sgr_all)
 
 plot(sgrl.m2)
 hist(resid(sgrl.m2))
 Anova(sgrl.m2,type="III")
-
+summary(sgrl.m2)
 
 # model 2 is better!
 
@@ -851,3 +870,4 @@ exp(logLik(m1))
 exp(logLik(m2))
 exp(logLik(m3))
 
+# ---- 

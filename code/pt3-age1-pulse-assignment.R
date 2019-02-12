@@ -2,7 +2,7 @@
 # Purpose: assign dummy pulses to length data for all age 1 cod
 
 # ---- set working directory ----
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-master/")
+setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
 
 # ---- load packages ----
 library(lubridate)
@@ -104,7 +104,7 @@ pulse_range3<-pulse_range2%>%
 ## using trip data to ease pulse assignment later on, since ranges came
 # from data across multiple days
 pulse_trip<-left_join(pulse_range3,tripdate)
-#View(pulse_trip)
+View(pulse_trip)
 pulsetripNA<-pulse_trip%>%
   filter(is.na(trip)) # check for NAs
 unique(pulsetripNA$date)
@@ -124,10 +124,9 @@ range2<-pulse_trip%>%mutate(trip=replace(trip,date=="1996-07-24",14),
                             trip=replace(trip,date=="2004-07-24",14),
                             trip=replace(trip,date=="2012-07-10",13),
                             trip=replace(trip,date=="2015-07-21",14))
-range_final<-union(range1,range2)
-range_final%>%
-  filter(is.na(trip)) #check if I missed any NAs
+range_final<-dplyr::union(range1,range2)
 
+is.na(range_final)
 
 # next step:
 # need to create a data frame that fills in all possible length 
@@ -155,7 +154,6 @@ pulse_assign<-pulse_assign%>%
 # assign pulses to age 1 length data
 
 # select age 1 cod
-length<-select(length,-trip)
 lengthtrip<-left_join(length,tripdate)
 #View(lengthtrip)
 age1length<-lengthtrip%>%filter(age==1)%>%select(-pulse)
