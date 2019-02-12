@@ -9,3 +9,4 @@ code/*.Rhistory
 *.out
 *.res
 *.vcv
+.RData
