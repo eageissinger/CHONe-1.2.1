@@ -2,7 +2,7 @@
 # Purpose: assign dummy pulses to length data for all age 1 cod
 
 # ---- set working directory ----
-setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office//")
 
 # ---- load packages ----
 library(lubridate)
@@ -191,7 +191,3 @@ write.csv(range_final,"./data/data-working/age1-pulse-range.csv",row.names = FAL
 
 str(age1length_pulse)
 
-test<-age1length_pulse%>%
-  group_by(cohort,age,trip,pulse)%>%
-  summarise(min=min(mmSL),max=max(mmSL))%>%
-  spread(pulse,)

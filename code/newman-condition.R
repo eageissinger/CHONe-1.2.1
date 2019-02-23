@@ -5,7 +5,7 @@
 # and age1_dummypulse (for now)
 
 # ----- set working directory -----
-setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 
 
 # ---- load packages ----
@@ -15,10 +15,9 @@ library(lubridate)
 library(pscl)
 library(boot)
 library(car)
-library(betareg)
 library(corrplot)
-library(GLMMadaptive)
 library(glmmTMB)
+library(lme4)
 
 # ---- load data ----
 condition<-read.csv("./data/data-working/condition-newman.csv")
@@ -254,15 +253,12 @@ plot(m0)
 
 m1<-glm.nb(postCount~preCount+preK+cohort+factor(pulse)+days_below_1,
         data=mydata,link="log")
-m4
-plot(m4)
-res<-resid(m4)
-fit<-fitted(m4)
-plot(x=fit,y=res)
-hist(resid(m4))
-qqnorm(resid(m4))
-summary(m4)
-anova(m4)
+par(mfrow=c(2,2))
+plot(m1)
+par(mfrow=c(1,1))
+hist(resid(m1))
+summary(m1)
+anova(m1)
 
 
 #---- collinearity check ----
@@ -273,13 +269,23 @@ mat1<-as.matrix(mydata)
 cor1<-cor.mtest(mydata)
 corrplot(cor(mydata),method="shade",shade.col=NA,tl.col="black", tl.srt=45)
 
+# ---- mixed effect model -----
+mix1<-lmer(postCount~preCount+preK+factor(pulse)+days_below_1+(1|cohort),data = mydata)
+plot(mix1)
+
+#GLMM
+mix2<-glmer(postCount~preK+factor(pulse)+days_below_1+(1|cohort),
+            data=mydata,family = poisson(link = "logit"))
+
+mix3<-glmer.nb(postCount~preCount+preK+factor(pulse)+days_below_1+(1|cohort),
+               data=mydata,family=binomial(link = "log"))
 
 # ---- zero inflated ----
 
 ggplot(data=mydata,aes(x=cohort,y=postCount))+geom_point()
 ggplot(data=mydata,aes(x=cohort,y=preCount))+geom_point()
 
-m1<-zeroinfl(postCount~preK+factor(pulse)+days_below_1+cohort|
+m1<-zeroinfl(postCount~preK+factor(pulse)+days_below_1|
               preCount,data=mydata,dist = "poisson")
 res1<-resid(m1)
 fit1<-fitted(m1)
@@ -300,24 +306,20 @@ summary(m1)
 Anova(m1,type="III")
 
 # neg binomial with mean temp
-m2<-zeroinfl(postCount~preK+factor(pulse)+mean_temp+cohort|
+m2<-zeroinfl(postCount~preK+factor(pulse)+days_below_1|
                preCount,data=mydata,dist = "negbin")
 summary(m2)
 Anova(m2,type="III")
 res2<-resid(m2)
 fit2<-fitted(m2)
 df2<-as.data.frame(cbind(res2,fit2))
-
-ggplot(df2,aes(x=fit2,y=res2))+geom_point()+
-  xlab("Fitted Values")+ylab("Residuals")+
-  geom_hline(yintercept = 0,colour='red',linetype='dashed')+
-  theme_classic()
+par(mfrow=c(2,2))
+plot(data=df2,x=fit2,y=res2)
 hist(resid(m2))
 qqnorm(resid(m2))
 
-ggplot(df2,aes(x=lag(res2),y=res2))+geom_point()+
-  xlab("Lagged Residuals")+ylab("Residuals")+
-  theme_classic()
+plot(data=df2,x=lag(res2),y=res2)
+
 exp(logLik(m1))
 exp(logLik(m2))
 
@@ -401,3 +403,9 @@ plot(m2)
 
 exp(logLik(m1))
 exp(logLik(m2))
+
+
+ggplot(mydata)+geom_point(aes(x=cohort,y=preCount,colour=mean_temp,size=preK))+theme_bw()
+ggplot(mydata)+geom_point(aes(x=cohort,y=postCount,colour=mean_temp,size=preK))+theme_bw()
+
+                          

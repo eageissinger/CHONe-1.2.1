@@ -1,5 +1,5 @@
 # set working directory 
-setwd("C:/Users/Emilie/Dropbox/Thesis/Research/CHONe-1.2.1/")
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 
 # ---- load packages ----
 library(dplyr)
