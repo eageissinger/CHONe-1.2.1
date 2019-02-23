@@ -10,3 +10,4 @@ code/*.Rhistory
 *.res
 *.vcv
 .RData
+methods-reports_files/
