@@ -3,18 +3,24 @@ setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
 
 # load data ----
 tank_survival<-read.csv("./data/data-working/tank-survival-exp.csv",header=TRUE)
+temp<-read.csv("./data/data-working/temperature-exp.csv")
 
 # ---- load packages ----
 library(tidyverse)
 library(lubridate)
 library(survival)
+library(survminer)
+library(ggfortify)
+library(ranger)
 
 # data manimpulation
 glimpse(tank_survival)
 tank_survival<- tank_survival%>%
   rename(year=ï..year)
-
-
+glimpse(temp)
+temp<-temp%>%
+  rename(year=ï..year)
+tank_survival<-left_join(tank_survival,temp)
 df1<-tank_survival%>% 
   uncount(number) %>%
   mutate(status = 0)
@@ -34,7 +40,49 @@ df3%>%filter(tank==13,month == 3 & day ==5)
 # Format date
 df3$date<-ymd(paste(df3$year,df3$month,df3$day,sep="-"))
 df3$time<-yday(df3$date)
+mydata<-df3%>%mutate(time=replace(time,time==366,0))
+levels(mydata$ration)
+levels(mydata$size)
 
+mydata$ration<-relevel(mydata$ration,"2.0%","1.0%","0.5%","0.0%")
 # build standard suvival object
-so<-with(df3,Surv(time,size,ration,status))
+so<-with(mydata,Surv(time,status))
 head(so,80)
+
+s_fit<-survfit(Surv(time,status)~1,data=mydata)
+summary(s_fit)
+summary(s_fit,times=c(1,30,90,120))
+autoplot(s_fit)
+
+s_trt<-survfit(Surv(time,status)~ration,data=mydata)
+summary(s_trt,times=c(1,30,90,120))
+autoplot(s_trt)
+
+s_size<-survfit(Surv(time,status)~size,data=mydata)
+summary(s_size,times=c(1,30,90,120))
+autoplot(s_size)
+
+# Cox Proportional Hazards Model
+cox<-coxph(Surv(time,status)~ration+size,data=mydata)
+summary(cox)
+cox_fit<-survfit(cox)
+autoplot(cox_fit)
+
+# Testing proportional Hazards Assumption
+test.cox<-cox.zph(cox)
+ggcoxzph(test.cox)
+
+# nonproportional hazards
+
+# move on to Aalen's additive regression model
+
+
+# Aalen's additive regression model
+aafit<-aareg(Surv(time,status)~ration+size,data=mydata)
+aafit
+summary(aafit)
+autoplot(aafit)
+
+?aareg
+
+plot(aafit[2],ylim=c(-10,10))

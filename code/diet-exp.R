@@ -7,14 +7,15 @@ setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
 total<-read.csv("./data/data-working/diet_feeding-exp.csv")
 leftover<-read.csv("./data/data-working/diet_leftover-exp.csv")
 temp<-read.csv("./data/data-working/temperature-exp.csv")
+lw<-read.csv("./data/data-working/length-weight-exp.csv")
+condition<-read.csv("./data/data-working/condition-exp.csv")
+tanks<-read.csv("./data/data-working/tank-assignments-exp.csv")
 
 # ---- packages ----
 library(MASS)
 library(strucchange)
 library(timeSeries)
-library(tidyr)
-library(dplyr)
-library(ggplot2)
+library(tidyverse)
 library(lubridate)
 library(pscl)
 library(boot)
@@ -51,6 +52,26 @@ head(temp)
 
 names(temp)<-c('year','month','day','time','tank','temperature','notes')
 
+#length-weight
+str(lw)
+summary(lw)
+dim(lw)
+names(lw)
+head(lw)
+
+names(lw)<-c('year','month','day','tank','size','ration','sl','weight','fish_num','notes')
+
+#condition
+str(condition)
+summary(condition)
+dim(condition)
+names(condition)
+head(condition)
+
+names(condition)<-c("year",'month','day','time','tank','num','sl_mm','wet_total_weight_g',
+                    'wet_liver_g','wet_evis_g','dry_liver_mg','dry_evis_g','mortality','notes',
+                    'drying_notes')
+
 # --- format date -----
 #total
 total$date<-ymd(paste(total$year,total$month,total$day,sep="-"))
@@ -64,11 +85,82 @@ leftover$julian_date<-yday(leftover$date)
 temp$date<-ymd(paste(temp$year,temp$month,temp$day,sep="-"))
 temp$julian_date<-yday(temp$date)
 
+#lw
+lw$date<-ymd(paste(lw$year,lw$month,lw$day,sep="-"))
+lw$julian_date<-yday(lw$date)
+
+lw<-lw%>%
+  mutate(julian_date=replace(julian_date,julian_date>364,0))
+
+condition$date<-ymd(paste(condition$year,condition$month,condition$day,sep="-"))
+condition$julian_date<-yday(condition$date)
 # ---- format data ----
+# average weight/length by tank and day
+lw<-lw%>%
+  group_by(tank,ration,size,julian_date)%>%
+  summarise(mean(sl),sd(sl),mean(weight),sd(weight),biomass=sum(weight))%>%
+  rename(weight='mean(weight)',sl='mean(sl)',sl.sd='sd(sl)',weight.sd='sd(weight)')
+
+# add final measurement from condition to lw
+finalw<-condition%>%
+  filter(julian_date==114 | julian_date == 84 | julian_date ==80)%>%
+  group_by(tank,julian_date)%>%
+  summarise(sl=mean(sl_mm),sl.sd=sd(sl_mm),weight=mean(wet_total_weight_g),weight.sd=sd(wet_total_weight_g),biomass=sum(wet_total_weight_g))
+finalw<-left_join(finalw,tanks)
+head(lw)
+head(finalw)
+
+lw_all<-bind_rows(lw,finalw)%>%rename(trt=ration)
+
 #combine diet dataframes
-
 diet<-left_join(total,leftover)
+# create totals based on days measured
+unique(lw_all$julian_date)
+day30<-diet%>%filter(julian_date<=30)%>%
+  group_by(tank,trt,size)%>%
+  summarise(total=sum(total_food),leftover=sum(leftover_food))%>%
+  mutate(julian_date=30)
+day31<-diet%>%filter(julian_date<=31)%>%
+  group_by(tank,trt,size)%>%
+  summarise(total=sum(total_food),leftover=sum(leftover_food))%>%
+  mutate(julian_date=31)
+day58<-diet%>%filter(julian_date>31 & julian_date<=58)%>%
+  group_by(tank,trt,size)%>%
+  summarise(total=sum(total_food),leftover=sum(leftover_food))%>%
+  mutate(julian_date=58)
+day59<-diet%>%filter(julian_date>31 & julian_date<=59)%>%
+  group_by(tank,trt,size)%>%
+  summarise(total=sum(total_food),leftover=sum(leftover_food))%>%
+  mutate(julian_date=59)
+day80s<-diet%>%filter(julian_date>59 & julian_date<=80)%>%
+  group_by(tank,trt,size)%>%
+  summarise(total=sum(total_food),leftover=sum(leftover_food))%>%
+  mutate(julian_date=80)
+day84s<-diet%>%filter(julian_date>59 & julian_date<=84)%>%
+  group_by(tank,trt,size)%>%
+  summarise(total=sum(total_food),leftover=sum(leftover_food))%>%
+  mutate(julian_date=84)
+day86<-diet%>%filter(julian_date>59 & julian_date<=86)%>%
+  group_by(tank,trt,size)%>%
+  summarise(total=sum(total_food),leftover=sum(leftover_food))%>%
+  mutate(julian_date=86)
+day87<-diet%>%filter(julian_date>59 & julian_date<=87)%>%
+  group_by(tank,trt,size)%>%
+  summarise(total=sum(total_food),leftover=sum(leftover_food))%>%
+  mutate(julian_date=87)
+day114<-diet%>%filter(julian_date>87)%>%
+  group_by(tank,trt,size)%>%
+  summarise(total=sum(total_food),leftover=sum(leftover_food))%>%
+  mutate(julian_date=114)
 
+
+diet_sum<-bind_rows(day30,day31,day58,day86,day31,day59,day87,day114,day80s,day84s)
+diet<-left_join(diet_sum,lw_all)%>%
+  select(-percent)
+day0<-filter(lw_all,julian_date==0)%>%
+  select(-percent)
+diet<-na.omit(diet)
+diet<-bind_rows(day0,diet)
 #create 'consumed' column
 # consumed = total-(leftover*1.09)
 
@@ -82,8 +174,8 @@ diet$ration[diet$trt=="0.0%"]<-"0.00"
 diet$ration<-as.numeric(diet$ration)
 
 diet<-diet%>%
-  mutate(consumed=total_food-(leftover_food*1.09))%>%
-  mutate(percent_consumed=((consumed/total_food)*ration)*100)%>%
+  mutate(consumed=total-(leftover*1.09))%>%
+  mutate(percent_consumed=((consumed/total)*ration)*100)%>%
   mutate(ration=ration*100)%>%
   data.frame()
 
@@ -611,3 +703,96 @@ ggplot(diet3,aes(x=daily_temp,y=percent_consumed,shape=size,fill=size))+
   scale_colour_manual(values=c('grey0','dodgerblue4'))+
   scale_shape_manual(values=c(22:23))+
   theme(legend.position = c(0.1,.8))
+
+
+# ---- Bioenergetics -----
+
+# Total feed consumption (Ct)
+# Ct=total feed supplied - total remaining feed
+
+# Daily feeding rate (F%)
+# F% = 100[C/((B1+B2)/2)](t2-t1)^-1
+# C is feed consumption
+# B1 and B2 are fish biomass on days t1 (start) and t2 (final)
+# 100[consumption at time2/(time one weight+time 2 weight)/2](time2-time1)^-1
+
+# Feed conversion efficiency (FCE)
+# FCE = (B2-B1)/C
+
+
+# Specific Growth rate (SGR)
+# SGR = (e^g - 1)*100
+
+# g is instantaneous growth coefficient
+# g = (lnW2 - lnW1)(t2-t1)^-1
+
+energy<-diet_final%>%
+  group_by(tank)%>%
+  mutate(F.rate=(100*(consumed/((lag(biomass)+biomass)/2))*(julian_date-lag(julian_date))^-1))%>%
+  mutate(FCE=(biomass-lag(biomass))/consumed)%>%
+  mutate(g=(log(weight)-log(lag(weight)))*(julian_date-lag(julian_date))^-1)%>%
+  mutate(sgr=(exp(g)-1)*100)%>%
+  ungroup()%>%
+  as.data.frame()
+
+energy%>%
+  filter(trt=="0.0%")%>%
+  ggplot(aes(x=julian_date,y=F.rate,colour=size))+geom_point() #tank 21 is weird due to mort
+
+energy%>%
+  filter(trt=="0.5%")%>%
+  ggplot(aes(x=julian_date,y=F.rate,colour=size))+geom_point()
+
+energy%>%
+  filter(trt=="1.0%")%>%
+  ggplot(aes(x=julian_date,y=F.rate,colour=size))+geom_point()#somethign is off
+
+energy%>%
+  filter(trt=="2.0%")%>%
+  ggplot(aes(x=julian_date,y=F.rate,colour=size))+geom_point()
+
+energy%>%
+  filter(trt=="0.0%")%>%
+  ggplot(aes(x=julian_date,y=FCE,colour=size))+geom_point()
+energy%>%
+  filter(trt=="0.5%")%>%
+  ggplot(aes(x=julian_date,y=FCE,colour=size))+geom_point()
+energy%>%
+  filter(trt=="1.0%")%>%
+  ggplot(aes(x=julian_date,y=FCE,colour=size))+geom_point()
+energy%>%
+  filter(trt=="2.0%")%>%
+  ggplot(aes(x=julian_date,y=FCE,colour=size))+geom_point()
+
+energy%>%
+  filter(trt=="0.0%")%>%
+  ggplot(aes(x=julian_date,y=sgr,colour=size))+geom_point()
+energy%>%
+  filter(trt=="0.5%")%>%
+  ggplot(aes(x=julian_date,y=sgr,colour=size))+geom_point()
+energy%>%
+  filter(trt=="1.0%")%>%
+  ggplot(aes(x=julian_date,y=sgr,colour=size))+geom_point()
+energy%>%
+  filter(trt=="2.0%")%>%
+  ggplot(aes(x=julian_date,y=sgr,colour=size))+geom_point()  
+
+#Feed conversion efficiency
+# remove -Inf and NaNs
+energy.0<-energy%>%
+  filter(trt!="0.0%")
+names(energy)
+energy$FCE[which(is.nan(energy$FCE))] = NA
+energy$FCE[which(is.infinite(energy$FCE))] = NA
+m1<-lm(FCE~size+trt+daily_temp,data=energy.0)
+plot(m1)
+hist(resid(m1))
+summary(m1)
+
+energy.0$F.rate[which(is.nan(energy.0$F.rate))] = NA
+energy.0$F.rate[which(is.infinite(energy.0$F.rate))] = NA
+m2<-lm(F.rate~trt+size+daily_temp,data=energy.0)
+plot(m2)
+hist(resid(m2))
+summary(m2)
+Anova(m2,type="III")
