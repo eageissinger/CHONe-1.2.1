@@ -27,6 +27,7 @@ library(rcompanion)
 library(multcompView)
 library(emmeans)
 library(betareg)
+library(strucchange)
 
 
 # --- check data -----
@@ -494,6 +495,44 @@ survival%>%
 survival%>%
   filter(size=="large")%>%
   ggplot(aes(x=julian_date,y=perc_surv,linetype=ration))+geom_smooth()
+
+large.surv0<-survival%>%filter(size=="large" & ration == "0.0%")%>%
+  as.data.frame()
+
+l0ts<-ts(large.surv0,start=1,end=114,frequency=1,
+                  deltat=1)
+l2<-window(l0ts,start=1,end=114)
+coint.res<-residuals(lm(perc_surv~1,data=l2))
+coint.res<-stats::lag(ts(coint.res,start=1,end=114,freq=1),k=-1)
+l2<-cbind(l0ts,diff(l2),coint.res)
+l2<-window(l2,start=20,end=114)
+colnames(l2)<-c("tank","size","ration","perc_surv",
+                "julian_date","diff.tank","diff.size","diff.ration",
+                  "diff.perc_surv","diff.julian_date", "coint.res")
+ecm.model<-diff.perc_surv~coint.res+1
+
+l3<-window(l2,start=20,end=30)
+me.efp<-efp(ecm.model,type="ME",data=l2,h=.5)
+me.mefp<-mefp(me.efp,alpha=0.05)
+l3<-window(l2,start=20,end=30)
+me.mefp<-monitor(me.mefp)
+plot(me.mefp)
+me.mefp
+temp3<-window(l2,start=20,end=40)
+me.mefp<-monitor(me.mefp)
+plot(me.mefp)
+temp3<-window(l2,start=20,end=50)
+me.mefp<-monitor(me.mefp)
+plot(me.mefp)
+temp3<-window(l2,start=20,end=60)
+me.mefp<-monitor(me.mefp)
+plot(me.mefp)
+temp3<-window(l2,start=20,end=70)
+me.mefp<-monitor(me.mefp)
+plot(me.mefp)
+temp3<-window(l2,start=20,end=80)
+me.mefp<-monitor(me.mefp)
+plot(me.mefp)
 
 # ----- survival models ----
 

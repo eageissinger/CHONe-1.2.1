@@ -12,7 +12,7 @@ library(survival)
 library(survminer)
 library(ggfortify)
 library(ranger)
-
+library(strucchange)
 # data manimpulation
 glimpse(tank_survival)
 tank_survival<- tank_survival%>%
@@ -49,18 +49,35 @@ mydata$ration<-relevel(mydata$ration,"2.0%","1.0%","0.5%","0.0%")
 so<-with(mydata,Surv(time,status))
 head(so,80)
 
+# General
+
 s_fit<-survfit(Surv(time,status)~1,data=mydata)
 summary(s_fit)
-summary(s_fit,times=c(1,30,90,120))
+summary(s_fit,times=c(1,20,40,60,80,100,120))
 autoplot(s_fit)
 
 s_trt<-survfit(Surv(time,status)~ration,data=mydata)
-summary(s_trt,times=c(1,30,90,120))
+summary(s_trt,times=c(1,20,40,60,80,100,120))
 autoplot(s_trt)
 
 s_size<-survfit(Surv(time,status)~size,data=mydata)
-summary(s_size,times=c(1,30,90,120))
+summary(s_size,times=c(1,20,40,60,80,100,120))
 autoplot(s_size)
+
+
+# Large cod
+large<-mydata%>%filter(size=="large")
+large_trt<-survfit(Surv(time,status)~ration,data=large)
+summary(large_trt,times=c(1,20,40,60,80,100,120))
+autoplot(s_trt)
+summary(large_trt)
+
+# Small cod
+small<-mydata%>%filter(size=="small")
+small_trt<-survfit(Surv(time,status)~ration,data=small)
+summary(small_trt,times=c(1,20,40,60,80,100,120))
+autoplot(s_trt)
+
 
 # Cox Proportional Hazards Model
 cox<-coxph(Surv(time,status)~ration+size,data=mydata)
@@ -86,3 +103,27 @@ autoplot(aafit)
 ?aareg
 
 plot(aafit[2],ylim=c(-10,10))
+
+
+
+# Structureal change
+largebreak<-ts(large,start=1,end=114,frequency=1,
+            deltat=1)
+
+large2<-window(largebreak,start=1,end=114)
+coint.res<-residuals(lm(status~ration,data=large2))
+coint.res<-stats::lag(ts(coint.res,start=1,frequency = 1),k=-1)
+large2<-cbind(large2,diff(large2),coint.res)
+large2<-window(large2,start=20,end=112)
+large2
+ecm.model<-diff.consumed~coint.res+diff.temp
+
+large3<-window(large2,start=20,end=50)
+me.efp<-efp(ecm.model,type="ME",data=large3,h=0.5)
+me.mefp<-mefp(me.efp,alpha = 0.05)
+large3<-window(large2,start=20,end=70)
+me.mefp<-monitor(me.mefp)
+plot(me.mefp)
+me.mefp
+me.plot2.0<-plot(me.mefp)
+me.mefp2<-me.mefp
