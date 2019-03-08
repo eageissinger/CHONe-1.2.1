@@ -1,11 +1,9 @@
-setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/eageissinger/Documents/Emilie-Lab-comp/")
 
-data<-read.csv("./data/data-working/mixture-dist-statscourse.csv")
+data<-read.csv("./data/data-working/age-1-mixture-dist.csv")
 
 library(betareg)
-library(dplyr)
-library(ggplot2)
-
+library(tidyverse)
 library(lmtest)
 library(lubridate)
 library(gridExtra)
@@ -17,18 +15,17 @@ str(data)
 min(data$pi)
 max(data$pi)
 
-m1<-lm(pi~year*month*factor(dummy_pulse),data=data)
+# subset data to use only published data (1998-2004)
+bd<-data%>%
+  filter(year<2006)
+
+m1<-lm(pi~year*month*factor(dummy_pulse),data=bd)
 plot(m1)
 hist(resid(m1))
 qqnorm(resid(m1))
 
 
-m2<-glm(pi~year*month*factor(dummy_pulse),data=data,family=Gamma(link = "log"))
-plot(m2)
-hist(resid(m2))
-qqnorm(resid(m2))
-
-m3<-betareg(pi~year*month*factor(dummy_pulse),data=data)
+m3<-betareg(pi~year*month*factor(dummy_pulse),data=bd)
 plot(m3)
 summary(m3)
 
@@ -45,7 +42,7 @@ summary(m1)
 
 par(mfrow=c(1,1))
 
-m1<-glm(pi~year+month+factor(dummy_pulse),data=data,family = gaussian(link = "identity"))
+m1<-glm(pi~year+month+factor(dummy_pulse),data=bd,family = gaussian(link = "identity"))
 plot(m1)
 hist(resid(m1))
 qqnorm(resid(m1))
@@ -53,10 +50,10 @@ plot(m1,which=4)
 summary(m1)
 anova(m1)
 
-m1.intercept<-glm(pi~1,data=data,family=gaussian(link="identity"))
-m1.yr<-glm(pi~1+year,data=data,family=gaussian(link="identity"))
-m1.month<-glm(pi~1+year+month,data=data,family=gaussian(link="identity"))
-m1.mu<-glm(pi~1+year+month+factor(dummy_pulse),data=data,family=gaussian(link="identity"))
+m1.intercept<-glm(pi~1,data=bd,family=gaussian(link="identity"))
+m1.yr<-glm(pi~1+year,data=bd,family=gaussian(link="identity"))
+m1.month<-glm(pi~1+year+month,data=bd,family=gaussian(link="identity"))
+m1.mu<-glm(pi~1+year+month+factor(dummy_pulse),data=bd,family=gaussian(link="identity"))
 
 lrtest(m1.intercept,m1.yr,m1.month,m1.mu)
 
@@ -70,7 +67,7 @@ plot(m1,which=4,main=NULL)
 
 # Export, save plot with width 829, height 590
 
-m2<-betareg(pi~year+month+factor(dummy_pulse),data=data,link="logit")
+m2<-betareg(pi~year+month+factor(dummy_pulse),data=bd,link="logit")
 plot(m2)
 summary(m2)
 

@@ -6,7 +6,7 @@
 # Determine pulse structure of age 1 cod using mixture models
 
 # ----- set working directory ----
-setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/eageissinger/Documents/Emilie-Lab-comp/")
 
 #load packages
 library(tidyverse)

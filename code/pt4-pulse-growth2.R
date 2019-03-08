@@ -2,7 +2,7 @@
 # Purpose: Finalize pulse assignments
 
 # ---- set working directory ----
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-master/")
+setwd("C:/Users/eageissinger/Documents/Emilie-Lab-comp/")
 
 # ---- load data ----
 age1pulse<-read.csv("./data/data-working/age1_dummypulse.csv")
@@ -50,7 +50,7 @@ growth1<-growth%>%
 cohort.graph<-function(growth1,na.rm=TRUE, ...){
   
   cohort_list<-rev(unique(growth1$cohort))
-  
+  pdf()
   for (i in seq_along(cohort_list)) {
     plot<-ggplot(subset(growth1,growth1$cohort==cohort_list[i]),
                  aes(x=date,y=meanSL,group=cohort,shape=factor(pulse)))+

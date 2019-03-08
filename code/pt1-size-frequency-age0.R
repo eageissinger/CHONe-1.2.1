@@ -6,7 +6,7 @@
 # Determine pulse structure of age 1 cod using mixture models
 
 # ----- set working directory ----
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/eageissinger/Documents/Emilie-Lab-comp/")
 
 #load packages
 library(tidyverse)
@@ -2166,7 +2166,7 @@ par<-groupstats(age0group)
 
 # Fit 1
 head(age0.2006)
-trip14.2006<-bind_cols(fit1$parameters,fit1$se)%>%
+trip14.2006<-bind_cols(par)%>%
   mutate(year=2006,month=7,day=26, trip=14)
 trip14.2006<-mutate(trip14.2006,dummy_pulse=rev(seq(1:nrow(trip14.2006))))
 
@@ -2194,7 +2194,7 @@ par<-groupstats(age0group)
 
 # Fit 1
 head(age0.2006)
-trip15.2006<-bind_cols(fit1$parameters,fit1$se)%>%
+trip15.2006<-bind_cols(par)%>%
   mutate(year=2006,month=8,day=8, trip=15)
 trip15.2006<-mutate(trip15.2006,dummy_pulse=rev(seq(1:nrow(trip15.2006))))
 
@@ -3166,1082 +3166,1927 @@ mixtures<-bind_rows(mixtures,trip21.2010)
 # November trip 22
 age0.2010<-filter(length,year==2010 & age ==0 & trip==22)
 
-# ---- age 1 2011 ----
+# ---- age 0 2011 ----
 # May
-age1.2011<-filter(length,year== 2011 & age ==1 & month == 5)
+age0.2011<-filter(length,year== 2011 & age ==0 & month == 5)
+
+# July
+age0.2011<-filter(length,year==2011 & age == 0 & month == 7)
+# one fish onliy
+
+# August trip 15
+age0.2011<-filter(length,year==2011 & age == 0 & trip==15)
+
 
 # check histogram
-qplot(mmSL, data=age1.2011, binwidth=5)
+qplot(mmSL, data=age0.2011, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2011,min(mmSL),max(mmSL))
+summarise(age0.2011,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2011<-select(age1.2011,mmSL)
+group2011<-select(age0.2011,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2011, breaks = c(0,seq(45,115,5),120),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2011, breaks = c(0,seq(40,50,5),57),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
-# set parameters
-age1param<-mixparam(c(60,80,100),c(2,3,4),pi=NULL)
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-age1param2<-mixparam(c(55,100),c(2,3),pi=NULL)
-
-fit2<-mix(age1group,age1param2,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15,usecondit = FALSE,print.level = 0)
-summary(fit2)
-plot(fit2)
-plot(fit2,root=T)
+#parameters
+par<-groupstats(age0group)
 
 # store fit 2 results
-head(age1.2011)
-may11<-bind_cols(fit2$parameters,fit2$se)%>%
-  mutate(year=2011,month=5,day=18,dist="gamma")
-may11<-mutate(may11,dummy_pulse=rev(seq(1:nrow(may11))))
+head(age0.2011)
+trip15.2011<-bind_cols(par)%>%
+  mutate(year=2011,month=8,day=15,trip=15)
+trip15.2011<-mutate(trip15.2011,dummy_pulse=rev(seq(1:nrow(trip15.2011))))
 
 # add to mixtures
-mixtures<-bind_rows(mixtures,may11)
+mixtures<-bind_rows(mixtures,trip15.2011)
 
-# July
-# first trip
-age1.2011<-filter(length,year==2011 & age == 1 & month == 7)
-age1.2011<-filter(length,year==2011 & age == 1 & month == 7 & day < 7)
+# August trip 16
+age0.2011<-filter(length,year==2011 & age == 0 & trip==16)
 
 # check histogram
-qplot(mmSL, data=age1.2011, binwidth=5)
+qplot(mmSL, data=age0.2011, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2011,min(mmSL),max(mmSL))
+summarise(age0.2011,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2011<-select(age1.2011,mmSL)
+group2011<-select(age0.2011,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2011, breaks = c(0,seq(65,100,5),102),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2011, breaks = c(0,seq(45,60,5),65),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
-# set parameters
-age1param<-mixparam(c(70,100),c(2,3),pi=NULL)
+#parameters
+par<-groupstats(age0group)
 
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=3, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-# store model results
-head(age1.2011)
-july11w1<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2011,month=7,day=4,dist="gamma")
-july11w1<-mutate(july11w1,dummy_pulse=rev(seq(1:nrow(july11w1))))
+# store fit 2 results
+head(age0.2011)
+trip16.2011<-bind_cols(par)%>%
+  mutate(year=2011,month=8,day=29,trip=16)
+trip16.2011<-mutate(trip16.2011,dummy_pulse=rev(seq(1:nrow(trip16.2011))))
 
 # add to mixtures
-mixtures<-bind_rows(mixtures,july11w1)
+mixtures<-bind_rows(mixtures,trip16.2011)
 
-# July
-# second trip
-age1.2011<-filter(length,year==2011 & age == 1 & month == 7 & day >6)
-# use second week of july data
+# September trip 17
+age0.2011<-filter(length,year==2011 & age == 0 & trip==17)
 
 # check histogram
-qplot(mmSL, data=age1.2011, binwidth=5)
+qplot(mmSL, data=age0.2011, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2011,min(mmSL),max(mmSL))
+summarise(age0.2011,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2011<-select(age1.2011,mmSL)
+group2011<-select(age0.2011,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2011, breaks = c(0,seq(75,145,5),150),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2011, breaks = c(0,seq(30,65,5),68),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
 # set parameters
-age1param<-mixparam(c(80,110,130),c(2,3,4),pi=NULL)
+age0param<-mixparam(c(30,55),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
 
 # fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
           emsteps=15, usecondit=FALSE, print.level=0)
 summary(fit1)
 plot(fit1)
 plot(fit1,root=T)
 
 # store model results
-head(age1.2011)
-july11w2<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2011,month=7,day=18,dist="norm")
-july11w2<-mutate(july11w2,dummy_pulse=rev(seq(1:nrow(july11w2))))
+head(age0.2011)
+trip17.2011<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2011,month=9,day=13,trip=17)
+trip17.2011<-mutate(trip17.2011,dummy_pulse=rev(seq(1:nrow(trip17.2011))))
 
-# addd to mixtures
-mixtures<-bind_rows(mixtures,july11w2)
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip17.2011)
 
-# August 
-age1.2011<-filter(length,year==2011 & age ==1 & month ==8 & Trip ==15)
-# trip 15
+# September trip 18
+# second trip
+age0.2011<-filter(length,year==2011 & age == 0 & trip==18)
 
 # check histogram
-qplot(mmSL, data=age1.2011, binwidth=5)
+qplot(mmSL, data=age0.2011, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2011,min(mmSL),max(mmSL))
+summarise(age0.2011,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2011<-select(age1.2011,mmSL)
+group2011<-select(age0.2011,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2011, breaks = c(0,seq(90,135,5),140),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2011, breaks = c(0,seq(35,80,5),86),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
 # set parameters
-age1param<-mixparam(c(100,115,140),c(2,3,4),pi=NULL)
+age0param<-mixparam(c(40,70),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
 
 # fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=5, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# store model results
+head(age0.2011)
+trip18.2011<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2011,month=9,day=27,trip=18)
+trip18.2011<-mutate(trip18.2011,dummy_pulse=rev(seq(1:nrow(trip18.2011))))
+
+# addd to mixtures
+mixtures<-bind_rows(mixtures,trip18.2011)
+
+# October trip 19 
+age0.2011<-filter(length,year==2011 & age ==0 & trip ==19)
+
+# check histogram
+qplot(mmSL, data=age0.2011, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2011,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2011<-select(age0.2011,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2011, breaks = c(0,seq(30,90,5),95),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(40,75),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
           emsteps=15, usecondit=FALSE, print.level=0)
 summary(fit1)
 plot(fit1)
 plot(fit1,root=T)
 
 # go with Fit 1 - 
-head(age1.2011)
-aug11<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2011,month=8,day=16,dist="norm")
-aug11<-mutate(aug11,dummy_pulse=rev(seq(1:nrow(aug11))))
+head(age0.2011)
+trip19.2011<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2011,month=10,day=12,trip=19)
+trip19.2011<-mutate(trip19.2011,dummy_pulse=rev(seq(1:nrow(trip19.2011))))
 
 # addd to mixtures
-mixtures<-bind_rows(mixtures,aug11)
+mixtures<-bind_rows(mixtures,trip19.2011)
 
-# November
-age1.2011<-filter(length,year==2011 & age == 1 & month ==11)
-# not enough data
-
-# ---- age 1 2012 ----
-
-# May
-age1.2012<-filter(length,year==2012 & age == 1 & month == 5)
+# October trip 20
+age0.2011<-filter(length,year==2011 & age == 0 & trip==20)
 
 # check histogram
-qplot(mmSL, data=age1.2012, binwidth=5)
+qplot(mmSL, data=age0.2011, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2012,min(mmSL),max(mmSL))
+summarise(age0.2011,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2012<-select(age1.2012,mmSL)
+group2011<-select(age0.2011,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2012, breaks = c(0,seq(50,105,5),111),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2011, breaks = c(0,seq(30,90,5),94),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
 # set parameters
-age1param<-mixparam(c(55,80),c(3),pi=NULL)
+age0param<-mixparam(c(46,95),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
 
 # fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=3, usecondit=FALSE, print.level=0)
 summary(fit1)
 plot(fit1)
 plot(fit1,root=T)
 
+# go with Fit 1 - 
+head(age0.2011)
+trip20.2011<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2011,month=10,day=25,trip=20)
+trip20.2011<-mutate(trip20.2011,dummy_pulse=rev(seq(1:nrow(trip20.2011))))
 
-# store model results
-head(age1.2012)
-may12<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2012,month=5,day=22,dist="gamma")
-may12<-mutate(may12,dummy_pulse=rev(seq(1:nrow(may12))))
+# addd to mixtures
+mixtures<-bind_rows(mixtures,trip20.2011)
 
-# add to mixtures
-mixtures<-bind_rows(mixtures,may12)
-
-# July
-age1.2012<-filter(length,year==2012 & age ==1 & month == 7)
-
-# small sample size but let's try anyway
-
-# check histogram
-qplot(mmSL, data=age1.2012, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2012,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2012<-select(age1.2012,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2012, breaks = c(0,seq(65,120,5),125),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(65,80,95,110,125),c(2,3,4,5,6),pi=NULL)
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-age1param2<-mixparam(c(80,100),c(2,3),pi=NULL)
-
-fit2<-mix(age1group,age1param2,dist="gamma",mixconstr(consigma = "CCV"),
-          emsteps= 15, usecondit = FALSE, print.level = 0)
-summary(fit2)
-plot(fit2)
-plot(fit2,root=T)
-
-
-# store fit 2 results
-head(age1.2012)
-july12<-bind_cols(fit2$parameters,fit2$se)%>%
-  mutate(year=2012,month=7,day=10,dist="gamma") # halfway between trip 12 and 13
-july12<-mutate(july12,dummy_pulse=rev(seq(1:nrow(july12))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,july12)
-
-# August
-age1.2012<-filter(length,year==2012 & age ==1 & month ==8)
+#November
+age0.2011<-filter(length,year==2011 & age ==1 & month==11)
 # no fish
 
-# September
-age1.2012<-filter(length,year==2012 & age ==1 & month ==9)
-# not enough fish
-
-# October
-age1.2012<-length%>%
-  filter(year==2012 & age ==1 & month ==10 & Trip ==20)%>%
-  filter(!is.na(mmSL))
-# Trip 20
-
-# check histogram
-qplot(mmSL, data=age1.2012, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2012,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2012<-select(age1.2012,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2012, breaks = c(0,seq(130,205,5),210),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(130,150,165,180,200),c(2,3,4,5,6),pi=NULL)
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-
-# Fit 1
-head(age1.2012)
-oct12<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2012,month=10,day=29,dist="norm")
-oct12<-mutate(oct12,dummy_pulse=rev(seq(1:nrow(oct12))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,oct12)
-
-# November
-age1.2012<-filter(length,year==2012 & age ==1 & month ==11)
-# not enough data
-
-# ---- age 1 2013 -----
+# ---- age 0 2012 ----
 
 # May
-age1.2013<-filter(length,year==2013 & age == 1 & month ==5)
-
-# check histogram
-qplot(mmSL, data=age1.2013, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2013,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2013<-select(age1.2013,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2013, breaks = c(0,seq(40,125,5),129),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(55,80,100),c(2,3,4),pi=NULL)
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-# store model results
-head(age1.2013)
-may13<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2013,month=5,day=7,dist="gamma")
-may13<-mutate(may13,dummy_pulse=rev(seq(1:nrow(may13))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,may13)
+age0.2012<-filter(length,year==2012 & age == 0 & month == 5)
+# no fish yet
 
 # July
-age1.2013<-filter(length,year == 2013 & age == 1 & month ==7)
-
-# no july data.......
-
-# August
-age1.2013<-filter(length,year == 2013 & age == 1 & month ==8)
-# not enough data
-
-# September
-age1.2013<-filter(length,year == 2013 & age == 1 & month ==9 & Trip == 17)
-# Trip 17
+age0.2012 <- filter(length, year == 2012 & age == 0 & trip==13)
 
 # check histogram
-qplot(mmSL, data=age1.2013, binwidth=5)
+qplot(mmSL, data=age0.2012, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2013,min(mmSL),max(mmSL))
+summarise(age0.2012,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2013<-select(age1.2013,mmSL)
+group2012<-select(age0.2012,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2013, breaks = c(0,seq(105,150,5),155),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2012, breaks = c(0,seq(30,35,5),39),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
 # set parameters
-age1param<-mixparam(c(110,130,150),c(2,3,4),pi=NULL)
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
+par<-groupstats(age0group)
 
 # store model results
-head(age1.2013)
-sept13<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2013,month=9,day=3, dist="lnorm")
-sept13<-mutate(sept13,dummy_pulse=rev(seq(1:nrow(sept13))))
+head(age0.2012)
+trip13.2012<-bind_cols(par)%>%
+  mutate(year=2012,month=7,day=17,trip=13)
+trip13.2012<-mutate(trip13.2012,dummy_pulse=rev(seq(1:nrow(trip13.2012))))
 
 # add to mixtures
-mixtures<-bind_rows(mixtures,sept13)
+mixtures<-bind_rows(mixtures,trip13.2012)
 
-# October
-age1.2013<-filter(length, year==2013 & age ==1 & month ==10 & Trip ==19)
-# week 1 Trip 19
+# July trip 14
+age0.2012<-filter(length,year==2012 & age ==0 & trip==14)
 
 # check histogram
-qplot(mmSL, data=age1.2013, binwidth=5)
+qplot(mmSL, data=age0.2012, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2013,min(mmSL),max(mmSL))
+summarise(age0.2012,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2013<-select(age1.2013,mmSL)
+group2012<-select(age0.2012,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2013, breaks = c(0,seq(120,200,5),205),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2012, breaks = c(0,seq(40,55,5),60),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
 # set parameters
-age1param<-mixparam(c(130,150,190),c(2,3,4),pi=NULL)
+par<-groupstats(age0group)
 
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-
-# store model results
-head(age1.2013)
-oct13wk1<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2013,month=10,day=1,dist="gamma")
-oct13wk1<-mutate(oct13wk1,dummy_pulse=rev(seq(1:nrow(oct13wk1))))
+# store fit 2 results
+head(age0.2012)
+trip14.2012<-bind_cols(par)%>%
+  mutate(year=2012,month=7,day=31,trip=14)
+trip14.2012<-mutate(trip14.2012,dummy_pulse=rev(seq(1:nrow(trip14.2012))))
 
 # add to mixtures
-mixtures<-bind_rows(mixtures,oct13wk1)
+mixtures<-bind_rows(mixtures,trip14.2012)
 
-# October week 2
-age1.2013<-filter(length, year==2013 & age ==1 & month ==10 & Trip ==20)
-# week 2 Trip 20
+# August trip 15
+age0.2012<-filter(length,year==2012 & age ==0 & trip==15)
 
 # check histogram
-qplot(mmSL, data=age1.2013, binwidth=5)
+qplot(mmSL, data=age0.2012, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2013,min(mmSL),max(mmSL))
+summarise(age0.2012,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2013<-select(age1.2013,mmSL)
+group2012<-select(age0.2012,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2013, breaks = c(0,seq(110,175,5),180),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2012, breaks = c(0,seq(40,65,5),70),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
 # set parameters
-age1param<-mixparam(c(120,130,145,160),c(2,3,4,5),pi=NULL)
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
+par<-groupstats(age0group)
 
 # store results
-head(age1.2013)
-oct13wk2<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2013,month=10,day=15,dist="gamma")
-oct13wk2<-mutate(oct13wk2,dummy_pulse=rev(seq(1:nrow(oct13wk2))))
+head(age0.2012)
+trip15.2012<-bind_cols(par)%>%
+  mutate(year=2012,month=8,day=14,trip=15)
+trip15.2012<-mutate(trip15.2012,dummy_pulse=rev(seq(1:nrow(trip15.2012))))
 
 # add to mixtures
-mixtures<-bind_rows(mixtures,oct13wk2)
+mixtures<-bind_rows(mixtures,trip15.2012)
 
-# November
-age1.2013<-filter(length,year==2013 & age ==1 & month ==11 & Trip == 21)
-# week 1 trip 21
+# August trip 16
+age0.2012<-filter(length,year==2012 & age ==0 & trip==16)
 
 # check histogram
-qplot(mmSL, data=age1.2013, binwidth=5)
+qplot(mmSL, data=age0.2012, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2013,min(mmSL),max(mmSL))
+summarise(age0.2012,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2013<-select(age1.2013,mmSL)
+group2012<-select(age0.2012,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2013, breaks = c(0,seq(125,200,5),205),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2012, breaks = c(0,seq(35,75,5),79),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
 # set parameters
-age1param<-mixparam(c(140,160,180,200),c(2,3,4,5),pi=NULL)
+par<-groupstats(age0group)
+
+# Fit 1
+head(age0.2012)
+trip16.2011<-bind_cols(par)%>%
+  mutate(year=2012,month=8,day=29,trip=16)
+trip16.2011<-mutate(trip16.2011,dummy_pulse=rev(seq(1:nrow(trip16.2011))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip16.2011)
+
+# September trip 17
+age0.2012<-filter(length,year==2012 & age ==0 & trip==17)
+# check histogram
+qplot(mmSL, data=age0.2012, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2012,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2012<-select(age0.2012,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2012, breaks = c(0,seq(40,80,5),85),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+par<-groupstats(age0group)
+
+# Fit 1
+head(age0.2012)
+trip17.2011<-bind_cols(par)%>%
+  mutate(year=2012,month=9,day=13,trip=17)
+trip17.2011<-mutate(trip17.2011,dummy_pulse=rev(seq(1:nrow(trip17.2011))))
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip17.2011)
+
+# September trip 18
+age0.2012<-filter(length,year==2012 & age ==0 & trip==18)
+# check histogram
+qplot(mmSL, data=age0.2012, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2012,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2012<-select(age0.2012,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2012, breaks = c(0,seq(45,90,5),95),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(40,65),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
 
 # fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# store model results
+head(age0.2012)
+trip18.2012<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2012,month=9,day=26,trip=18)
+trip18.2012<-mutate(trip18.2012,dummy_pulse=rev(seq(1:nrow(trip18.2012))))
+
+mixtures<-bind_rows(mixtures,trip18.2012)
+
+# October trip 19
+age0.2012<-filter(length,year==2012 & age ==0 & trip==19)
+# check histogram
+qplot(mmSL, data=age0.2012, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2012,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2012<-select(age0.2012,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2012, breaks = c(0,seq(40,90,5),94),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(50,75),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# store model results
+head(age0.2012)
+trip19.2012<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2012,month=10,day=15,trip=19)
+trip19.2012<-mutate(trip19.2012,dummy_pulse=rev(seq(1:nrow(trip19.2012))))
+
+mixtures<-bind_rows(mixtures,trip19.2012)
+
+# October trip 20
+age0.2012<-filter(length,year==2012 & age ==0 & trip==20)
+# check histogram
+qplot(mmSL, data=age0.2012, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2012,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2012<-select(age0.2012,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2012, breaks = c(0,seq(30,105,5),110),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(30,60,90),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# store model results
+head(age0.2012)
+trip20.2012<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2012,month=10,day=29,trip=20)
+trip20.2012<-mutate(trip20.2012,dummy_pulse=rev(seq(1:nrow(trip20.2012))))
+
+mixtures<-bind_rows(mixtures,trip20.2012)
+
+# November trip 21
+age0.2012<-filter(length,year==2012 & age ==0 & trip==21)
+# check histogram
+qplot(mmSL, data=age0.2012, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2012,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2012<-select(age0.2012,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2012, breaks = c(0,seq(40,105,5),112),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(40,60,100),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# store model results
+head(age0.2012)
+trip21.2012<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2012,month=11,day=13,trip=21)
+trip21.2012<-mutate(trip21.2012,dummy_pulse=rev(seq(1:nrow(trip21.2012))))
+
+mixtures<-bind_rows(mixtures,trip21.2012)
+
+# November trip 22
+age0.2012<-filter(length,year==2012 & age ==0 & trip==22)
+# check histogram
+qplot(mmSL, data=age0.2012, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2012,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2012<-select(age0.2012,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2012, breaks = c(0,seq(50,115,5),118),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(50,70,105),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# store model results
+head(age0.2012)
+trip22.2012<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2012,month=11,day=26,trip=22)
+trip22.2012<-mutate(trip22.2012,dummy_pulse=rev(seq(1:nrow(trip22.2012))))
+
+mixtures<-bind_rows(mixtures,trip22.2012)
+
+# ---- age 0 2013 -----
+
+# May
+age0.2013<-filter(length,year==2013 & age == 0 & month ==5)
+
+# July trip 14
+age0.2013<-filter(length,year==2013 & age == 0 & trip==14)
+
+# check histogram
+qplot(mmSL, data=age0.2013, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2013,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2013<-select(age0.2013,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2013, breaks = c(0,seq(35,45,5),50),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+par<-groupstats(age0group)
+
+# store model results
+head(age0.2013)
+trip14.2013<-bind_cols(par)%>%
+  mutate(year=2013,month=7,day=22,trip=14)
+trip14.2013<-mutate(trip14.2013,dummy_pulse=rev(seq(1:nrow(trip14.2013))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip14.2013)
+
+# August trip 15
+age0.2013<-filter(length,year == 2013 & age == 0 & trip==15)
+
+# check histogram
+qplot(mmSL, data=age0.2013, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2013,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2013<-select(age0.2013,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2013, breaks = c(0,seq(40,60,5),67),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+par<-groupstats(age0group)
+
+# store model results
+head(age0.2013)
+trip15.2013<-bind_cols(par)%>%
+  mutate(year=2013,month=8,day=6,trip=15)
+trip15.2013<-mutate(trip15.2013,dummy_pulse=rev(seq(1:nrow(trip15.2013))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip15.2013)
+
+# August trip 16
+age0.2013<-filter(length,year == 2013 & age == 0 & trip==16)
+
+# check histogram
+qplot(mmSL, data=age0.2013, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2013,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2013<-select(age0.2013,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2013, breaks = c(0,seq(40,65,5),71),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+par<-groupstats(age0group)
+
+# store model results
+head(age0.2013)
+trip16.2013<-bind_cols(par)%>%
+  mutate(year=2013,month=8,day=19, trip=16)
+trip16.2013<-mutate(trip16.2013,dummy_pulse=rev(seq(1:nrow(trip16.2013))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip16.2013)
+
+# September trip 17
+age0.2013<-filter(length, year==2013 & age ==0 & trip==17)
+
+# check histogram
+qplot(mmSL, data=age0.2013, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2013,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2013<-select(age0.2013,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2013, breaks = c(0,seq(45,75,5),79),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(40,60),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=20, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# store model results
+head(age0.2013)
+trip17.2013<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2013,month=9,day=3, trip=17)
+trip17.2013<-mutate(trip17.2013,dummy_pulse=rev(seq(1:nrow(trip17.2013))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip17.2013)
+
+# September trip 18
+age0.2013<-filter(length,year==2013 & age == 0 & trip ==18)
+
+# check histogram
+qplot(mmSL, data=age0.2013, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2013,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2013<-select(age0.2013,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2013, breaks = c(0,seq(35,125,5),131),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(60,110),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=5, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+par<-groupstats(age0group)
+
+# store model results
+head(age0.2013)
+trip18.2013<-bind_cols(par)%>%
+  mutate(year=2013,month=9,day=16,trip=18)
+trip18.2013<-mutate(trip18.2013,dummy_pulse=rev(seq(1:nrow(trip18.2013))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip18.2013)
+
+# October trip 19
+age0.2013<-filter(length, year==2013 & age ==0 & trip ==19)
+
+# check histogram
+qplot(mmSL, data=age0.2013, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2013,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2013<-select(age0.2013,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2013, breaks = c(0,seq(40,120,5),123),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(70,120),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=5, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+par<-groupstats(age0group)
+
+# store results
+head(age0.2013)
+trip19.2013<-bind_cols(par)%>%
+  mutate(year=2013,month=10,day=1,trip=19)
+trip19.2013<-mutate(trip19.2013,dummy_pulse=rev(seq(1:nrow(trip19.2013))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip19.2013)
+
+# October trip 20
+age0.2013<-filter(length,year==2013 & age ==0 & trip == 20)
+
+# check histogram
+qplot(mmSL, data=age0.2013, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2013,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2013<-select(age0.2013,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2013, breaks = c(0,seq(35,105,5),109),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(35,55,80),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
           emsteps=15, usecondit=FALSE, print.level=0)
 summary(fit1)
 plot(fit1)
 plot(fit1,root=T)
 
 # fit 1
-head(age1.2013)
-nov13wk1<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2013,month=11,day=4,dist="norm")
-nov13wk1<-mutate(nov13wk1,dummy_pulse=rev(seq(1:nrow(nov13wk1))))
+head(age0.2013)
+trip20.2013<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2013,month=10,day=15,trip=20)
+trip20.2013<-mutate(trip20.2013,dummy_pulse=rev(seq(1:nrow(trip20.2013))))
 
 # add to mixtures
-mixtures<-bind_rows(mixtures,nov13wk1)
+mixtures<-bind_rows(mixtures,trip20.2013)
 
-# November week 2
-age1.2013<-filter(length,year==2013 & age ==1 & month ==11 & Trip == 22)
-# week 2 trip 22
+# November trip 21
+age0.2013<-filter(length,year==2013 & age ==0 & trip == 21)
 
 # check histogram
-qplot(mmSL, data=age1.2013, binwidth=5)
+qplot(mmSL, data=age0.2013, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2013,min(mmSL),max(mmSL))
+summarise(age0.2013,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2013<-select(age1.2013,mmSL)
+group2013<-select(age0.2013,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2013, breaks = c(0,seq(130,170,5),175),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2013, breaks = c(0,seq(45,145,5),147),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
 # set parameters
-age1param<-mixparam(c(135,150,160,170),c(2,3,4,5),pi=NULL)
+age0param<-mixparam(c(40,70,100,135),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
 
 # fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+
+# fit 1
+head(age0.2013)
+trip21.2013<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2013,month=11,day=4,trip=21)
+trip21.2013<-mutate(trip21.2013,dummy_pulse=rev(seq(1:nrow(trip21.2013))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip21.2013)
+
+# November trip22
+age0.2013<-filter(length,year==2013& age == 0 & trip ==22)
+
+# check histogram
+qplot(mmSL, data=age0.2013, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2013,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2013<-select(age0.2013,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2013, breaks = c(0,seq(50,115,5),120),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(45,70,100,120),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=3, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# fit 1
+head(age0.2013)
+trip22.2013<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2013,month=11,day=18,trip=22)
+trip22.2013<-mutate(trip22.2013,dummy_pulse=rev(seq(1:nrow(trip22.2013))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip22.2013)
+
+# ---- age 0 2014 -----
+# May
+age0.2014<-filter(length,year==2014 & age ==0 & month ==5)
+#July
+age0.2014<-filter(length,year==2014 & age == 0 & month ==7)
+#August
+age0.2014 <- filter(length,year==2014 & age == 0 & month==8)
+# not enough
+
+# September trip 17
+age0.2014<-filter(length,year==2014 & age ==0 & trip==17)
+# check histogram
+qplot(mmSL, data=age0.2014, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2014,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2014<-select(age0.2014,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2014, breaks = c(0,seq(40,70,5),76),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(45,65),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# store fit 1 results..
+head(age0.2014)
+trip17.2014<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2014,month=9,day=8,trip=17)
+trip17.2014<-mutate(trip17.2014,dummy_pulse=rev(seq(1:nrow(trip17.2014))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip17.2014)
+
+# September trip 18
+age0.2014<-filter(length,year == 2014 & age == 0 & trip==18)
+
+# check histogram
+qplot(mmSL, data=age0.2014, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2014,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2014<-select(age0.2014,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2014, breaks = c(0,seq(40,80,5),86),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(55,75),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+par<-groupstats(age0group)
+
+
+# store fit 1 results
+head(age0.2014)
+trip18.2014<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2014,month=9,day=23,trip=18)
+trip18.2014<-mutate(trip18.2014,dummy_pulse=rev(seq(1:nrow(trip18.2014))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip18.2014)
+
+# October trip 19
+age0.2014<-filter(length,year == 2014 & age == 0 & trip==19)
+
+# check histogram
+qplot(mmSL, data=age0.2014, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2014,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2014<-select(age0.2014,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2014, breaks = c(0,seq(40,90,5),95),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(35,60,80),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=5, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# store results
+head(age0.2014)
+trip19.2014<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2014,month=10,day=7,trip=19)
+trip19.2014<-mutate(trip19.2014,dummy_pulse=rev(seq(1:nrow(trip19.2014))))
+
+mixtures<-bind_rows(mixtures,trip19.2014)
+
+# October trip 20
+age0.2014<-filter(length,year==2014 & age == 0 & trip ==20)
+
+# check histogram
+qplot(mmSL, data=age0.2014, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2014,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2014<-select(age0.2014,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2014, breaks = c(0,seq(45,90,5),97),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(45,65,85),c(4),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# store results
+head(age0.2014)
+trip20.2014<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2014,month=10,day=21,trip=20)
+trip20.2014<-mutate(trip20.2014,dummy_pulse=rev(seq(1:nrow(trip20.2014))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip20.2014)
+
+# November trip 21
+age0.2014<-filter(length,year==2014 & age ==0 & trip==21)
+
+# check histogram
+qplot(mmSL, data=age0.2014, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2014,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2014<-select(age0.2014,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2014, breaks = c(0,seq(50,95,5),99),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(53,70),c(4),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=5, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# Fit 1 store results
+head(age0.2014)
+trip21.2014<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2014,month=11,day=4,trip=21)
+trip21.2014<-mutate(trip21.2014,dummy_pulse=rev(seq(1:nrow(trip21.2014))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip21.2014)
+
+# November trip 22
+age0.2014<-filter(length,year==2014 & age ==0 & month==11 & trip==22)
+
+# check histogram
+qplot(mmSL, data=age0.2014, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2014,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2014<-select(age0.2014,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2014, breaks = c(0,seq(50,100,5),106),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(50,75,98),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+
+# store model results
+head(age0.2014)
+trip22.2014<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2014,month=11,day=18,trip=22)
+trip22.2014<-mutate(trip22.2014,dummy_pulse=rev(seq(1:nrow(trip22.2014))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip22.2014)
+
+# ---- age 0 2015 ----
+# May
+age0.2015<-filter(length, year == 2015 & age == 0 & month == 5)
+# July trip 14
+age0.2015<-filter(length,year==2015 & age == 0 & month ==7)
+
+# check histogram
+qplot(mmSL, data=age0.2015, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2015,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2015<-select(age0.2015,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2015, breaks = c(0,seq(40,45,5),53),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+par<-groupstats(age0group)
+# store results
+head(age0.2015)
+trip14.2015<-bind_cols(par)%>%
+  mutate(year=2015,month=7,day=28,trip=14)
+trip14.2015<-mutate(trip14.2015,dummy_pulse=rev(seq(1:nrow(trip14.2015))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip14.2015)
+
+# August 
+age0.2015<-filter(length, year == 2015 & age == 0 & trip==15)
+
+# check histogram
+qplot(mmSL, data=age0.2015, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2015,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2015<-select(age0.2015,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2015, breaks = c(0,seq(40,55,5),60),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+par<-groupstats(age0group)
+
+# store results
+head(age0.2015)
+trip15.2015<-bind_cols(par)%>%
+  mutate(year=2015,month=8,day=12,trip=15) # halfway between trip 13 and 14
+trip15.2015<-mutate(trip15.2015,dummy_pulse=rev(seq(1:nrow(trip15.2015))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip15.2015)
+
+# August trip 16
+age0.2015<-filter(length,year==2015 & age ==0 & trip==16)
+
+# check histogram
+qplot(mmSL, data=age0.2015, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2015,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2015<-select(age0.2015,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2015, breaks = c(0,seq(50,60,5),65),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+par<-groupstats(age0group)
+
+# store results
+head(age0.2015)
+trip16.2015<-bind_cols(par)%>%
+  mutate(year=2015,month=8,day=25,trip=16) # halfway between trip 13 and 14
+trip16.2015<-mutate(trip16.2015,dummy_pulse=rev(seq(1:nrow(trip16.2015))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip16.2015)
+
+# September trip 17
+age0.2015<-filter(length,year==2015 & age ==0 & trip==17)
+
+# check histogram
+qplot(mmSL, data=age0.2015, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2015,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2015<-select(age0.2015,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2015, breaks = c(0,seq(40,75,5),81),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(40,65,80),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=5, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# go with fit 1
+head(age0.2015)
+trip17.2015<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2015,month=9,day=14,trip=17)
+trip17.2015<-mutate(trip17.2015,dummy_pulse=rev(seq(1:nrow(trip17.2015))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip17.2015)
+
+# September trip 18
+age0.2015<-filter(length, year==2015 & age == 0 & trip==18)
+
+# check histogram
+qplot(mmSL, data=age0.2015, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2015,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2015<-select(age0.2015,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2015, breaks = c(0,seq(40,85,5),91),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(40,55,70,90),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=1, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# go with fit 1
+head(age0.2015)
+trip18.2015<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2015,month=9,day=28,trip=18)
+trip18.2015<-mutate(trip18.2015,dummy_pulse=rev(seq(1:nrow(trip18.2015))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip18.2015)
+
+# October trip 19
+age0.2015<-filter(length, year==2015 & age == 0 & trip==19)
+
+# check histogram
+qplot(mmSL, data=age0.2015, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2015,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2015<-select(age0.2015,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2015, breaks = c(0,seq(40,95,5),102),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(50,75,100),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=5, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# go with fit 1
+head(age0.2015)
+trip19.2015<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2015,month=10,day=12,trip=19)
+trip19.2015<-mutate(trip19.2015,dummy_pulse=rev(seq(1:nrow(trip19.2015))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip19.2015)
+
+# October trip 20
+age0.2015<-filter(length, year==2015 & age == 0 & trip==20)
+
+# check histogram
+qplot(mmSL, data=age0.2015, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2015,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2015<-select(age0.2015,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2015, breaks = c(0,seq(35,110,5),113),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(40,58,85),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=10, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# go with fit 1
+head(age0.2015)
+trip20.2015<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2015,month=10,day=26,trip=20)
+trip20.2015<-mutate(trip20.2015,dummy_pulse=rev(seq(1:nrow(trip20.2015))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip20.2015)
+
+# November Trip 21
+age0.2015<-filter(length, year==2015 & age == 0 & trip==21)
+
+# check histogram
+qplot(mmSL, data=age0.2015, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2015,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2015<-select(age0.2015,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2015, breaks = c(0,seq(40,110,5),114),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(40,62,100),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# go with fit 1
+head(age0.2015)
+trip21.2015<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2015,month=11,day=9,trip=21)
+trip21.2015<-mutate(trip21.2015,dummy_pulse=rev(seq(1:nrow(trip21.2015))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip21.2015)
+
+# November Trip 22
+age0.2015<-filter(length, year==2015 & age == 0 & trip==22)
+
+# check histogram
+qplot(mmSL, data=age0.2015, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2015,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2015<-select(age0.2015,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2015, breaks = c(0,seq(40,110,5),114),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(40,62,100),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# go with fit 1
+head(age0.2015)
+trip22.2015<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2015,month=11,day=23,trip=22)
+trip22.2015<-mutate(trip22.2015,dummy_pulse=rev(seq(1:nrow(trip22.2015))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip22.2015)
+
+# ---- age 0 2016 ----
+# May
+age0.2016<-filter(length, year==2016 & age == 0 & month == 5)
+
+#July
+age0.2016<-filter(length,year==2016 & age ==0 & month ==7)
+
+# August trip 15
+age0.2016<-filter(length,year==2016 & age ==0 & trip==15)
+
+# check histogram
+qplot(mmSL, data=age0.2016, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2016,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2016<-select(age0.2016,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2016, breaks = c(0,seq(40,55,5),58),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+par<-groupstats(age0group)
+
+# store results
+head(age0.2016)
+trip15.2016<-bind_cols(par)%>%
+  mutate(year=2016,month=8,day=16,trip=15)
+trip15.2016<-mutate(trip15.2016,dummy_pulse=rev(seq(1:nrow(trip15.2016))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip15.2016)
+
+# August trip 16
+age0.2016<-filter(length, year == 2016 & age == 0 & trip==16)
+
+# check histogram
+qplot(mmSL, data=age0.2016, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2016,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2016<-select(age0.2016,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2016, breaks = c(0,seq(45,65,5),70),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+par<-groupstats(age0group)
+
+# store fit 1 results
+head(age0.2016)
+trip16.2016<-bind_cols(par)%>%
+  mutate(year=2016,month=8,day=31,trip=16)
+trip16.2016<-mutate(trip16.2016,dummy_pulse=rev(seq(1:nrow(trip16.2016))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip16.2016)
+
+# September trip 17
+# trip2
+age0.2016<-filter(length, year == 2016 & age == 0 & trip==17)
+
+# check histogram
+qplot(mmSL, data=age0.2016, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2016,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2016<-select(age0.2016,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2016, breaks = c(0,seq(45,75,5),80),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(40,63),c(4),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=3, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+par<-groupstats(age0group)
+
+
+# store model results
+head(age0.2016)
+trip17.2016<-bind_cols(par)%>%
+  mutate(year=2016,month=9,day=13, trip=17)
+trip17.2016<-mutate(trip17.2016,dummy_pulse=rev(seq(1:nrow(trip17.2016))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip17.2016)
+
+# September trip 18
+age0.2016<-filter(length,year==2016 & age ==0 & trip==18)
+
+# check histogram
+qplot(mmSL, data=age0.2016, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2016,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2016<-select(age0.2016,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2016, breaks = c(0,seq(50,85,5),92),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(52,70),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# store model results
+head(age0.2016)
+trip18.2016<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2016,month=9,day=28, trip=18)
+trip18.2016<-mutate(trip18.2016,dummy_pulse=rev(seq(1:nrow(trip18.2016))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip18.2016)
+
+# October trip 19
+age0.2016<-filter(length,year==2016 & age ==0 & trip==19)
+
+# check histogram
+qplot(mmSL, data=age0.2016, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2016,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2016<-select(age0.2016,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2016, breaks = c(0,seq(45,95,5),99),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(55,80),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# fit 1
+head(age0.2016)
+trip19.2016<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2016,month=10,day=13,trip=19)
+trip19.2016<-mutate(trip19.2016,dummy_pulse=rev(seq(1:nrow(trip19.2016))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip19.2016)
+
+# October trip 20
+age0.2016<-filter(length,year==2016 & age ==0 & trip==20)
+
+# check histogram
+qplot(mmSL, data=age0.2016, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2016,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2016<-select(age0.2016,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2016, breaks = c(0,seq(35,105,5),110),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(40,65,85),c(6),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
           emsteps=10, usecondit=FALSE, print.level=0)
 summary(fit1)
 plot(fit1)
 plot(fit1,root=T)
 
 
-# fit 1
-head(age1.2013)
-nov13wk2<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2013,month=11,day=18,dist="gamma")
-nov13wk2<-mutate(nov13wk2,dummy_pulse=rev(seq(1:nrow(nov13wk2))))
+# store model results
+head(age0.2016)
+trip20.2016<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2016,month=10,day=27, trip=20)
+trip20.2016<-mutate(trip20.2016,dummy_pulse=rev(seq(1:nrow(trip20.2016))))
 
 # add to mixtures
-mixtures<-bind_rows(mixtures,nov13wk2)
+mixtures<-bind_rows(mixtures,trip20.2016)
 
+# November trip 21
+age0.2016<-filter(length,year==2016 & age == 0 & trip==21)
 
-# ---- age 1 2014 -----
+# check histogram
+qplot(mmSL, data=age0.2016, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2016,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2016<-select(age0.2016,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2016, breaks = c(0,seq(40,115,5),118),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(40,60,88),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# store model results
+head(age0.2016)
+trip21.2016<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2016,month=11,day=14, trip =21)
+trip21.2016<-mutate(trip21.2016,dummy_pulse=rev(seq(1:nrow(trip21.2016))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip21.2016)
+
+# November trip 22 
+age0.2016<-filter(length,year==2016 & age ==0 & trip == 22)
+
+# check histogram
+qplot(mmSL, data=age0.2016, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2016,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2016<-select(age0.2016,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2016, breaks = c(0,seq(50,125,5),128),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(62,100),c(7),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# add to results
+head(age0.2016)
+trip22.2016<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2016,month=11,day=29, trip=22)
+trip22.2016<-mutate(trip22.2016,dummy_pulse=rev(seq(1:nrow(trip22.2016))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip22.2016)
+
+# ----- age 0 2017 ------
 # May
-age1.2014<-filter(length,year==2014 & age ==1 & month ==5)
-
+age0.2017<-filter(length, year==2017 & age == 0 & month == 5)
+#July
+age0.2017<-filter(length, year==2017 & age == 0 & trip==14)
 # check histogram
-qplot(mmSL, data=age1.2014, binwidth=5)
+qplot(mmSL, data=age0.2017, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2014,min(mmSL),max(mmSL))
+summarise(age0.2017,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2014<-select(age1.2014,mmSL)
+group2017<-select(age0.2017,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2014, breaks = c(0,seq(45,130,5),136),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2017, breaks = c(0,seq(30,35,5),39),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
 # set parameters
-age1param<-mixparam(c(55,80,100,115),c(2,3,4,5),pi=NULL)
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-age1param2<-mixparam(c(45,75,95,110),c(2,3,4,5),pi=NULL)
-
-fit2<-mix(age1group,age1param2,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15,usecondit = FALSE,print.level = 0)
-summary(fit2)
-plot(fit2)
-plot(fit2,root=T)
-
-# try with fewer pulses.....
-age1param3<-mixparam(c(50,90,120),c(2,3,4),pi=NULL)
-
-fit3<-mix(age1group,age1param3,dist="gamma",mixconstr(consigma = "CCV"),
-          emsteps = 15, usecondit = FALSE, print.level = 0)
-summary(fit3) 
-plot(fit3)
-plot(fit3,root=T)
-
-
-
-# store fit 1 results..
-head(age1.2014)
-may14<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2014,month=5,day=27,dist="gamma")
-may14<-mutate(may14,dummy_pulse=rev(seq(1:nrow(may14))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,may14)
-
-# July
-age1.2014<-filter(length,year == 2014 & age == 1 & month == 7 & mmSL<=150)
-age1.2014<-filter(length,year == 2014 & age == 1 & month == 7 & day <20 & mmSL<=150)
-# went with first sampling week
-
-# check histogram
-qplot(mmSL, data=age1.2014, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2014,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2014<-select(age1.2014,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2014, breaks = c(0,seq(65,140,5),145),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(80,110,130),c(2,3,4),pi=NULL)
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-age1param2<-mixparam(c(80,115,135),c(2,3,4),pi=NULL)
-fit2<-mix(age1group,age1param2,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15,usecondit = FALSE,print.level = 0)
-summary(fit2)
-plot(fit2)
-plot(fit2,root=T)
-
-
-# store fit 1 results
-head(age1.2014)
-july14w1<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2014,month=7,day=14,dist="gamma")
-july14w1<-mutate(july14w1,dummy_pulse=rev(seq(1:nrow(july14w1))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,july14w1)
-
-# July second sampling week
-age1.2014<-filter(length,year == 2014 & age == 1 & month == 7 & mmSL<=150)
-age1.2014<-filter(length,year == 2014 & age == 1 & month == 7 & day >19 & mmSL<=150)
-
-# check histogram
-qplot(mmSL, data=age1.2014, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2014,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2014<-select(age1.2014,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2014, breaks = c(0,seq(75,135,5),141),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(85,120,140),c(2,3,4),pi=NULL)
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-age1param2<-mixparam(c(75,100,120),c(2,3,4),pi=NULL)
-fit2<-mix(age1group,age1param2,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15,usecondit = FALSE,print.level = 0)
-summary(fit2)
-plot(fit2)
-plot(fit2,root=T)
-
-
-# Fit 2 very poor fit
-head(age1.2014)
-july14w2<-bind_cols(fit2$parameters,fit2$se)%>%
-  mutate(year=2014,month=7,day=29,dist="gamma")
-july14w2<-mutate(july14w2,dummy_pulse=rev(seq(1:nrow(july14w2))))
-
-mixtures<-bind_rows(mixtures,july14w2)
-
-# August
-age1.2014<-filter(length,year==2014 & age == 1 & month ==8 & Trip ==16)
-# Trip 16
-
-# check histogram
-qplot(mmSL, data=age1.2014, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2014,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2014<-select(age1.2014,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2014, breaks = c(0,seq(90,170,5),178),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(100,113,125,145,170),c(4),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-age1param2<-mixparam(c(100,120,145,175),c(5),pi=NULL)
-fit2<-mix(age1group,age1param2,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=3,usecondit = FALSE,print.level = 0)
-summary(fit2)
-plot(fit2)
-plot(fit2,root=T)
-
-
-
-# store fit 2 results
-head(age1.2014)
-aug14<-bind_cols(fit2$parameters,fit2$se)%>%
-  mutate(year=2014,month=8,day=25,dist="gamma")
-aug14<-mutate(aug14,dummy_pulse=rev(seq(1:nrow(aug14))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,aug14)
-
-# November
-age1.2014<-filter(length,year==2014 & age ==1 & month==11 & Trip==21)
-# week 1 trip 21
-
-# check histogram
-qplot(mmSL, data=age1.2014, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2014,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2014<-select(age1.2014,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2014, breaks = c(0,seq(115,200,5),206),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(130,150,200),c(2,3,4),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=3, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-# Fit 1 store results
-head(age1.2014)
-nov14wk1<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2014,month=11,day=4,dist="gamma")
-nov14wk1<-mutate(nov14wk1,dummy_pulse=rev(seq(1:nrow(nov14wk1))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,nov14wk1)
-
-# November week 2
-age1.2014<-filter(length,year==2014 & age ==1 & month==11 & Trip==22)
-# week 2 trip 22
-
-# check histogram
-qplot(mmSL, data=age1.2014, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2014,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2014<-select(age1.2014,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2014, breaks = c(0,seq(125,175,5),180),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(130,150,170),c(2,3,4),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-
-
+par<-groupstats(age0group)
 
 # store model results
-head(age1.2014)
-nov14wk2<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2014,month=11,day=18,dist="lnorm")
-nov14wk2<-mutate(nov14wk2,dummy_pulse=rev(seq(1:nrow(nov14wk2))))
+head(age0.2017)
+trip14.2017<-bind_cols(par)%>%
+  mutate(year=2017,month=7,day=24,trip=14)
+trip14.2017<-mutate(trip14.2017,dummy_pulse=rev(seq(1:nrow(trip14.2017))))
 
 # add to mixtures
-mixtures<-bind_rows(mixtures,nov14wk2)
+mixtures<-bind_rows(mixtures,trip14.2017)
 
-# ---- age 1 2015 ----
-# May
-age1.2015<-filter(length, year == 2015 & age == 1 & month == 5)
+# August trip 15
+age0.2017<-filter(length,year==2017 & age ==0 & trip == 15)
 
 # check histogram
-qplot(mmSL, data=age1.2015, binwidth=5)
+qplot(mmSL, data=age0.2017, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2015,min(mmSL),max(mmSL))
+summarise(age0.2017,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2015<-select(age1.2015,mmSL)
+group2017<-select(age0.2017,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2015, breaks = c(0,seq(35,120,5),127),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2017, breaks = c(0,seq(35,55,5),59),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
 # set parameters
-age1param<-mixparam(c(45,70,95),c(3),pi=NULL)
-plot(age1group,age1param,"gamma")
+par<-groupstats(age0group)
 
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-# store results
-head(age1.2015)
-may15<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2015,month=5,day=19,dist="lnorm")
-may15<-mutate(may15,dummy_pulse=rev(seq(1:nrow(may15))))
+# store model results
+head(age0.2017)
+trip.15.2017<-bind_cols(par)%>%
+  mutate(year=2017,month=8,day=9, trip=15)
+trip.15.2017<-mutate(trip.15.2017,dummy_pulse=rev(seq(1:nrow(trip.15.2017))))
 
 # add to mixtures
-mixtures<-bind_rows(mixtures,may15)
+mixtures<-bind_rows(mixtures,trip.15.2017)
 
-# July 
-age1.2015<-filter(length, year == 2015 & age == 1 & month == 7)
-# use entire month 
+# August trip 16
+age0.2017<-filter(length,year==2017 & age ==0 & trip==16)
+
 # check histogram
-qplot(mmSL, data=age1.2015, binwidth=5)
+qplot(mmSL, data=age0.2017, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2015,min(mmSL),max(mmSL))
+summarise(age0.2017,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2015<-select(age1.2015,mmSL)
+group2017<-select(age0.2017,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2015, breaks = c(0,seq(70,125,5),131),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2017, breaks = c(0,seq(45,60,5),68),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
 # set parameters
-age1param<-mixparam(c(78,98,115),c(5),pi=NULL)
-plot(age1group,age1param,"gamma")
+par<-groupstats(age0group)
 
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-# store results
-head(age1.2015)
-july15<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2015,month=7,day=21,dist="gamma") # halfway between trip 13 and 14
-july15<-mutate(july15,dummy_pulse=rev(seq(1:nrow(july15))))
+# store model results
+head(age0.2017)
+trip16.2017<-bind_cols(par)%>%
+  mutate(year=2017,month=8,day=21, trip=16)
+trip16.2017<-mutate(trip16.2017,dummy_pulse=rev(seq(1:nrow(trip16.2017))))
 
 # add to mixtures
-mixtures<-bind_rows(mixtures,july15)
+mixtures<-bind_rows(mixtures,trip16.2017)
 
-# August
-age1.2015<-filter(length,year==2015 & age ==1 & month ==8)
-# not enough 
-
-# September 
-age1.2015<-filter(length,year==2015 & age ==1 & month ==9 & Trip==17)
-# Trip 17
+# Setpember trip 17
+age0.2017<-filter(length,year==2017 & age ==0 & trip==17)
 
 # check histogram
-qplot(mmSL, data=age1.2015, binwidth=5)
+qplot(mmSL, data=age0.2017, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2015,min(mmSL),max(mmSL))
+summarise(age0.2017,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2015<-select(age1.2015,mmSL)
+group2017<-select(age0.2017,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2015, breaks = c(0,seq(100,160,5),165),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2017, breaks = c(0,seq(50,70,5),78),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
 # set parameters
-age1param<-mixparam(c(105,125,140,165),c(2,3,4,5),pi=NULL)
-plot(age1group,age1param,"gamma")
+par<-groupstats(age0group)
 
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-
-# go with fit 1
-head(age1.2015)
-sept15<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2015,month=9,day=14,dist="gamma")
-sept15<-mutate(sept15,dummy_pulse=rev(seq(1:nrow(sept15))))
+# store model results
+head(age0.2017)
+trip17.2017<-bind_cols(par)%>%
+  mutate(year=2017,month=9,day=5,trip=17)
+trip17.2017<-mutate(trip17.2017,dummy_pulse=rev(seq(1:nrow(trip17.2017))))
 
 # add to mixtures
-mixtures<-bind_rows(mixtures,sept15)
+mixtures<-bind_rows(mixtures,trip17.2017)
 
-# October
-age1.2015<-filter(length, year==2015 & age == 1 & month ==10)
-# not enough data
-
-# November
-age1.2015<-filter(length, year==2015 & age == 1 & month ==11)
-# not enough data
-
-# ---- age 1 2016 ----
-# May
-age1.2016<-filter(length, year==2016 & age == 1 & month == 5)
+# September trip 18
+age0.2017<-filter(length,year==2017 & age ==0 & month == 9 & trip ==18)
 
 # check histogram
-qplot(mmSL, data=age1.2016, binwidth=5)
+qplot(mmSL, data=age0.2017, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2016,min(mmSL),max(mmSL))
+summarise(age0.2017,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2016<-select(age1.2016,mmSL)
+group2017<-select(age0.2017,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2016, breaks = c(0,seq(35,110,5),118),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2017, breaks = c(0,seq(60,85,5),90),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
 # set parameters
-age1param<-mixparam(c(45,65,105),c(4),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-age1param2<-mixparam(c(40,70),c(2,3),pi=NULL) # won't take 2.....
-
-fit2<-mix(age1group,age1param2,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15,usecondit = FALSE,print.level = 0)
-summary(fit2)
-plot(fit2)
-
-
-# store fit 1 results
-head(age1.2016)
-may16<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2016,month=5,day=16,dist="lnorm")
-may16<-mutate(may16,dummy_pulse=rev(seq(1:nrow(may16))))
+par<-groupstats(age0group)
+# store model results
+head(age0.2017)
+trip18.2017<-bind_cols(par)%>%
+  mutate(year=2017,month=9,day=18, trip=18)
+trip18.2017<-mutate(trip18.2017,dummy_pulse=rev(seq(1:nrow(trip18.2017))))
 
 # add to mixtures
-mixtures<-bind_rows(mixtures,may16)
+mixtures<-bind_rows(mixtures,trip18.2017)
 
-# July
-# trip 1
-age1.2016<-filter(length, year == 2016 & age == 1 & month == 7 & mmSL <= 150)
-age1.2016<-filter(length, year == 2016 & age == 1 & month == 7 & day < 15 & mmSL <= 150) # go with first week
-# take out 200 mm outlier
+# October trip 19
+age0.2017<-filter(length,year==2017 & age ==0 & trip==19)
 
 # check histogram
-qplot(mmSL, data=age1.2016, binwidth=5)
+qplot(mmSL, data=age0.2017, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2016,min(mmSL),max(mmSL))
+summarise(age0.2017,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2016<-select(age1.2016,mmSL)
+group2017<-select(age0.2017,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2016, breaks = c(0,seq(50,110,5),115),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2017, breaks = c(0,seq(55,80,5),88),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
 # set parameters
-age1param<-mixparam(c(60,90,110),c(4),pi=NULL)
-plot(age1group,age1param,"gamma")
+age0param<-mixparam(c(55,73),c(4),pi=NULL)
+plot(age0group,age0param,"gamma")
 
 # fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-age1param2<-mixparam(c(60,90),c(2,3),pi=NULL)
-
-fit2<-mix(age1group,age1param2,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15,usecondit = FALSE,print.level = 0)
-summary(fit2)
-plot(fit2)
-plot(fit2,root=T)
-
-# store fit 1 results
-head(age1.2016)
-july16w1<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2016,month=7,day=4,dist="gamma")
-july16w1<-mutate(july16w1,dummy_pulse=rev(seq(1:nrow(july16w1))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,july16w1)
-
-# July
-# trip2
-age1.2016<-filter(length, year == 2016 & age == 1 & month == 7 & mmSL <= 150)
-age1.2016<-filter(length, year == 2016 & age == 1 & month == 7 & day >10 & mmSL <= 150) # go with first week
-# take out 200 mm outlier
-
-# check histogram
-qplot(mmSL, data=age1.2016, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2016,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2016<-select(age1.2016,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2016, breaks = c(0,seq(60,145,5),149),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(70,95,120),c(4),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
           emsteps=15, usecondit=FALSE, print.level=0)
 summary(fit1)
 plot(fit1)
@@ -4249,665 +5094,127 @@ plot(fit1,root=T)
 
 
 # store model results
-head(age1.2016)
-july16w2<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2016,month=7,day=18, dist="gamma")
-july16w2<-mutate(july16w2,dummy_pulse=rev(seq(1:nrow(july16w2))))
+head(age0.2017)
+trip19.2017<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2017,month=10,day=2, trip=19)
+trip19.2017<-mutate(trip19.2017,dummy_pulse=rev(seq(1:nrow(trip19.2017))))
 
 # add to mixtures
-mixtures<-bind_rows(mixtures,july16w2)
+mixtures<-bind_rows(mixtures,trip19.2017)
 
-# August
-age1.2016<-filter(length,year==2016 & age ==1 & month ==8 & Trip==14)
-# week 1 trip 14
+# October trip 20
+age0.2017<-filter(length,year==2017 & age ==0 & trip ==20)
 
 # check histogram
-qplot(mmSL, data=age1.2016, binwidth=5)
+qplot(mmSL, data=age0.2017, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2016,min(mmSL),max(mmSL))
+summarise(age0.2017,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2016<-select(age1.2016,mmSL)
+group2017<-select(age0.2017,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2016, breaks = c(0,seq(75,115,5),120),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2017, breaks = c(0,seq(50,90,5),95),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
 # set parameters
-age1param<-mixparam(c(85,110),c(5),pi=NULL)
-plot(age1group,age1param,"gamma")
+age0param<-mixparam(c(45,70,95),c(4),pi=NULL)
+plot(age0group,age0param,"gamma")
 
 # fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+# store model results ***Absolutely terrible fit
+head(age0.2017)
+trip20.2017<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2017,month=10,day=17, trip=20)
+trip20.2017<-mutate(trip20.2017,dummy_pulse=rev(seq(1:nrow(trip20.2017))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip20.2017)
+
+# November trip 21
+age0.2017<-filter(length,year==2017 & age ==0 & trip ==21)
+
+# check histogram
+qplot(mmSL, data=age0.2017, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2017,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2017<-select(age0.2017,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2017, breaks = c(0,seq(45,95,5),102),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(40,55,75,95),c(4),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
           emsteps=15, usecondit=FALSE, print.level=0)
 summary(fit1)
 plot(fit1)
 plot(fit1,root=T)
 
 # store model results
-head(age1.2016)
-aug16wk1<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2016,month=8,day=2, dist="gamma")
-aug16wk1<-mutate(aug16wk1,dummy_pulse=rev(seq(1:nrow(aug16wk1))))
+head(age0.2017)
+trip21.2017<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2017,month=10,day=31, trip=21)
+trip21.2017<-mutate(trip21.2017,dummy_pulse=rev(seq(1:nrow(trip21.2017))))
 
 # add to mixtures
-mixtures<-bind_rows(mixtures,aug16wk1)
+mixtures<-bind_rows(mixtures,trip21.2017)
 
-# August week 2
-age1.2016<-filter(length,year==2016 & age ==1 & month ==8 & Trip==15)
-# week 2 trip 15
-
-# check histogram
-qplot(mmSL, data=age1.2016, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2016,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2016<-select(age1.2016,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2016, breaks = c(0,seq(70,130,5),132),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(85,105,135),c(5),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-# fit 1
-head(age1.2016)
-aug16wk2<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2016,month=8,day=16,dist="gamma")
-aug16wk2<-mutate(aug16wk2,dummy_pulse=rev(seq(1:nrow(aug16wk2))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,aug16wk2)
-
-# August/September week 3
-age1.2016<-filter(length,year==2016 & age ==1& Trip==16)
-# week 3 trip 16
+# November trip 22
+age0.2017<-filter(length,year==2017 & age ==0 & trip ==22)
 
 # check histogram
-qplot(mmSL, data=age1.2016, binwidth=5)
+qplot(mmSL, data=age0.2017, binwidth=5)
 
 # # detremine max and min SL
-summarise(age1.2016,min(mmSL),max(mmSL))
+summarise(age0.2017,min(mmSL),max(mmSL))
 
 # create dataframe with SL only
-group2016<-select(age1.2016,mmSL)
+group2017<-select(age0.2017,mmSL)
 
 # convert to frequency table
-age1group<-mixgroup(group2016, breaks = c(0,seq(85,135,5),149),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2017, breaks = c(0,seq(50,95,5),101),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
-plot(age1group)
+plot(age0group)
 
 # set parameters
-age1param<-mixparam(c(100,135),c(6),pi=NULL)
-plot(age1group,age1param,"gamma")
+age0param<-mixparam(c(45,60,80,95),c(4),pi=NULL)
+plot(age0group,age0param,"gamma")
 
 # fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-
-# store model results
-head(age1.2016)
-aug16wk3<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2016,month=8,day=31, dist="gamma")
-aug16wk3<-mutate(aug16wk3,dummy_pulse=rev(seq(1:nrow(aug16wk3))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,aug16wk3)
-
-# September
-age1.2016<-filter(length,year==2016 & age == 1 & month == 9 & Trip == 17)
-# week 1 trip 17
-
-# check histogram
-qplot(mmSL, data=age1.2016, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2016,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2016<-select(age1.2016,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2016, breaks = c(0,seq(90,150,5),155),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(92,105,124,155),c(4),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
           emsteps=15, usecondit=FALSE, print.level=0)
 summary(fit1)
 plot(fit1)
 plot(fit1,root=T)
 
 # store model results
-head(age1.2016)
-sept16wk1<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2016,month=9,day=13, dist="lnorm")
-sept16wk1<-mutate(sept16wk1,dummy_pulse=rev(seq(1:nrow(sept16wk1))))
+head(age0.2017)
+trip22.2017<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2017,month=11,day=15, trip=22)
+trip22.2017<-mutate(trip22.2017,dummy_pulse=rev(seq(1:nrow(trip22.2017))))
 
 # add to mixtures
-mixtures<-bind_rows(mixtures,sept16wk1)
-
-# September 
-age1.2016<-filter(length,year==2016 & age ==1& month==9 & Trip==18)
-# week 2 trip 18
-
-# check histogram
-qplot(mmSL, data=age1.2016, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2016,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2016<-select(age1.2016,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2016, breaks = c(0,seq(95,165,5),170),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(110,125,145,165),c(4),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-
-# fit 1, but poor fit
-# add to mixtures df
-head(age1.2016)
-sept16wk2<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2016,month=9,day=28, dist="gamma")
-sept16wk2<-mutate(sept16wk2,dummy_pulse=rev(seq(1:nrow(sept16wk2))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,sept16wk2)
-
-# october
-age1.2016<-filter(length,year==2016 & age ==1 & month ==10 & Trip == 19)
-# week 1 trip 19
-
-# check histogram
-qplot(mmSL, data=age1.2016, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2016,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2016<-select(age1.2016,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2016, breaks = c(0,seq(105,190,5),196),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(110,125,150,165,180),c(5),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-age1param2<-mixparam(c(110,125,150,170),c(5),pi=NULL)
-fit2<-mix(age1group,age1param2,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit = FALSE, print.level = 0)
-summary(fit2)
-plot(fit2)
-plot(fit2,root=T)
-
-
-# store fit 2 results
-head(age1.2016)
-oct16wk1<-bind_cols(fit2$parameters,fit2$se)%>%
-  mutate(year=2016,month=10,day=13, dist="gamma")
-oct16wk1<-mutate(oct16wk1,dummy_pulse=rev(seq(1:nrow(oct16wk1))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,oct16wk1)
-
-# october week 2
-age1.2016<-filter(length,year==2016 & age ==1 & month ==10 & Trip == 20)
-# week 2 trip 20
-
-# check histogram
-qplot(mmSL, data=age1.2016, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2016,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2016<-select(age1.2016,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2016, breaks = c(0,seq(110,185,5),190),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(111,125,150,170),c(5),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-
-
-# fit 1
-head(age1.2016)
-oct16wk2<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2016,month=10,day=27, dist="gamma")
-oct16wk2<-mutate(oct16wk2,dummy_pulse=rev(seq(1:nrow(oct16wk2))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,oct16wk2)
-
-# November
-age1.2016<-filter(length,year==2016 & age == 1 & month ==11 & Trip == 21)
-# week 1 trip 21
-
-# check histogram
-qplot(mmSL, data=age1.2016, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2016,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2016<-select(age1.2016,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2016, breaks = c(0,seq(105,190,5),195),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(110,135,155,190),c(4),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-
-# store model results
-head(age1.2016)
-nov16<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2016,month=11,day=14, dist="gamma")
-nov16<-mutate(nov16,dummy_pulse=rev(seq(1:nrow(nov16))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,nov16)
-
-# ----- age 1 2017 ------
-# May
-age1.2017<-filter(length, year==2017 & age == 1 & month == 5)
-
-# check histogram
-qplot(mmSL, data=age1.2017, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2017,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2017<-select(age1.2017,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2017, breaks = c(0,seq(40,135,5),138),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(50,80,125),c(5),pi=NULL)
-plot(age1group,age1param,"gamma")
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-
-# store model results
-head(age1.2017)
-may17<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2017,month=5,day=23,dist="gamma")
-may17<-mutate(may17,dummy_pulse=rev(seq(1:nrow(may17))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,may17)
-
-# July
-age1.2017<-filter(length,year==2017 & age ==1 & month == 7 & day <24)
-
-#week 1 July 10
-
-# check histogram
-qplot(mmSL, data=age1.2017, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2017,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2017<-select(age1.2017,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2017, breaks = c(0,seq(55,135,5),140),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(60,85,105,140),c(4),pi=NULL)
-plot(age1group,age1param,"gamma")
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-# store model results
-head(age1.2017)
-july17wk1<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2017,month=7,day=10, dist="gamma")
-july17wk1<-mutate(july17wk1,dummy_pulse=rev(seq(1:nrow(july17wk1))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,july17wk1)
-
-# july week 2
-age1.2017<-filter(length,year==2017 & age ==1 & month == 7 & day >20)
-
-#week 2: July 24
-
-# check histogram
-qplot(mmSL, data=age1.2017, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2017,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2017<-select(age1.2017,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2017, breaks = c(0,seq(55,140,5),145),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(65,100,125),c(4),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-
-# store model results
-head(age1.2017)
-july17wk2<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2017,month=7,day=24, dist="gamma")
-july17wk2<-mutate(july17wk2,dummy_pulse=rev(seq(1:nrow(july17wk2))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,july17wk2)
-
-# August
-age1.2017<-filter(length,year==2017 & age ==1 & month == 8&trip ==16)
-# week 2
-
-# check histogram
-qplot(mmSL, data=age1.2017, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2017,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2017<-select(age1.2017,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2017, breaks = c(0,seq(80,165,5),167),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(85,120,142,170),c(4),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-
-# store model results
-head(age1.2017)
-aug17<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2017,month=8,day=21, dist="gamma")
-aug17<-mutate(aug17,dummy_pulse=rev(seq(1:nrow(aug17))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,aug17)
-
-# September #week1
-age1.2017<-filter(length,year==2017 & age ==1 & month == 9 & trip ==17)
-# week 1
-
-# check histogram
-qplot(mmSL, data=age1.2017, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2017,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2017<-select(age1.2017,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2017, breaks = c(0,seq(82,160,5),162),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(95,110,130,150),c(4),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-
-# store model results
-head(age1.2017)
-setp17wk1<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2017,month=9,day=5, dist="gamma")
-setp17wk1<-mutate(setp17wk1,dummy_pulse=rev(seq(1:nrow(setp17wk1))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,setp17wk1)
-
-# September #week2
-age1.2017<-filter(length,year==2017 & age ==1 & month == 9 & trip==18)
-# week 1
-
-# check histogram
-qplot(mmSL, data=age1.2017, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2017,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2017<-select(age1.2017,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2017, breaks = c(0,seq(95,175,5),180),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(120,140),c(4),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-
-# store model results
-head(age1.2017)
-setp17wk2<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2017,month=9,day=18, dist="gamma")
-setp17wk2<-mutate(setp17wk2,dummy_pulse=rev(seq(1:nrow(setp17wk2))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,setp17wk2)
-
-# October week 1
-age1.2017<-filter(length,year==2017 & age ==1 & month == 10 & trip ==19)
-# week 1
-
-# check histogram
-qplot(mmSL, data=age1.2017, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2017,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2017<-select(age1.2017,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2017, breaks = c(0,seq(95,190,5),195),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(110,130,145,170),c(4),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-# store model results
-head(age1.2017)
-oct17wk1<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2017,month=10,day=2, dist="gamma")
-oct17wk1<-mutate(oct17wk1,dummy_pulse=rev(seq(1:nrow(oct17wk1))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,oct17wk1)
-
-# October week 2
-age1.2017<-filter(length,year==2017 & age ==1 & month == 10 & trip ==20)
-# week 1
-
-# check histogram
-qplot(mmSL, data=age1.2017, binwidth=5)
-
-# # detremine max and min SL
-summarise(age1.2017,min(mmSL),max(mmSL))
-
-# create dataframe with SL only
-group2017<-select(age1.2017,mmSL)
-
-# convert to frequency table
-age1group<-mixgroup(group2017, breaks = c(0,seq(105,165,5),170),xname=NULL, k = NULL, usecondit = FALSE)
-
-# plot frequency data
-plot(age1group)
-
-# set parameters
-age1param<-mixparam(c(118,139,160),c(4),pi=NULL)
-plot(age1group,age1param,"gamma")
-
-# fit mixture
-fit1<-mix(age1group,age1param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=15, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-# store model results
-head(age1.2017)
-oct17wk2<-bind_cols(fit1$parameters,fit1$se)%>%
-  mutate(year=2017,month=10,day=17, dist="gamma")
-oct17wk2<-mutate(oct17wk2,dummy_pulse=rev(seq(1:nrow(oct17wk2))))
-
-# add to mixtures
-mixtures<-bind_rows(mixtures,oct17wk2)
-
-# October/November
-age1.2017<-filter(length,year==2017 & age ==1 & trip ==21)
-# not enough fish
-
-# November 
-age1.2017<-filter(length,year==2017 & age==1 & month ==11)
-# not enough fish
-
+mixtures<-bind_rows(mixtures,trip22.2017)
 
 View(mixtures)
 
@@ -4933,6 +5240,6 @@ mixtures2<-mixtures%>%
 # add 'cohort', 'age' to mixtures df
 # ---- Final mixtures DF -----
 mixtures3<-mixtures2%>%
-  mutate(cohort=year-1,age=1)
+  mutate(cohort=year,age=0)
 
-write.csv(mixtures3,"./data/data-working/age-1-mixture-dist.csv",row.names = FALSE)
+write.csv(mixtures3,"./data/data-working/age-0-mixture-dist.csv",row.names = FALSE)

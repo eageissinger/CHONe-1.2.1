@@ -1,5 +1,5 @@
 # set working directory 
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/eageissinger/Documents/Emilie-Lab-comp/")
 
 # ---- load packages ----
 library(dplyr)
@@ -111,3 +111,40 @@ filter(mydata,cohort==2016 & month == 7)
 # only updated for May and July
 write.csv(mydata,"./data/data-working/pulse_range_mayjuly.csv")
 
+cohort.graph(mydata)
+
+test<-mydata%>%
+  mutate(mean=(min+max)/2)
+test$cohort<-as.factor(test$cohort)
+test$pulse<-as.integer(test$pulse)
+glimpse(test)
+
+# plotting
+
+test%>%
+  filter(cohort=="2010")%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=1)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=5)+
+  theme_bw()
+
+cohort.graph<-function(test,na.rm=TRUE, ...){
+  
+  cohort_list<-rev(unique(test$cohort))
+
+  for (i in seq_along(cohort_list)) {
+    plot<-ggplot(subset(test,test$cohort==cohort_list[i]),
+                 aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+      geom_point(size=2)+
+      geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+      theme_bw()+
+      ggtitle(paste(cohort_list[i], "Cohort"))+
+      xlab("Date")+ylab("Standard length (mm)")+
+      scale_x_date(date_breaks="1 month",
+                   date_labels="%b")+
+      theme(axis.text.x=element_text(angle=40))
+    print(plot)
+  }
+}
+cohort.graph(test)
+glimpse(test)
