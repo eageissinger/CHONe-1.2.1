@@ -11,3 +11,4 @@ code/*.Rhistory
 *.vcv
 .RData
 methods-report_files/
+*.pdf
