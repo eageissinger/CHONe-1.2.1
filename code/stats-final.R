@@ -17,8 +17,13 @@ max(data$pi)
 
 # subset data to use only published data (1998-2004)
 bd<-data%>%
-  filter(year<2006)
-
+  filter(year<2006)%>%
+  filter(pi>0)%>%
+  filter(pi<1.0)%>%
+  slice(-37,-39,-36,-78,-41,-19,-42,-70,-74,-38)
+summary(bd)
+min(bd$pi)
+max(bd$pi)
 m1<-lm(pi~year*month*factor(dummy_pulse),data=bd)
 plot(m1)
 hist(resid(m1))
@@ -49,6 +54,7 @@ qqnorm(resid(m1))
 plot(m1,which=4)
 summary(m1)
 anova(m1)
+Anova(m1,type="III")
 
 m1.intercept<-glm(pi~1,data=bd,family=gaussian(link="identity"))
 m1.yr<-glm(pi~1+year,data=bd,family=gaussian(link="identity"))
@@ -64,6 +70,13 @@ hist(resid(m1),main=NULL,xlab="Residuals")
 qqnorm(resid(m1),main=NULL)
 qqline(resid(m1),col='red')
 plot(m1,which=4,main=NULL)
+
+# deviance residuals for beta
+res.dev<-residuals(m1,type = "deviance")
+sum(res.dev^2)
+# sum(res.dev^2)/resdidual df
+sum(res.dev^2)/84
+summary(m1)
 
 # Export, save plot with width 829, height 590
 
@@ -89,17 +102,18 @@ plot(m2,which=2,type="pearson")
 
 
 # Analysis of Deviance table
-m2.intercept<-betareg(pi~1,data=data,link="logit")
-m2.yr<-betareg(pi~1+year,data=data,link="logit")
-m2.month<-betareg(pi~1+year+month,data=data,link="logit")
-m2.mu<-betareg(pi~1+year+month+factor(dummy_pulse),data=data,link="logit")
+m2.intercept<-betareg(pi~1,data=bd,link="logit")
+m2.yr<-betareg(pi~1+year,data=bd,link="logit")
+m2.month<-betareg(pi~1+year+month,data=bd,link="logit")
+m2.mu<-betareg(pi~1+year+month+factor(dummy_pulse),data=bd,link="logit")
 
 m2ANODEV<-lrtest(m2.intercept,m2.yr,m2.month,m2.mu)
 m2ANODEV
-
+summary(m2)
 # deviance residuals for beta
 res.dev<-residuals(m2,type = "deviance")
 sum(res.dev^2)
 # sum(res.dev^2)/resdidual df
-sum(res.dev^2)/254
+sum(res.dev^2)/77
 summary(m1)
+5.6749/77

@@ -111,40 +111,264 @@ filter(mydata,cohort==2016 & month == 7)
 # only updated for May and July
 write.csv(mydata,"./data/data-working/pulse_range_mayjuly.csv")
 
-cohort.graph(mydata)
+# Format data for plotting
+length$date<-ymd(paste(length$year,length$month,length$day,sep="-"))
+length0<-length%>%
+  filter(age==0)%>%
+  mutate(cohort=year)%>%
+  select(-trip)%>%
+  group_by(cohort,age,pulse,date)%>%
+  summarise(mean=mean(mmSL),min=min(mmSL),max=max(mmSL))%>%
+  filter(!is.na(pulse))
+names(length0)
+str(length0)
+length0$pulse<-as.character(length0$pulse)
 
-test<-mydata%>%
-  mutate(mean=(min+max)/2)
-test$cohort<-as.factor(test$cohort)
-test$pulse<-as.integer(test$pulse)
+test1<-mydata%>%
+  mutate(mean=(min+max)/2)%>%
+  mutate(age=1)
+
+test<-bind_rows(length0,test1)
 glimpse(test)
 
 # plotting
 
 test%>%
-  filter(cohort=="2010")%>%
+  filter(cohort==1998)%>%
   ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
-  geom_point(size=1)+
-  geom_errorbar(aes(ymin=min,ymax=max),width=5)+
-  theme_bw()
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("1998 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
 
-cohort.graph<-function(test,na.rm=TRUE, ...){
-  
-  cohort_list<-rev(unique(test$cohort))
+test%>%
+  filter(cohort==1999)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("1999 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
 
-  for (i in seq_along(cohort_list)) {
-    plot<-ggplot(subset(test,test$cohort==cohort_list[i]),
-                 aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
-      geom_point(size=2)+
-      geom_errorbar(aes(ymin=min,ymax=max),width=0)+
-      theme_bw()+
-      ggtitle(paste(cohort_list[i], "Cohort"))+
-      xlab("Date")+ylab("Standard length (mm)")+
-      scale_x_date(date_breaks="1 month",
-                   date_labels="%b")+
-      theme(axis.text.x=element_text(angle=40))
-    print(plot)
-  }
-}
-cohort.graph(test)
-glimpse(test)
+test%>%
+  filter(cohort==2000)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2000 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2001)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2001 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2002)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2002 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2003)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2003 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2004)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2004 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2005)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2005 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2006)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2006 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2007)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2007 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2008)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2008 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2009)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2009 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2010)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2010 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2011)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2011 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2012)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2012 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2013)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2013 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2014)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2014 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2015)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2015 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2016)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2016 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+test%>%
+  filter(cohort==2017)%>%
+  ggplot(aes(x=date,y=mean,group=cohort,shape=factor(pulse)))+
+  geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2017 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
