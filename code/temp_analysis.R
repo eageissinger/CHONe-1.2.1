@@ -1,18 +1,15 @@
 #Temperature expoloratory analysis for Condition paper
 
 # --- set working directory ----
-setwd("C:/Users/user/Dropbox/Thesis/Research/")
+setwd("D:/work/")
 
 # --- load packages ----
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-library(stringr)
+library(tidyverse)
 library(lubridate)
 library(gridExtra)
 
 # --- load data -----
-temp<-read.csv("./data-working/daily-temp-corrected-newman.csv")
+temp<-read.csv("./data/data-working/daily-temp-corrected-newman.csv")
 
 # ---data check -----
 summary(temp)

@@ -7,14 +7,25 @@ library(lubridate)
 
 # load data
 pulserange<-read.csv("./data/data-working/age1-pulse-range.csv")
+length<-read.csv("./data/data-working/newman-length.csv")
 
 str(pulserange)
+pulserange<-pulserange%>%
+  mutate(month=replace(month,cohort==2003 & trip == 13,7))%>%
+  mutate(month=replace(month,cohort==2003 & trip ==14,7))%>%
+  mutate(day=replace(day,cohort==2003 & trip ==13,16))%>%
+  mutate(day=replace(day,cohort==2003 & trip == 14,31))
 # fix date
 pulserange$date<-ymd(paste(pulserange$year,pulserange$month,pulserange$day,sep="-"))
 
-# 2000
+
 mydata<-pulserange%>%
   mutate(pulse=dummy_pulse)%>%
+  mutate(pulse=replace(pulse,cohort==1999 & trip == 16 & pulse == 2, 4))%>%
+  mutate(pulse=replace(pulse,cohort==1999 & trip == 16 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==1999 & trip == 17 & pulse == 3, "4/5"))%>%
+  mutate(pulse=replace(pulse,cohort==1999 & trip == 17 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==1999 & trip == 17 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2000 & month==7 & pulse==2,3))%>%
   mutate(pulse=replace(pulse,cohort==2000 & month ==7 & pulse == 1, 2))%>%
   mutate(pulse=replace(pulse,cohort==2001 & month == 5 & pulse == 3, 5))%>%
@@ -25,12 +36,27 @@ mydata<-pulserange%>%
   mutate(pulse=replace(pulse,cohort==2002 & month ==5 & pulse == 3, 4))%>%
   mutate(pulse=replace(pulse,cohort==2002 & month == 5 & pulse == 2, 3))%>%
   mutate(pulse=replace(pulse,cohort==2002 & month == 5 & pulse == 1, 2))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 13 & pulse == 2, "2/3"))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 13 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 14 & pulse == 3,4))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip ==14 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 14 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 16 & pulse == 3,4))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 16 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 16 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 17 & pulse == 2, "2/3"))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 17 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 18 & pulse == 2, "2/3"))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 19 & pulse == 2, "2/3"))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 20 & pulse == 5,4))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 20 & pulse == 4,3))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 20 & pulse == 3, "2/3"))%>%
   mutate(pulse=replace(pulse,cohort==2004 & month == 5 & pulse == 3,5))%>%
   mutate(pulse= replace(pulse,cohort==2004 & month == 5 & pulse == 2,4))%>%
   mutate(pulse=replace(pulse,cohort==2004 & month == 5 & pulse == 1,3))%>%
-  mutate(pulse=replace(pulse,cohort==2004 & month == 7 & pulse == 3, 5))%>%
-  mutate(pulse=replace(pulse,cohort==2004 & month == 7 & pulse== 2,4))%>%
-  mutate(pulse=replace(pulse,cohort==2004 & month == 7 & pulse == 1,3))%>%
+  mutate(pulse=replace(pulse,cohort==2004 & trip == 13 & pulse == 3, 5))%>% # need to double check 2004
+  mutate(pulse=replace(pulse,cohort==2004 & trip == 13 & pulse== 2,4))%>% # send bob and email with the two possibilities
+  mutate(pulse=replace(pulse,cohort==2004 & trip == 13 & pulse == 1,3))%>% # either super fast growth rate or average
   mutate(pulse=replace(pulse,cohort==2005 & month == 5,3))%>%
   mutate(pulse=replace(pulse,cohort==2006 & month ==5 & pulse == 4,6))%>%
   mutate(pulse=replace(pulse,cohort==2006 & month == 5 & pulse == 3, 5))%>%
@@ -55,17 +81,30 @@ mydata<-pulserange%>%
   mutate(pulse=replace(pulse,cohort==2010& trip ==12 & pulse ==2,4))%>%
   mutate(pulse=replace(pulse,cohort==2010& trip == 12 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2010 & trip == 13 & pulse == 3,4))%>%
+  mutate(pulse=replace(pulse,cohort==2010 & trip == 13 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2010 & trip == 13 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2010 & trip == 15 & pulse == 3,4))%>%
+  mutate(pulse=replace(pulse,cohort==2010 & trip == 15 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2010 & trip == 15 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2011 & month ==5 & pulse == 3,4))%>%
   mutate(pulse=replace(pulse,cohort==2011 & month == 5 & pulse==2,3))%>%
   mutate(pulse=replace(pulse,cohort==2011 & month == 5 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2012 & month == 5 & pulse == 3,5))%>%
-  mutate(pulse=replace(pulse,cohort==2012 & month == 5 & pulse == 2, 4))%>%
+  mutate(pulse=replace(pulse,cohort==2012 & month == 5 & pulse == 2,4))%>%
+  mutate(pulse=replace(pulse,cohort==2012 & month == 5 & pulse == 1,NA))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & month == 5 & pulse == 4,6))%>%
   mutate(pulse=replace(pulse,cohort==2013 & month == 5 & pulse == 3,5))%>%
   mutate(pulse=replace(pulse,cohort==2013 & month == 5 & pulse == 2,4))%>%
   mutate(pulse=replace(pulse,cohort==2013 & month == 5 & pulse == 1,"2/3"))%>%
-  mutate(pulse=replace(pulse,cohort==2013 & month == 7 & pulse == 3,5))%>%
-  mutate(pulse=replace(pulse,cohort==2013 & month == 7 & pulse == 2,4))%>%
-  mutate(pulse=replace(pulse,cohort==2013 & month == 7 & pulse == 1,"2/3"))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 13 & pulse == 3,5))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 13 & pulse == 2,4))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 13 & pulse == 1,"2/3"))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 14 & pulse == 3,6))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 14 & pulse == 2,5))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 14 & pulse == 1, "2/3"))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 16 & pulse == 4,6))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 16 & pulse == 3,5))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 16 & pulse == 2,4))%>%
   mutate(pulse=replace(pulse,cohort==2015 & month == 5 & pulse == 3,4))%>%
   mutate(pulse=replace(pulse,cohort==2015 & month == 5 & pulse == 2,3))%>%
   mutate(pulse=replace(pulse,cohort==2015 & month ==5 & pulse == 1,2))%>%
@@ -74,13 +113,46 @@ mydata<-pulserange%>%
   mutate(pulse=replace(pulse,cohort==2015 & trip == 12 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2015 & trip ==13 & pulse == 3,4))%>%
   mutate(pulse=replace(pulse,cohort==2015 & trip == 13 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 13 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 14 & pulse == 2,4))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 14 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 15 & pulse == 3,4))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 15 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 15 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2016 & month == 5 & pulse == 3,5))%>%
   mutate(pulse=replace(pulse,cohort==2016 & month == 5 & pulse == 2,3))%>%
   mutate(pulse=replace(pulse,cohort==2016 & trip == 13 & pulse ==4,5))%>%
   mutate(pulse=replace(pulse,cohort==2016 & trip == 13 & pulse == 3,4))%>%
   mutate(pulse=replace(pulse,cohort==2016 & trip == 13 & pulse == 2,3))%>%
-  mutate(pulse=replace(pulse,cohort==2016& trip == 14 & pulse ==3,5))%>%
-  mutate(pulse=replace(pulse,cohort==2016 & trip == 14 & pulse == 2,4))
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 14 & pulse ==3,5))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 14 & pulse == 2,4))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 14 & pulse == 1,3))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 16 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 16 & pulse == 3,4))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 16 & pulse == 4,5))
+
+# 2016
+# take out trips 17, 18, 19, 20
+# 2015
+# take out trips 16-21
+# 2013
+# take out trips 21-22
+# 2012
+# take out trips 17-22
+# 2007
+# take out trips 16 and 18
+# 2000
+# take out trips 19-22
+# 1999
+# take out trips 18-21
+
+mydata2<-mydata%>%
+  filter(cohort== 1999 & !trip %in% 18:21 | cohort == 2000 & !trip %in% 19:22 |
+           cohort %in% 2001:2006 | cohort==2007 & !trip %in% 16:18 | cohort %in% 2008:2011 |
+           cohort == 2012 & !trip %in% 17:22 | cohort==2013 & !trip %in% 21:22 |
+           cohort ==2014 | cohort == 2015 & !trip %in% 16:21 | cohort == 2016 & !trip %in% 17:20)
+
+mydata2
 
 filter(mydata,cohort==2000 & month == 7)         
 filter(mydata,cohort==2001 & month == 5)
@@ -108,8 +180,8 @@ filter(mydata,cohort==2015 & month ==7)
 filter(mydata,cohort==2016 & month ==5)
 filter(mydata,cohort==2016 & month == 7)
 
-# only updated for May and July
-write.csv(mydata,"./data/data-working/pulse_range_mayjuly.csv")
+# as complete as it can be
+write.csv(mydata2,"./data/data-working/pulse_range_age1_final.csv")
 
 # Format data for plotting
 length$date<-ymd(paste(length$year,length$month,length$day,sep="-"))
@@ -124,7 +196,7 @@ names(length0)
 str(length0)
 length0$pulse<-as.character(length0$pulse)
 
-test1<-mydata%>%
+test1<-mydata2%>%
   mutate(mean=(min+max)/2)%>%
   mutate(age=1)
 
