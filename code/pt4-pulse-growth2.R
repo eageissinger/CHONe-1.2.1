@@ -2,7 +2,7 @@
 # Purpose: Finalize pulse assignments
 
 # ---- set working directory ----
-setwd("D:/work/")
+setwd("C:/Users/eageissinger/Documents/Emilie-Lab-comp/")
 
 # ---- load data ----
 age1pulse<-read.csv("./data/data-working/age1_dummypulse.csv")
@@ -16,6 +16,7 @@ library(lubridate)
 
 # ---- format Dataframe -----
 # fix date in age1pulse and length
+age1pulse<-age1pulse%>%select(-date)
 age1pulse$date<-ymd(paste(age1pulse$year,age1pulse$month,age1pulse$day,sep="-"))
 length$date<-ymd(paste(length$year,length$month,length$day,sep="-"))
 

@@ -41,40 +41,71 @@ tripdate$date<-ymd(paste(tripdate$year,tripdate$month,tripdate$day, sep="-"))
 
 # make dataframe with min and max pulse ranges
 # use +/- standard deviation for "min" and "max"
+age1pulse<-left_join(age1pulse,tripdate)
+
+# ---- assign trips ----
+# combine trip data to pulse_range
+## using trip data to ease pulse assignment later on, since ranges came
+# from data across multiple days
+
+pulsetripNA<-age1pulse%>%
+  filter(is.na(trip)) # check for NAs
+unique(pulsetripNA$date)
+
+# Determine what the trip dates should be for the missing values
+# these dates are not associated with a trip because the data is a 
+# combination of two separate trips, with the date averaged between
+# 1996, 1999, 2004, and 2015 are between trip 13 and 14
+# 2012 is between trip 12 and 13
+
+# create a dataframe to assign trips
+range1<-age1pulse%>%mutate(trip=replace(trip,date=="1996-07-24",13),
+                            trip=replace(trip,date=="2004-07-24",13),
+                            trip=replace(trip,date=="2012-07-10",12),
+                            trip=replace(trip,date=="2015-07-21",13))
+range2<-age1pulse%>%mutate(trip=replace(trip,date=="1996-07-24",14),
+                            trip=replace(trip,date=="2004-07-24",14),
+                            trip=replace(trip,date=="2012-07-10",13),
+                            trip=replace(trip,date=="2015-07-21",14))
+age1pulse<-dplyr::union(range1,range2)
+
+
+#######
+
+
 pulse_range<-age1pulse%>%
-  group_by(date,dummy_pulse,year,cohort)%>%
+  group_by(year,trip,dummy_pulse,cohort)%>%
   summarise(min=(mu-sigma),max=mu+sigma,sd=sigma)%>%
   mutate(min_round=floor(min),max_round=ceiling(max))# add rounded min and max to create an
 # integer column. Min is rounded down, max is rounded up
 
 # ---- Frequency check Round 1 -------
-pulse_range<-left_join(pulse_range,tripdate)
-freq_test1<-data.frame(trip=rep(pulse_range$trip,pulse_range$max_round-pulse_range$min_round+1),
-                         date=rep(pulse_range$date,pulse_range$max_round-pulse_range$min_round+1),
+#pulse_range<-left_join(pulse_range,tripdate)
+#freq_test1<-data.frame(trip=rep(pulse_range$trip,pulse_range$max_round-pulse_range$min_round+1),
+                         year=rep(pulse_range$year,pulse_range$max_round-pulse_range$min_round+1),
                          cohort=rep(pulse_range$cohort,pulse_range$max_round-pulse_range$min_round+1),
                          pulse=rep(pulse_range$dummy_pulse,pulse_range$max_round-pulse_range$min_round+1),
                          mmSL=unlist(mapply(seq,pulse_range$min_round,pulse_range$max_round)))
-freq_test1<-freq_test1%>%
-  mutate(year=cohort+1)%>%
-  select(-date)%>%
-  data.frame()
-l1<-select(length,-trip)
-lt1<-left_join(l1,tripdate)
-age1l<-lt1%>%filter(age==1)%>%select(-pulse)
-freq_test1<-left_join(age1l,freq_test1)
+#freq_test1<-freq_test1%>%
+#  mutate(year=cohort+1)%>%
+#  data.frame()
+#l1<-select(length,-trip)
+#lt1<-left_join(l1,tripdate)
+#age1l<-lt1%>%filter(age==1)%>%select(-pulse)
+#freq_test1<-left_join(age1l,freq_test1)
 
 # need to figure out where to go from here.....
 
 
-test<-freq_test1%>%
-  group_by(cohort,trip,pulse)%>%
-  filter(mmSL)
+#test<-freq_test1%>%
+#  group_by(cohort,trip,pulse)%>%
+#  filter(mmSL)
 
 
 # incorporate the 'in between' ranges
 # best way to do this is to split the difference between min of pulse 1 and max of pulse 2, etc.
 pulse_range2<-pulse_range%>%
-  group_by(date)%>%
+  group_by(year,trip)%>%
   mutate(diff=(lag(min_round)-max_round)/2)%>% # split difference between the pulse groups
   mutate(plusmax=floor(diff))%>% # round to prevent overlap
   mutate(minusmin=floor(lead(diff)))%>% # round to prevent overlap
@@ -89,53 +120,25 @@ pulse_range2<-pulse_range%>%
 #View(pulse_range2)
 # add 2sd above and below pulse range
 pulse_range3<-pulse_range2%>%
-  group_by(date)%>%
+  group_by(year,trip)%>%
   mutate(adjustmax=ceiling(2*sd))%>%
   mutate(adjustmax=replace(adjustmax,dummy_pulse!=1,0))%>%
   mutate(adjustmin=ceiling(2*sd))%>%
   mutate(adjustmin=replace(adjustmin,dummy_pulse!=max(dummy_pulse),0))%>%
   mutate(max_final3=adjustmax+max_final2,
          min_final3=min_final-adjustmin)%>%
-  select(date,dummy_pulse,year,cohort,min_final3,max_final3)%>%
+  select(trip,dummy_pulse,year,cohort,min_final3,max_final3)%>%
   rename(min=min_final3,max=max_final3)
-
-
-# combine trip data to pulse_range
-## using trip data to ease pulse assignment later on, since ranges came
-# from data across multiple days
-pulse_trip<-left_join(pulse_range3,tripdate)
-View(pulse_trip)
-pulsetripNA<-pulse_trip%>%
-  filter(is.na(trip)) # check for NAs
-unique(pulsetripNA$date)
-
-# Determine what the trip dates should be for the missing values
-# these dates are not associated with a trip because the data is a 
-# combination of two separate trips, with the date averaged between
-# 1996, 1999, 2004, and 2015 are between trip 13 and 14
-# 2012 is between trip 12 and 13
-
-# create a dataframe to assign trips
-range1<-pulse_trip%>%mutate(trip=replace(trip,date=="1996-07-24",13),
-                           trip=replace(trip,date=="2004-07-24",13),
-                           trip=replace(trip,date=="2012-07-10",12),
-                           trip=replace(trip,date=="2015-07-21",13))
-range2<-pulse_trip%>%mutate(trip=replace(trip,date=="1996-07-24",14),
-                            trip=replace(trip,date=="2004-07-24",14),
-                            trip=replace(trip,date=="2012-07-10",13),
-                            trip=replace(trip,date=="2015-07-21",14))
-range_final<-dplyr::union(range1,range2)
-
-is.na(range_final)
 
 # next step:
 # need to create a data frame that fills in all possible length 
 # possibilities for every pulse option
 
 # next step: use the below functions and apply to entire dataset
+range_final<-pulse_range3
 
 pulse_assign<-data.frame(trip=rep(range_final$trip,range_final$max-range_final$min+1),
-                         date=rep(range_final$date,range_final$max-range_final$min+1),
+                         year=rep(range_final$year,range_final$max-range_final$min+1),
                          cohort=rep(range_final$cohort,range_final$max-range_final$min+1),
                          pulse=rep(range_final$dummy_pulse,range_final$max-range_final$min+1),
                          mmSL=unlist(mapply(seq,range_final$min,range_final$max)))
@@ -148,16 +151,13 @@ glimpse(pulse_assign)
 # add year back to pulse_assign (easier to do this now than to add it to above code)
 pulse_assign<-pulse_assign%>%
   mutate(year=cohort+1)%>%
-  select(-date)%>%
   data.frame()
 
 # assign pulses to age 1 length data
 
-# select age 1 cod
-lengthtrip<-left_join(length,tripdate)
 #View(lengthtrip)
-age1length<-lengthtrip%>%filter(age==1)%>%select(-pulse)
-#View(age1length)
+age1length<-length%>%filter(age==1)%>%select(-pulse)
+View(age1length)
 
 # assign pulses to subsetted age1 length data
 
