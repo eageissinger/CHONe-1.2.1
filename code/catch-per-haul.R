@@ -6,14 +6,11 @@ setwd("C:/Users/Emilie/Dropbox/Thesis/Research/CHONe-1.2.1/")
 range_final<-read.csv("./data/data-working/pulse_range_mayjuly.csv")
 length<-read.csv("./data/data-working/newman-length.csv")
 count<-read.csv("./data/data-working/newman-catch.csv")
-trips<-read.csv("./data/data-working/trip-dates-newman.csv")
+trips<-read.csv("./data/data-working/newman-trips.csv")
 hauls<-read.csv("./data/data-working/hauls.csv")
 
 # ---- load packages -----
-library(dplyr)
-library(tidyr)
-library(lubridate)
-library(stringr)
+library(tidyverse)
 library(arsenal)
 
 # ---- check data ----
@@ -53,18 +50,10 @@ hauls<-hauls%>%
 range_final$date<-ymd(paste(range_final$year,range_final$month,range_final$day,sep="-"))
 length$date<-ymd(paste(length$year,length$month,length$day,sep="-"))
 count$date<-ymd(paste(count$year,count$month,count$day,sep="-"))
-
-trips$year<-as.integer(str_sub(trips$Date,start=1,end=4))
-trips$month<-as.integer(str_sub(trips$Date,start=5,end=6))
-trips$day<-as.integer(str_sub(trips$Date,start=7, end=8))
 trips$date<-ymd(paste(trips$year,trips$month,trips$day,sep="-"))
 trips$julian.date<-yday(trips$date)
-trips<-trips%>%
-  select(-Date)%>%
-  rename(trip=Trip)
-
-
 count<-left_join(count,trips)
+
 hauls<-left_join(hauls,trips)
 
 # add trips to length

@@ -2,13 +2,17 @@
 # update/add new data to length and count files
 
 # ----- set working directory -----
-setwd("C:/Users/eageissinger/Documents/Emilie-Lab-comp/")
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 
 # ----- load data ------
 ac0length<-read.csv("./data/data-working/newman-AC0-length.csv")
+ac0length2018<-read.csv("./data/data-working/newman-AC0-length-2018.csv")
 ac0count<-read.csv("./data/data-working/newman-AC0-catch.csv")
+ac0count2018<-read.csv("./data/data-working/newman-AC0-catch-2018.csv")
 ac1length<-read.csv("./data/data-working/newman-AC1-length.csv")
+ac1length2018<-read.csv("./data/data-working/newman-AC1-length-2018.csv")
 ac1count<-read.csv("./data/data-working/newman-AC1-catch.csv")
+ac1count2018<-read.csv("./data/data-working/newman-AC1-catch-2018.csv")
 trip.dates<-read.csv("./data/data-working/trip-dates-newman.csv")
 # ---- load packages ----
 library(tidyverse)
@@ -17,23 +21,33 @@ library(lubridate)
 # ---- check data -----
 summary(ac0length)
 summary(ac0count)
+summary(ac0length2018)
+summary(ac0count2018)
 summary(ac1length)
 summary(ac1count)
+summary(ac1length2018)
+summary(ac1count2018)
 summary(trip.dates)
 
 glimpse(ac0length)
 glimpse(ac0count)
+glimpse(ac0length2018)
+glimpse(ac0count2018)
 glimpse(ac1length)
 glimpse(ac1count)
+glimpse(ac1length2018)
+glimpse(ac1count2018)
 glimpse(trip.dates)
 
 # ---- combine years ----
 # age 0 and age 1 length
 ac1length$Pulse<-as.character(ac1length$Pulse)
 ac0length$Pulse<-as.character(ac0length$Pulse)
-length<-bind_rows(ac0length,ac1length)
+ac1length2018$Pulse<-as.character(ac1length2018$Pulse)
+ac0length2018$Pulse<-as.character(ac0length2018$Pulse)
+length<-bind_rows(ac0length,ac1length,ac0length2018,ac1length2018)
 # age 0 and age 1 count
-count<-bind_rows(ac0count,ac1count)
+count<-bind_rows(ac0count,ac1count,ac0count2018,ac1count2018)
 
 # ---- fix date on new data -----
 # length

@@ -1,7 +1,7 @@
 ### Growth rates - Pulse data ###
 
 # ---- set working directory ----
-setwd("C:/Users/eageissinger/Documents/Emilie-Lab-comp/")
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 
 # ---- load packages ----
 library(lubridate)
@@ -90,8 +90,6 @@ original$cohort<-as.factor(original$cohort)
 new$pulse<-as.factor(new$pulse)
 new$cohort<-as.factor(new$cohort)
 
-min(new$max_size)
-min(original$max_size)
 # ---- format count data -----
 # go from wide format to long format
 count2<-count%>%
@@ -164,7 +162,7 @@ new%>%
 cohort.graph<-function(growth,na.rm=TRUE, ...){
   
   cohort_list<-rev(unique(growth$cohort))
-  pdf()
+  #pdf()
   for (i in seq_along(cohort_list)) {
     plot<-ggplot(subset(growth,growth$cohort==cohort_list[i]),
                  aes(x=date,y=mean_size,group=cohort,shape=pulse))+
