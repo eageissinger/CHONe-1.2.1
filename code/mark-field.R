@@ -1,7 +1,7 @@
 ### Mark-recapture ###
 
 # ---- set working directory ----
-setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/eageissinger/Documents/Emilie-Lab-comp/")
 
 # ---- load required packages ----
 library(tidyverse)
@@ -9,11 +9,11 @@ library(lubridate)
 library(RMark)
 
 # ---- load data ----
-data<-read.csv("./data/data-working/mark-history-field-adj.csv")
+data<-read.csv("./data/data-working/CMR-field-adj.csv")
 subsample<-read.csv("./data/data-working/subsample_wk1-2-field.csv")
-pulse0<-read.csv("./data/data-working/age-0-pulse-range.csv")
-pulse1<-read.csv("./data/data-working/age1_dummypulse.csv")
-trips<-read.csv("./data/data-working/trip-dates-newman.csv")
+pulse0<-read.csv("./data/data-working/CMR-0pulses.csv")
+pulse1<-read.csv("./data/data-working/pulse_range_age1_final.csv")
+trips<-read.csv("./data/data-working/newman-trips.csv")
 
 # ---- check data ----
 names(data)
@@ -31,72 +31,101 @@ str(trips)
 data$date<-ymd(paste(data$year,data$month,data$day,sep="-"))
 subsample$date<-ymd(paste(subsample$Year,subsample$Month,subsample$Day,sep="-"))
 
-trips$year<-as.numeric(str_sub(trips$Date,start=1,end=4))
-trips$month<-as.numeric(str_sub(trips$Date,start=5,end=6))
-trips$day<-as.numeric(str_sub(trips$Date,start=7, end=8))
 trips$date<-ymd(paste(trips$year,trips$month,trips$day,sep="-"))
-
-trips<-trips%>%
-  select(-Date)%>%
-  rename(trip=Trip)
 
 data<-left_join(data,trips)
                 
-# summary table for age1 pulse
-# summary table for age1 pulse
-pulse1<-pulse1%>%
-  group_by(year,cohort,trip,month,pulse)%>%
-  summarise(min=min(mmSL),max=max(mmSL))%>%
-  mutate(age=1)%>%
-  filter(year==2017 & month == 5)
-names(pulse0)
-pulse0<-pulse0%>%rename(year=Year,cohort=Cohort,month=Month,trip=Trip..,
-                        age=Age,pulse=Pulse,min=Min.size,max=Max.size,
-                        notes=Notes)%>%
-  filter(year==2016 & month ==10)
-names(pulse1)
 
-pulse.range<-bind_rows(pulse0,pulse1)%>%
-  select(-notes)%>%
-  mutate(max=replace(max,is.na(max),31))
+# Pulse assignments
 
-size<-data.frame(month=rep(pulse.range$month,pulse.range$max-pulse.range$min+1),
-                 cohort=rep(pulse.range$cohort,pulse.range$max-pulse.range$min+1),
-                 year=rep(pulse.range$year,pulse.range$max-pulse.range$min+1),
-                 trip=rep(pulse.range$trip,pulse.range$max-pulse.range$min+1),
-                 age=rep(pulse.range$age,pulse.range$max-pulse.range$min+1),
-                 pulse=rep(pulse.range$pulse, pulse.range$max-pulse.range$min+1),
-                 sl=unlist(mapply(seq,pulse.range$min,pulse.range$max)))
+# set up age 1 pulses
+glimpse(pulse1)
+pulse.assign1<-data.frame(trip=rep(pulse1$trip,pulse1$max-pulse1$min+1),
+                         year=rep(pulse1$year,pulse1$max-pulse1$min+1),
+                         pulse=rep(pulse1$pulse,pulse1$max-pulse1$min+1),
+                         mmSL=unlist(mapply(seq,pulse1$min,pulse1$max)))
+
+glimpse(pulse.assign1)
+pulse.assign1<-pulse.assign1%>%
+  mutate(age=1)
+glimpse(pulse0)
+pulse0<-pulse0%>%
+  mutate(year=cohort, age=0)%>%
+  select(-cohort)
+
+pulses<-bind_rows(pulse0,pulse.assign1)%>%
+  rename(sl=mmSL)
 
 # ----- pulse assign ----
-test<-distinct(data) #no repeats
 data$site<-str_sub(data$animal_id,start = 1,end = 2)
 data$id<-as.numeric(str_sub(data$animal_id,start=4))
 head(data)
 
-# assign pulse to all fish with AD =0
+# assign pulse to all individual fish
 df1<-data%>%
-  filter(id<1)%>%
-  select(-id)
+  filter(id<1)
 duplicated(df1)
 
 df2<-data%>%
-  filter(AD==1 & day == 19)%>%
-  select(-id)
+  filter(status==1 & day == 19)
 duplicated(df2)
 
 df3<-data%>%
-  filter(AD==1 & day == 28)%>%
-  select(-id)
+  filter(status==1 & day == 28)
 duplicated(df3)
 
 df4<-data%>%
-  filter(AD==1 & month ==5)%>%
-  select(-id)
+  filter(status==1 & month ==5)
 duplicated(df4)
 
 data2<-bind_rows(df1,df2,df3,df4) # individual fish
-pulse.size<-left_join(data2,size)
+pulse.size<-left_join(data2,pulses)
+
+# fill in missing pulses
+pulse.size%>%
+  filter(month==10)%>%
+  ggplot(aes(x=date,y=sl,colour=factor(pulse)))+geom_point()
+
+oct<-pulse.size%>%filter(id<2 & day == 19)%>%
+  filter(!is.na(sl))
+
+qplot(sl,data=oct,binwidth=5)
+SL<-select(oct,sl)
+summarise(SL,min(sl),max(sl))
+group.oct<-mixgroup(SL,breaks= c(0,seq(50,90,5),93),
+                    xname=NULL,k=NULL,usecondit=FALSE)
+plot(group.oct)
+
+# ---- set initial parameters ----
+par<-mixparam(c(60,80),c(5),pi=NULL)
+plot(group.oct,par,"gamma")
+
+# fit mixture
+fit1<-mix(group.oct,par, dist="gamma",mixconstr(consigma = "CCV"),
+          emsteps = 15, usecondit = FALSE)
+
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+head(oct)
+notrip<-bind_cols(fit1$parameters, fit1$se)%>%
+  mutate(trip=1,year=2016,month=10,day=19,cohort=2016)
+notrip<-mutate(notrip,dummy_pulse=rev(seq(1:nrow(notrip))))
+
+pulse.range<-pulse_range(notrip)
+
+# use min and max for each pulse to then create a dataframe with all length possibilities per pulse
+pulse.assign<-data.frame(trip=rep(pulse.range$trip,pulse.range$max-pulse.range$min+1),
+                         cohort=rep(pulse.range$cohort,pulse.range$max-pulse.range$min+1),
+                         pulse=rep(pulse.range$dummy_pulse,pulse.range$max-pulse.range$min+1),
+                         mmSL=unlist(mapply(seq,pulse.range$min,pulse.range$max)))
+View(pulse.assign)
+
+# ---- pick up here ----
+# add new pulse assignments to missing data
+
+
 # need to combine individual fish pulse assignments to full data
 # without losing anything. 
 # Assign pulse based on animal_id
