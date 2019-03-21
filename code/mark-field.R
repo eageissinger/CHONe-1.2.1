@@ -575,12 +575,13 @@ pop.results
 
 summary(pop.results[[2]])
 summary(pop.results[[6]])
-
+pop.results[[2]]$output
+pop.results[[2]]
 # October JS
 oct.pop.model<-function()
 {
   # process data for CJS model and make default design data
-  pop.processed<-process.data(oct.all,model="POPAN",time.intervals = c(5,217))
+  pop.processed<-process.data(oct.all,model="POPAN",time.intervals = c(5,9))
   pop.ddl<-make.design.data(pop.processed)
   # define models for Phi
   Phi.dot<-list(formula=~1)
@@ -600,7 +601,8 @@ oct.pop.results<-oct.pop.model()
 oct.pop.results
 
 summary(oct.pop.results[[2]])
-
+oct.pop.results[[2]]$output
+oct.pop.results[[2]]
 # add pulse
 pop.pulse.model<-function()
 {
