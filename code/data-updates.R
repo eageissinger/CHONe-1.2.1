@@ -2,7 +2,7 @@
 # update/add new data to length and count files
 
 # ----- set working directory -----
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # ----- load data ------
 ac0length<-read.csv("./data/data-working/newman-AC0-length.csv")

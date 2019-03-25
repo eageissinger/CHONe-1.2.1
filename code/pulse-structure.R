@@ -1,5 +1,5 @@
 # --- set working directory ----
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # --- load packages ----
 library(tidyverse)
@@ -17,60 +17,56 @@ haul<-read.csv("./data/data-working/catch_haul.csv")
 # --- format dates ----
 head(length)
 length$date<-ymd(paste(length$year,length$month,length$day,sep="-"))
-# remove current trips column
-length<-select(length,-trip)
+
 
 head(catch)
 catch<-left_join(catch,trips)
 catch$date<-ymd(paste(catch$year,catch$month,catch$day,sep="-"))
 
-# --- combine length and trip data ----
-length<-left_join(length,trips)
-
 # ---- Part 1: Mixture Distributions ----
 # May
 # --- select data ----
-may2008<-filter(length, age ==1 & year == 2008 & month == 5)
+may2018<-filter(length, age ==1 & year == 2018 & month == 5)
 
 # --- check histogram ----
-qplot(mmSL, data = may2008, binwidth = 5)
+qplot(mmSL, data = may2018, binwidth = 5)
 
 # --- create dataframe with SL only ----
-maySL <- select(may2008, mmSL)
+maySL <- select(may208, mmSL)
 
 # ---- determine min and max ----
 summarise(maySL, min(mmSL), max(mmSL))
 
 # ---- convert to frequency table ----
-group.may2008<-mixgroup(maySL, breaks = c(0,seq(45,120,5),125),
+group.may2018<-mixgroup(maySL, breaks = c(0,seq(35,130,5),132),
                         xname=NULL, k = NULL, usecondit = FALSE)
 # --- plot frequency table ----
-plot(group.may2008)
+plot(group.may2018)
 
 # ---- set initial parameters ----
-may.par<-mixparam(c(60,100),c(5),pi=NULL)
-plot(group.may2008,may.par,"gamma")
-may.par<-mixparam(c(60,90,120),c(4,5,6),pi=NULL)
-plot(group.may2008,may.par,"gamma")
+may.par<-mixparam(c(45,95,125),c(5),pi=NULL)
+plot(group.may2018,may.par,"gamma")
+may.par<-mixparam(c(45,94,125),c(5),pi=NULL)
+plot(group.may2018,may.par,"gamma")
 
 # fit mixture
-fit1<-mix(group.may2008,may.par, dist="gamma",mixconstr(consigma = "CCV"),
+fit1<-mix(group.may2018,may.par, dist="gamma",mixconstr(consigma = "CCV"),
           emsteps = 15, usecondit = FALSE)
 
 summary(fit1)
 plot(fit1)
 plot(fit1,root=T)
 
-head(may2008)
-trip10<-bind_cols(fit1$parameters, fit1$se)%>%
-  mutate(trip=10,year=2008,month=5,day=20)
-trip10<-mutate(trip10,dummy_pulse=rev(seq(1:nrow(trip10))))
-
+head(may2018)
+trip9<-bind_cols(fit1$parameters, fit1$se)%>%
+  mutate(trip=9,year=2018,month=5,day=8)
+trip9<-mutate(trip9,dummy_pulse=rev(seq(1:nrow(trip9))))
+trip9
+# ---- empty ----
 # July 
 # week 1
-age1.2008<-filter(length,year==2008 & age == 1 & month == 7 & mmSL<=150)
-age1.2008<-filter(length,year==2008 & age == 1 & month == 7 & mmSL<=150 & day < 5)
-# check histogram
+age1.2018<-filter(length,year==2018 & age == 1 & trip==12)
+
 qplot(mmSL, data=age1.2008, binwidth=5)
 
 # # detremine max and min SL
