@@ -1,7 +1,7 @@
 ### Mark-recapture ###
 
 # ---- set working directory ----
-setwd("C:/Users/eageissinger/Documents/Emilie-Lab-comp/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # ---- load required packages ----
 library(tidyverse)
@@ -128,7 +128,7 @@ pulse.assign<-data.frame(trip=rep(pulse.range$trip,pulse.range$max-pulse.range$m
                          cohort=rep(pulse.range$cohort,pulse.range$max-pulse.range$min+1),
                          pulse=rep(pulse.range$dummy_pulse,pulse.range$max-pulse.range$min+1),
                          mmSL=unlist(mapply(seq,pulse.range$min,pulse.range$max)))
-View(pulse.assign)
+#View(pulse.assign)
 
 # ---- pick up here ----
 # add new pulse assignments to missing data
@@ -375,6 +375,7 @@ nb.results<-nb.model()
 nb.results
 
 summary(nb.results[[1]])
+nb.results[[1]]
 PIMS(nb.results[[1]],"Phi")
 PIMS(nb.results[[1]],"p")
 nb.results$model.table
@@ -398,57 +399,8 @@ nb2.model<-function()
 }
 nb2.results<-nb2.model()
 nb2.results
-
+nb2.results[[1]]
 summary(nb2.results[[1]])
-
-
-# From RPubs Olivier Gimenez
-phitable=get.real(nb.results[[1]],"Phi",se=TRUE)
-phitable[c("estimate","se","lcl","ucl")][1,]
-
-ptable=get.real(nb.results[[1]],"p",se=TRUE)
-ptable[c("estimate","se","lcl","ucl")][1:3,]
-
-# calculate the nb of recaptures individuals/occasion
-obs=gregexpr("1",nb.all$ch)
-n_obs=summary(as.factor(unlist(obs)))
-estim_abundance=n_obs[-1]/ptable$estimate[1:3]
-estim_abundance
-
-nb_bootstrap=10
-nb_time=3
-target=data.frame(nb.all,stringAsFactors=F)
-popsize=matrix(NA,nb_bootstrap,nb_time-1)
-set.seed(5)
-pseudo=target
-
-nb2.proc=process.data(pseudo,model="CJS")
-nb2.ddl=make.design.data(nb2.proc)
-
-phi.dot=list(formula=~1)
-p.dot=list(formula=~1)
-
-for(k in 1:nb_bootstrap) {
-  pseudo$ch=sample(target$ch, replace=T)
-  res=mark(nb2.proc,nb2.ddl,model.parameters = list(Phi=phi.dot,p=p.dot),delete=TRUE,output=FALSE)
-  ptable=get.real(res,"p",se=TRUE)
-  allobs=gregexpr("1",pseudo$ch)
-  n=summary(as.factor(unlist(allobs)))
-  popsize[k,]<-n[-1]/ptable$estimate[1:(nb_time-1)]
-}
-ci_nb=apply(popsize,2,quantile,probs=c(2.5/100,97.5/100),na.rm=T)
-ci_nb
-
-period<-c(1:3)
-estim_abundance
-estimate<-c(155.0000,281.0001,155.0000)
-ci_nb
-lcl<-c(143.225,263.9001)
-ucl<-c()
-abund<-as.data.frame(cbind(period,estim_abundance))
-ggplot(data=abund,aes(x=period,y=estim_abundance))+geom_line()+
-  ylim(c(0,300))+
-  geom_ribbon()
 
 # ---- October only ----
 # ---- Add individual covariates -----
@@ -600,9 +552,12 @@ oct.pop.model<-function()
 oct.pop.results<-oct.pop.model()
 oct.pop.results
 
-summary(oct.pop.results[[2]])
-oct.pop.results[[2]]$output
+summary(oct.pop.results[[6]])
+oct.pop.results[[6]]
 oct.pop.results[[2]]
+oct.pop.results[[6]]
+# stick with constant phi
+summary(oct.pop.results[[2]])
 # add pulse
 pop.pulse.model<-function()
 {
@@ -629,3 +584,4 @@ pop.pulse.model<-function()
 pop.pulse.results<-pop.pulse.model()
 pop.pulse.results
 summary(pop.pulse.results[[3]])
+#pulse no effect
