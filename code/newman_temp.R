@@ -1,8 +1,8 @@
-setwd("C:/Users/user/Dropbox/Thesis/Research/data-working")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 #load data
-temp17<-read.csv("temperature_2017.csv")
-temp<-read.csv("daily_temp.csv")
+temp17<-read.csv("./data/data-working/temperature-2017.csv")
+temp<-read.csv("./data/data-working/daily-temp-corrected-newman.csv")
 
 
 #load packages
@@ -61,8 +61,8 @@ temp_all<-bind_rows(temp,temp17)
 #select days for temp plot
 
 tempwinter<-temp_all%>%
-  filter(date>="2016-10-01")%>%
-  filter(date<="2017-05-31")%>%
+  filter(date>="2016-9-01")%>%
+  filter(date<="2017-07-31")%>%
   data.frame()
 
 ylabel<-"Temperature (°C)"

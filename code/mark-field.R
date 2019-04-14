@@ -529,6 +529,11 @@ summary(pop.results[[2]])
 summary(pop.results[[6]])
 pop.results[[2]]$output
 pop.results[[2]]
+
+
+# export
+pop.processed<-process.data(nb.all,model="POPAN",time.intervals = c(5,217))
+export.MARK(pop.processed, "codwinter",pop.results)
 # October JS
 oct.pop.model<-function()
 {
@@ -585,3 +590,102 @@ pop.pulse.results<-pop.pulse.model()
 pop.pulse.results
 summary(pop.pulse.results[[3]])
 #pulse no effect
+
+# ---- data visualization ----
+plot(pop.results[[2]])
+pop.results[[2]]
+
+# October
+time<-c(0,1,2)
+pop.oct<-function(x) {
+  y=0.721^x
+  print(y)
+}
+october<-pop.oct(time)
+
+# Overwinter
+time<-c(0,1,2)
+pop.winter <- function(x) {
+  y=0.797^x
+  print(y)
+}
+winter<-pop(time)
+
+survival<-as.data.frame(cbind(time,october,winter))
+survival$period<-c(1,2,3)
+survival
+
+
+ggplot(survival)+geom_line(aes(x=period,y=october),colour='black',size=1.5)+
+  scale_x_discrete(limits=c("1", "2", "3"))+
+  theme_classic()+
+  ylab("Proportion Survival")+xlab("Marking Period")+
+  theme(axis.title=element_text(size=20))+
+  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
+  theme(axis.text.x=element_text(size=20,face='bold'))+
+  theme(axis.text.y=element_text(size=20,face='bold'))+
+  theme(axis.title.y=element_text(margin=margin(t=0,r=10,b=0,l=0)))+
+  theme(axis.title.x=element_text(margin=margin(t=10,r=0,b=0,l=0)))
+
+ggplot(survival)+geom_line(aes(x=period,y=october),colour='black',size=1.5)+
+  geom_line(aes(x=period,y=winter),colour='blue',size=1.5)+
+  scale_x_discrete(limits=c("1", "2", "3"))+
+  theme_classic()+
+  ylab("Proportion Survival")+xlab("Marking Period")+
+  theme(axis.title=element_text(size=20))+
+  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
+  theme(axis.text.x=element_text(size=20,face='bold'))+
+  theme(axis.text.y=element_text(size=20,face='bold'))+
+  theme(axis.title.y=element_text(margin=margin(t=0,r=10,b=0,l=0)))+
+  theme(axis.title.x=element_text(margin=margin(t=10,r=0,b=0,l=0)))
+
+
+# Abundance
+# Overwinter
+N<-c(30.999997,77.00002,281.00000)
+lcl<-c(22.178494,63.113359,264.78343)
+ucl<-c(43.330257,93.942080,298.20975)
+occ<-c(1,2,4)
+
+overwinter<-as.data.frame(cbind(N,lcl,ucl,occ))
+overwinter$Season<-"Overwinter"
+ggplot(overwinter)+
+  geom_ribbon(aes(ymin=lcl,ymax=ucl,x=occ),fill='grey70')+
+  geom_line(aes(x=occ,y=N),colour='black',size=1.5)+
+  theme_classic()+
+  ylim(15,300)
+
+
+# October
+N<-c(25.0000,46.879729,86.476314)
+lcl<-c(17.526756,37.308927,75.475675)
+ucl<-c(35.659765,58.905716,99.080305)
+occ<-c(1,2,3)
+
+october<-as.data.frame(cbind(N,lcl,ucl,occ))
+october$Season<-"October"
+
+ggplot(october)+
+  geom_ribbon(aes(ymin=lcl,ymax=ucl,x=occ),fill='grey70')+
+  geom_line(aes(x=occ,y=N),colour='black',size=1.5)+
+  theme_classic()+
+  xlim(1,4)+ylim(15,300)
+
+
+abundance<-bind_rows(october,overwinter)
+
+ggplot(abundance)+
+  geom_point(aes(x=occ,y=N,shape=Season),colour='black',size=4)+
+  geom_errorbar(aes(ymin=lcl,ymax=ucl,x=occ),width=0,size=1)+
+  geom_line(aes(x=occ,y=N,group=Season),linetype='dashed',size=1)+
+  theme_classic()+
+  ylab("Estimated Abundance")+xlab("Marking Period")+
+  theme(axis.title=element_text(size=18,face = 'bold'))+
+  theme(plot.title=element_text(size=18,face="bold",hjust=0.5))+
+  theme(axis.text.x=element_text(size=14,face='bold'))+
+  theme(axis.text.y=element_text(size=14,face='bold'))+
+  theme(axis.title.y=element_text(margin=margin(t=0,r=10,b=0,l=0)))+
+  theme(axis.title.x=element_text(margin=margin(t=10,r=0,b=0,l=0)))+
+  theme(legend.title=element_text(size=18, face='bold'))+
+  theme(legend.position=c(0.25,0.80))+
+  theme(legend.text=element_text(size=16))

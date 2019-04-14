@@ -1,4 +1,4 @@
-setwd("C:/Users/eageissinger/Documents/Emilie-Lab-comp/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 data<-read.csv("./data/data-working/age-1-mixture-dist.csv")
 
@@ -8,6 +8,7 @@ library(lmtest)
 library(lubridate)
 library(gridExtra)
 library(grid)
+library(glmmTMB)
 
 summary(data)
 names(data)
@@ -94,7 +95,7 @@ plot(m2,which=5,type="deviance")
 
 plot(fitted(m2),resid(m2))
 coef(m2,model="precision")
-
+par(mfrow=c(1,1), bg = rgb(232,245,252, maxColorValue = 255))
 plot(m2,which=1,type="pearson")
 plot(m2,which=4,type="pearson")
 plot(m2,which=5,type="deviance")
@@ -117,3 +118,15 @@ sum(res.dev^2)
 sum(res.dev^2)/77
 summary(m1)
 5.6749/77
+
+
+
+# Mixed effect
+library(car)
+library(glmmTMB)
+model.test<-glmmTMB(pi~month+factor(dummy_pulse)+(1|year), data = bd, family = beta_family(link = "logit"))
+model.test
+summary(model.test)
+
+Anova.glmmTMB(model.test)
+
