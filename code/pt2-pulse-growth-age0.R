@@ -44,7 +44,6 @@ dim(fullcount)
 head(fullcount)
 names(fullcount)
 
-names(fullcount)<-c("year","julian_date","site","species","age","count","notes","month","day")
 
 # Trips
 summary(trips)
@@ -54,9 +53,6 @@ head(trips)
 names(trips)
 
 # ---- Date manipulation ----
-
-# Add trip dates to age 0 data
-length<-left_join(length,trips)
 
 #format date
 length$date<-ymd(paste(length$year,length$month,length$day,sep="-"))
@@ -90,79 +86,24 @@ original$cohort<-as.factor(original$cohort)
 new$pulse<-as.factor(new$pulse)
 new$cohort<-as.factor(new$cohort)
 
-# ---- format count data -----
-# go from wide format to long format
-count2<-count%>%
-  gather(key=p1,value=count,starts_with('count'))%>%
-  gather(key=p2,value=extrap,starts_with('extrap'))%>%
-  separate(p1,c("count2","pulse1"))%>%
-  separate(p2,c("extrap2","pulse2"))
-
-# make count df and extrap df
-count_only<-count2%>%
-  select(-pulse2,-extrap,-extrap2,-count2)
-extrap_only<-count2%>%
-  select(-pulse1,-count,-count2,-extrap2)
-names(count_only)<-c("year","j_start_date","num_hauls","pulse","count")
-names(extrap_only)<-c("year","j_start_date","num_hauls","pulse","extrap")
-
-#combine adjusted df to be one complete 
-count_long<-left_join(count_only,extrap_only)
-
-# change NAs to 0 (confirmed that NAs are actually 0s)
-count_long$count[is.na(count_long$count)]<-0
-
-# ---- summary table of class-year strength -----
-pulse_table<-count_long%>%
-  group_by(year,pulse)%>%
-  summarise(total_count=sum(count),avg_count=mean(count),total_extrap=sum(extrap),avg_extrap=mean(extrap))
-
-adjusted_sums<-count_long%>%
-  group_by(year,pulse)%>%
-  summarise(total_extrap=sum(extrap))%>%
-  spread(pulse,total_extrap)
-
-adjusted_mean<-count_long%>%
-  group_by(year,pulse)%>%
-  summarise(avg_extrap=mean(extrap))%>%
-  spread(pulse,avg_extrap)
-
-# ---- age 0 and age 1 Totals -----
-table_age0<-fullcount%>%
-  filter(age==0)%>%
-  filter(month>=10)%>%
-  group_by(year,date,age,month)%>%
-  summarise(count=sum(count))%>%
-  ungroup()%>%
-  group_by(year,month,age)%>%
-  summarise(count=mean(count))
-table_age1<-fullcount%>%
-  filter(age==1)%>%
-  filter(month<8)%>%
-  group_by(year,date,age,month)%>%
-  summarise(count=sum(count))%>%
-  ungroup()%>%
-  group_by(year,month,age)%>%
-  summarise(count=mean(count)) 
-
 
 # ---- Visualize data ----
 
 original%>%
   filter(cohort==2016)%>%
-  ggplot(aes(x=date,y=mean_size,shape=factor(dummy_pulse)))+geom_point()+
+  ggplot(aes(x=date,y=mean_size,shape=factor(pulse)))+geom_point()+
   geom_errorbar(aes(ymin=min_size,ymax=max_size),width=0)
 
 new%>%
   filter(cohort==2016)%>%
-  ggplot(aes(x=date,y=mean_size,shape=factor(dummy_pulse)))+geom_point()+
+  ggplot(aes(x=date,y=mean_size,shape=factor(pulse)))+geom_point()+
   geom_errorbar(aes(ymin=min_size,ymax=max_size),width=0)
 
 # ---- All years as function -----
 cohort.graph<-function(growth,na.rm=TRUE, ...){
   
   cohort_list<-rev(unique(growth$cohort))
-  #pdf()
+  pdf()
   for (i in seq_along(cohort_list)) {
     plot<-ggplot(subset(growth,growth$cohort==cohort_list[i]),
                  aes(x=date,y=mean_size,group=cohort,shape=pulse))+
@@ -178,7 +119,7 @@ cohort.graph<-function(growth,na.rm=TRUE, ...){
     print(plot)
   }
 }
-cohort.graph(original)
+#cohort.graph(original)
 cohort.graph(new)
 
 write.csv(new,"./data/data-working/age0-trial.csv",row.names = FALSE)
