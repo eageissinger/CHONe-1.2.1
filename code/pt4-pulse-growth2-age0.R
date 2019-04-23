@@ -2,7 +2,7 @@
 # Purpose: Finalize pulse assignments
 
 # ---- set working directory ----
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # ---- load data ----
 age0pulse<-read.csv("./data/data-working/age0_dummypulse.csv")

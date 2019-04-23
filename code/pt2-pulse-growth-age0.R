@@ -1,7 +1,7 @@
 ### Growth rates - Pulse data ###
 
 # ---- set working directory ----
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # ---- load packages ----
 library(lubridate)
@@ -124,3 +124,49 @@ cohort.graph(new)
 
 write.csv(new,"./data/data-working/age0-trial.csv",row.names = FALSE)
 write.csv(original,"./data/data-working/age0-original.csv",row.names=FALSE)
+
+# plot model and points on scatter
+df1<-new%>%
+  filter(cohort==2016)
+df2<-length%>%
+  filter(age==0)%>%
+  filter(year==2016)%>%
+  mutate(date2=date+5)
+
+ggplot()+
+  geom_point(data=df1,aes(x=date,y=mean_size,shape=pulse),size=2)+
+  geom_errorbar(data=df1,aes(x=date,ymin=min_size,ymax=max_size),width=0)+
+  geom_jitter(data=df2,aes(x=date2,y=mmSL))
+
+# create age 0 length dataframe with a date offset of 5
+age0<-length%>%
+  filter(age==0)%>%
+  mutate(date2=date+3)%>%
+  mutate(cohort=year)
+#As a loop
+cohort2.graph<-function(growth,length,na.rm=TRUE, ...){
+  
+  cohort_list<-rev(unique(growth$cohort))
+  
+  pdf("cohort-length.pdf")
+  for (i in seq_along(cohort_list)) {
+    plot<-ggplot()+
+      geom_point(data=subset(growth,growth$cohort==cohort_list[i]),
+                 aes(x=date,y=mean_size,group=cohort,shape=pulse),size=2)+
+      geom_errorbar(data=subset(growth,growth$cohort==cohort_list[i]),
+                    aes(x=date,ymin=min_size,ymax=max_size),width=0)+
+      geom_jitter(data=subset(length,length$cohort==cohort_list[i]),
+                  aes(x=date2,y=mmSL),colour='grey50')+
+      ylim(20,150)+
+      theme_bw()+
+      ggtitle(paste(cohort_list[i], "Cohort"))+
+      xlab("Date")+ylab("Standard length (mm)")+
+      scale_x_date(date_breaks="1 month",
+                   date_labels="%b")+
+      theme(axis.text.x=element_text(angle=40))
+    print(plot)
+  }
+  dev.off()
+}
+cohort2.graph(new,age0)
+
