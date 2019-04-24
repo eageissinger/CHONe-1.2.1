@@ -1,7 +1,7 @@
 #----Overwinter Condition Analysis-----
 
 #load working directory
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 #----load data-----
 condition<-read.csv("./data/data-working/condition-exp.csv",header=TRUE)
@@ -817,7 +817,7 @@ sgr_adjusted%>%
   mutate(percent_adj=replace(percent_adj,size=="large",percent+0.05))%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,y=sgr_length,fill=Size))+
-  geom_pointrange(aes(shape=Size,ymin=sgr_length-sgr_se_sl,ymax=sgr_weight+sgr_se_w),size=.5)+
+  geom_pointrange(aes(shape=Size,ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),size=.5)+
   theme_bw(base_rect_size = 1)+
   ylab("Condition factor (K)")+xlab("Food ration (% body weight)")+
   scale_fill_manual(values=c('grey0','grey64'))+
@@ -849,117 +849,3 @@ plot(weight.m1)
 RRIlenght.m1<-lm(RRI_length~julian_date*ration+size,data=RRI)
 summary(RRIlenght.m1)
 plot(RRIlenght.m1)
-
-# ---- daily growth rate ----
-tank36<-filter(length_weight,tank==36)
-
-growth<-mutate(length_weight,julian_date=replace(julian_date,julian_date>364,0))
-
-
-length_weight$tank<-as.factor(length_weight$tank)
-ggplot(tank36,aes(x=julian_date,y=length_mm))+
-  geom_smooth(method='lm')+
-  geom_point()
-
-# plot in loop
-
-growth.graph<-function(growth,na.rm=TRUE, ...){
-  
-  tank_list<-unique(growth$tank)
-  
-  for (i in seq_along(tank_list)) {
-    plot<-ggplot(subset(growth,growth$tank==tank_list[i]),
-                 aes(x=julian_date,y=length_mm,group=tank))+
-      geom_smooth(method='lm')+
-      geom_point()+
-      theme_bw()+
-      ggtitle(paste('tank',tank_list[i]))
-    print(plot)
-  }
-}
-growth.graph(growth)
-
-# Tank averages
-growth2<-growth%>%
-  group_by(tank,julian_date,size,ration)%>%
-  summarise(sl=mean(length_mm),sd=sd(length_mm),se=sd/sqrt(n()))%>%
-  ungroup()%>%
-  data.frame()
-
-ggplot(growth2,aes(x=julian_date,y=sl,colour=ration,shape=size))+geom_point()
-growth2%>%
-  filter(tank==1)%>%
-  ggplot(aes(x=julian_date,y=sl,colour=ration,shape=size))+
-  geom_pointrange(aes(ymin=sl-se,ymax=sl+se),size=.75)
-
-growth2%>%
-  filter(ration=="1.0%")%>%
-  filter(size=="small")%>%
-  ggplot(aes(x=julian_date,y=sl,shape=size))+
-  geom_pointrange(aes(ymin=sl-se,ymax=sl+se),size=.75)
-
-# all plots grouped by tank
-growth2.graph<-function(growth2,na.rm=TRUE, ...){
-  
-  tank_list<-unique(growth$tank)
-  
-  for (i in seq_along(tank_list)) {
-    plot<-ggplot(subset(growth2,growth2$tank==tank_list[i]),
-                 aes(x=julian_date,y=sl,group=tank))+
-      geom_pointrange(aes(ymin=sl-se,ymax=sl+se),size=.75)+
-      geom_smooth(method='lm')+
-      geom_point()+
-      theme_bw()+
-      ggtitle(paste('tank',tank_list[i]))
-    print(plot)
-  }
-}
-growth2.graph(growth2)
-
-
-### summary of daily growth rate
-exp_growth<-read.csv("experiment_growth.csv")
-sum_table<-exp_growth%>%
-  group_by(ration,size)%>%
-  summarise(avg=mean(rate),sd=sd(rate))%>%
-  ungroup()%>%
-  data.frame()
-
-
-# ----- non-linear regression -----
-head(finalcond)
-View(finalcond)
-par(mfrow=c(1,1))
-plot(kdry~percent*size,data=finalcond,
-     ylab="Condition",
-     xlab="Ration")
-plot(kdry~size,data=finalcond,
-     ylab="Condition",
-     xlab="Ration")
-
-# ----- BETA REGRESSION
-# Live condition: lc or livecond
-str(lc)
-summary(lc)
-max(lc$kavg)
-max(livecond$k)
-# General linear model
-m1<-lm(kavg~ration*size*julian_date,data=lc)
-plot(m1)
-hist(resid(m1))
-qqnorm(resid(m1))
-plot(x=fitted(m1),y=resid(m1))
-
-
-
-m3<-betareg(kavg~ration*size*julian_date,data=lc)
-plot(m3)
-hist(resid(m3))
-qqnorm(resid(m3))
-plot(x=fitted(m3),y=resid(m3))
-
-exp(logLik(m1))
-exp(logLik(m2))
-exp(logLik(m3))
-
-# ---- 
