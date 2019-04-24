@@ -1,7 +1,7 @@
 #----Overwinter Condition Analysis-----
 
 #load working directory
-setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 
 #----load data-----
 condition<-read.csv("./data/data-working/condition-exp.csv",header=TRUE)
@@ -15,20 +15,16 @@ library(car)
 library(MASS)
 library(lattice)
 library(lubridate)
-library(tidyr)
-library(stringr)
-library(dplyr)
-library(ggplot2)
 library(stats)
 library(lme4)
-library(nlme)
 library(lmtest)
 library(rcompanion)
 library(multcompView)
 library(emmeans)
-library(betareg)
 library(strucchange)
-
+library(tidyverse)
+library(reshape2)
+library(ggpubr)
 
 # --- check data -----
 #length-weight
@@ -270,8 +266,8 @@ unique(lc$julian_date)
 str(lc)
 lc<-lc%>%
   filter(julian_date == 80 & size == "small" |julian_date == 0 |
-           julian_date==58 | julian_date == 84 | julian_date == 86 |
-           julian_date==114)
+           julian_date==30 | julian_date==58 | julian_date == 84 | 
+           julian_date == 86 | julian_date==114)
 
 # ---- LC Models ----
 lc.m1<-lm(kavg~ration*size*julian_date,data=lc)
@@ -298,8 +294,7 @@ hist(resid(lc.m3))
 summary(lc.m3)
 Anova(lc.m3,type="III")
 
-lc.m4<-lmer(kavg~ration+size+julian_date+ration*julian_date+size*julian_date+
-              (1|tank),data=lc)
+lc.m4<-lmer(kavg~ration+size+ration*julian_date+size*julian_date+(1|tank),data=lc)
 lc.m4
 plot(lc.m4)
 hist(resid(lc.m4))
@@ -309,20 +304,43 @@ Anova(lc.m4,type="III")
 table1<-lc%>%group_by(julian_date,ration)%>%
   summarise(mean=mean(kavg))
 
+# ---- Live condition figures -----
 limitse<-aes(ymin=kavg-sek,ymax=kavg+sek)
-lc%>%
+LCA<-lc%>%
   rename(Ration=ration)%>%
-  ggplot(aes(x=julian_date,y=kavg,colour=Ration,linetype=size))+
+  filter(size=='small')%>%
+  ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
   geom_jitter(aes(shape=Ration,colour=Ration,fill=Ration))+
-  stat_smooth(method="lm",se=FALSE)+
+  stat_smooth(method="lm",se=FALSE,linetype='dashed')+
   geom_errorbar(limitse,width=1)+
   theme_bw(base_rect_size = 1)+
   ylab("Condition factor (K)")+xlab("Day of experiment")+
   scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
   scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
   scale_shape_manual(values=c(22:25))+
-  theme(panel.grid=element_blank())
+  theme(panel.grid=element_blank())+
+  ylim(0.55,1.05)+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
+LCB<-lc%>%
+  rename(Ration=ration)%>%
+  filter(size=='large')%>%
+  ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
+  geom_jitter(aes(shape=Ration,colour=Ration,fill=Ration))+
+  stat_smooth(method="lm",se=FALSE,linetype='dashed')+
+  geom_errorbar(limitse,width=1)+
+  theme_bw(base_rect_size = 1)+
+  ylab("Condition factor (K)")+xlab("Day of experiment")+
+  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
+  scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
+  scale_shape_manual(values=c(22:25))+
+  theme(panel.grid=element_blank())+
+  ylim(0.55,1.05)+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
 
+
+
+ggarrange(LCA,LCB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
+          common.legend=TRUE,legend='top')
 
 # ----- Final Condition analysis ------
 summary(fishcond)
@@ -383,12 +401,6 @@ table2<-finalK%>%
   summarise(mean(dry),mean(wet))
 
 
-# Generalized Least Sqaures
-
-d.m3<-gls(dry~percent*size,data=finalK)
-plot(d.m3)
-hist(resid(d.m3))
-qqnorm(resid(d.m3))
 
 # model d.m2, glm with gamma distribution and loglink
 
@@ -412,6 +424,22 @@ finalK%>%
   theme(panel.grid = element_blank())+
   theme(legend.text = element_text(size=16))+
   theme(legend.key.size=unit(1,"cm"))
+
+limitse.dryK<-aes(ymin=dry-sedry,ymax=dry+sedry)
+finalK%>%
+  mutate(percent_adj=percent-0.05)%>%
+  mutate(percent_adj=replace(percent_adj,size=="large",percent+0.05))%>%
+  rename(Size=size)%>%
+  ggplot(aes(x=percent_adj,y=dry,fill=Size))+
+  geom_errorbar(limitse.dryK,width=.025)+
+  geom_pointrange(aes(shape=Size,ymin=dry-sedry,ymax=dry+sedry),size=.5)+
+  theme_bw(base_rect_size = 1)+
+  ylab("Condition factor (K)")+xlab("Food ration (% body weight)")+
+  scale_fill_manual(values=c('grey0','grey64'))+
+  scale_shape_manual(values=c(22:25))+
+  theme(panel.grid=element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
+
 
 # Wet condition factor
 
@@ -698,6 +726,9 @@ hist(resid(sgrl.m2))
 Anova(sgrl.m2,type="III")
 summary(sgrl.m2)
 
+
+
+
 # model 2 is better!
 
 
@@ -768,9 +799,31 @@ ggplot(sgr_adjusted,aes(x=percent_adj,sgr_length,fill=size))+
   theme(legend.key.size=unit(1,"cm"))+
   ggtitle("Length")+
   theme(plot.title = element_text(size=20,face='bold',hjust=0.5))
-  
-  
-  
+
+sgr_adjusted%>%
+  mutate(percent_adj=percent-0.05)%>%
+  mutate(percent_adj=replace(percent_adj,size=="large",percent+0.05))%>%
+  rename(Size=size)%>%
+  ggplot(aes(x=percent_adj,y=sgr_weight,fill=Size))+
+  geom_pointrange(aes(shape=Size,ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),size=.5)+
+  theme_bw(base_rect_size = 1)+
+  ylab("Condition factor (K)")+xlab("Food ration (% body weight)")+
+  scale_fill_manual(values=c('grey0','grey64'))+
+  scale_shape_manual(values=c(22:25))+
+  theme(panel.grid=element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
+sgr_adjusted%>%
+  mutate(percent_adj=percent-0.05)%>%
+  mutate(percent_adj=replace(percent_adj,size=="large",percent+0.05))%>%
+  rename(Size=size)%>%
+  ggplot(aes(x=percent_adj,y=sgr_length,fill=Size))+
+  geom_pointrange(aes(shape=Size,ymin=sgr_length-sgr_se_sl,ymax=sgr_weight+sgr_se_w),size=.5)+
+  theme_bw(base_rect_size = 1)+
+  ylab("Condition factor (K)")+xlab("Food ration (% body weight)")+
+  scale_fill_manual(values=c('grey0','grey64'))+
+  scale_shape_manual(values=c(22:25))+
+  theme(panel.grid=element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
 
 #Relative Rate of increase
 names(lw)
