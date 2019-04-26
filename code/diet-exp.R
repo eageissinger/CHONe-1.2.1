@@ -15,14 +15,13 @@ tanks<-read.csv("./data/data-working/tank-assignments-exp.csv")
 library(MASS)
 library(strucchange)
 library(timeSeries)
-library(tidyverse)
-library(lubridate)
 library(pscl)
 library(boot)
 library(car)
 library(scales)
 library(ggthemes)
-
+library(lubridate)
+library(tidyverse)
 
 # ---- data check ----
 #total
@@ -788,11 +787,47 @@ m1<-lm(FCE~size+trt+daily_temp,data=energy.0)
 plot(m1)
 hist(resid(m1))
 summary(m1)
+Anova(m1,type="III")
+
+# Feed Conversion Efficiency
+head(energy.0)
+ggplot(energy.0,aes(y=FCE,x=julian_date,shape=as.factor(ration),colour=size))+
+  geom_point()
+
+ggplot(energy.0,aes(y=FCE,x=julian_date,shape=as.factor(ration),colour=size))+
+  geom_point()+
+  facet_wrap(aes(as.factor(ration)))
+
+# remove outliers
+fce<-energy.0%>%
+  filter(FCE>-2)
+
+m1.2<-lm(FCE~size+factor(trt)+daily_temp,data=fce)
+plot(m1.2)
+hist(resid(m1.2))
+summary(m1.2)
+Anova(m1.2,type="III")
+
+
+ggplot(fce,aes(y=FCE,x=daily_temp,colour=size))+
+  geom_point()+
+  facet_wrap(aes(ration))
+ggplot(fce)+
+  geom_boxplot(aes(y=FCE,x=as.factor(trt),colour=daily_temp))+
+  geom_jitter(aes(y=FCE,x=as.factor(trt),colour=daily_temp),width=.15)+
+  facet_wrap(aes(size))
+
 
 energy.0$F.rate[which(is.nan(energy.0$F.rate))] = NA
 energy.0$F.rate[which(is.infinite(energy.0$F.rate))] = NA
-m2<-lm(F.rate~trt+size+daily_temp,data=energy.0)
+m2<-lm(F.rate~factor(trt)+size+daily_temp,data=energy.0)
 plot(m2)
 hist(resid(m2))
 summary(m2)
 Anova(m2,type="III")
+
+ggplot(energy.0)+
+  geom_boxplot(aes(y=F.rate,x=as.factor(trt),colour=daily_temp))+
+  geom_jitter(aes(y=F.rate,x=as.factor(trt),colour=daily_temp),width=.15)+
+  facet_wrap(aes(size))
+

@@ -13,6 +13,7 @@ library(survminer)
 library(ggfortify)
 library(ranger)
 library(strucchange)
+library(mgcv)
 # data manimpulation
 glimpse(tank_survival)
 tank_survival<- tank_survival%>%
@@ -127,3 +128,10 @@ plot(me.mefp)
 me.mefp
 me.plot2.0<-plot(me.mefp)
 me.mefp2<-me.mefp
+
+
+#----GAMMS ----
+tank_survival$date<-ymd(paste(tank_survival$year,tank_survival$month,tank_survival$day,sep="-"))
+tank_survival$julian_date<-yday(tank_survival$date)
+m1<-gamm(number~size+ration+julian_date,data=tank_survival)
+plot(m1)

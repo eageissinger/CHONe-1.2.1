@@ -182,6 +182,7 @@ survival<-tank_survival%>%
 
 survival<-separate(survival,group,c("size","ration"), sep=' ', convert=TRUE)
 
+View(tempdata)
 
 survival<-left_join(survival,tempdata)
 
@@ -293,7 +294,9 @@ plot(lc.m3)
 hist(resid(lc.m3))
 summary(lc.m3)
 Anova(lc.m3,type="III")
-
+levels(lc$ration)
+levels(lc$size)
+relevel(lc$ration,c("2.0%","1.0%","0.5%","0.0%"))
 lc.m4<-lmer(kavg~ration+size+ration*julian_date+size*julian_date+(1|tank),data=lc)
 lc.m4
 plot(lc.m4)
@@ -302,9 +305,16 @@ qqnorm(resid(lc.m4))
 summary(lc.m4)
 Anova(lc.m4,type="III")
 table1<-lc%>%group_by(julian_date,ration)%>%
-  summarise(mean=mean(kavg))
-
-# ---- Live condition figures -----
+  summarise(mean=mean(kavg),se=sd(kavg)/sqrt(n()))
+table1.2<-lc%>%
+  group_by(julian_date,ration,size)%>%
+  summarise(mean=mean(kavg),se=sd(kavg)/sqrt(n()))
+lc%>%
+  filter(ration!= "0.0%")%>%
+  filter(julian_date==0 | julian_date==84 | julian_date==114)%>%
+  group_by(julian_date,size)%>%
+  summarise(mean=mean(kavg),se=sd(kavg)/sqrt(n()))
+ # ---- Live condition figures -----
 limitse<-aes(ymin=kavg-sek,ymax=kavg+sek)
 LCA<-lc%>%
   rename(Ration=ration)%>%
@@ -398,7 +408,7 @@ Anova(d.m2,type="III")
 
 table2<-finalK%>%
   group_by(ration)%>%
-  summarise(mean(dry),mean(wet))
+  summarise(mean(dry),mean(wet),se=sd(dry)/sqrt(n()))
 
 
 
@@ -508,35 +518,37 @@ hist(resid(hsi.m3))
 
 #Cacluate survival rate by tank
 #group by treatment with st.error
-survival<-tank_survival%>%
-  group_by(tank,julian_date)%>%
-  mutate(survival=(number/9))%>%
-  ungroup()%>%
-  group_by(tank,size,ration,julian_date)%>%
-  summarise(perc_surv=mean(survival))%>%
-  filter(perc_surv!=0)
+#survival<-tank_survival%>%
+#  group_by(tank,julian_date)%>%
+#  mutate(survival=(number/9))%>%
+#  ungroup()%>%
+#  group_by(tank,size,ration,julian_date)%>%
+#  summarise(perc_surv=mean(survival))%>%
+#  filter(perc_surv!=0)
 
 # Visualize data
 survival%>%
   filter(size=="small")%>%
-  ggplot(aes(x=julian_date,y=perc_surv,linetype=ration))+geom_smooth()
+  ggplot(aes(x=julian_date,y=exp_surv,linetype=ration))+geom_smooth()
 survival%>%
   filter(size=="large")%>%
-  ggplot(aes(x=julian_date,y=perc_surv,linetype=ration))+geom_smooth()
+  ggplot(aes(x=julian_date,y=exp_surv,linetype=ration))+geom_smooth()
 
 large.surv0<-survival%>%filter(size=="large" & ration == "0.0%")%>%
   as.data.frame()
 
+# ---- breaking points ----
 l0ts<-ts(large.surv0,start=1,end=114,frequency=1,
                   deltat=1)
 l2<-window(l0ts,start=1,end=114)
-coint.res<-residuals(lm(perc_surv~1,data=l2))
+coint.res<-residuals(lm(exp_surv~1,data=l2))
 coint.res<-stats::lag(ts(coint.res,start=1,end=114,freq=1),k=-1)
 l2<-cbind(l0ts,diff(l2),coint.res)
 l2<-window(l2,start=20,end=114)
-colnames(l2)<-c("tank","size","ration","perc_surv",
-                "julian_date","diff.tank","diff.size","diff.ration",
-                  "diff.perc_surv","diff.julian_date", "coint.res")
+colnames(l2)<-c("size","ration","julian_date","date","start",
+                "total","exp_surv","temperature",
+                "diff.size","diff.ration","diff.julian_date","diff.start",
+                "diff.total","diff.exp_surv","diff.temperature","coint.res")
 ecm.model<-diff.perc_surv~coint.res+1
 
 l3<-window(l2,start=20,end=30)
@@ -565,17 +577,17 @@ plot(me.mefp)
 # ----- survival models ----
 
 # GLS
-s.m1<-gls(perc_surv~size*ration*julian_date,data=survival)
+s.m1<-gls(exp_surv~size*ration*julian_date,data=survival)
 plot(s.m1)
 
-s.m2<-lm(perc_surv~size*ration*julian_date,data=survival)
+s.m2<-lm(exp_surv~size*ration*julian_date,data=survival)
 plot(s.m2)
 
-s.m3<-glm(perc_surv~size*ration*julian_date,data=survival,family=Gamma(link="log"))
+s.m3<-glm(exp_surv~size*ration*julian_date,data=survival,family=Gamma(link="log"))
 plot(s.m3)
 glimpse(survival)
-survival$tank<-as.factor(survival$tank)
-s.m4<-glmer(perc_surv~size*ration*julian_date+(ration|tank)+(size|tank),
+
+s.m4<-glmer(exp_surv~size*ration*julian_date+(1|julian_date),
             family=Gamma(link="log"),data=survival)
 plot(s.m4)
 
@@ -593,13 +605,14 @@ S<-survival%>%
 typeof(S$julian_date)
 S$julian_date<-as.factor(S$julian_date)
 
-s.m5<-lm(perc_surv~ration+size+factor(julian_date),data=S)
+s.m5<-lm(exp_surv~ration+size+factor(julian_date),data=S)
 plot(s.m5)
 hist(resid(s.m5))
+
 qqnorm(resid(s.m5))
 Anova(s.m5,type = "III")
 
-s.m6<-glm(perc_surv~ration+size+factor(julian_date),data=S,
+s.m6<-glm(exp_surv~ration+size+factor(julian_date),data=S,
           family=Gamma(link = "log"))
 plot(s.m6)
 hist(resid(s.m6))
@@ -616,13 +629,13 @@ S<-survival%>%
 typeof(S$julian_date)
 S$julian_date<-as.factor(S$julian_date)
 
-s.m5<-lm(perc_surv~ration+size+factor(julian_date),data=S)
+s.m5<-lm(exp_surv~ration+size+factor(julian_date),data=S)
 plot(s.m5)
 hist(resid(s.m5))
 qqnorm(resid(s.m5))
 Anova(s.m5,type = "III")
 
-s.m6<-glm(perc_surv~ration+size+factor(julian_date),data=S,
+s.m6<-glm(exp_surv~ration+size+factor(julian_date),data=S,
           family = Gamma(link = "log"))
 plot(s.m6)
 hist(resid(s.m6))
@@ -630,7 +643,7 @@ survival%>%
   filter(size=="small")%>%
   rename(Ration=ration)%>%
   ggplot()+
-  geom_smooth(aes(x=julian_date,y=perc_surv*100,col=Ration),size=1.5,se=FALSE)+
+  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration),size=1.5,se=FALSE)+
   theme_bw(base_rect_size = 2)+
   ylab("% Survival")+xlab("Day of experiment")+
   theme(axis.text.x=element_text(size=20,face='bold'))+
@@ -651,7 +664,7 @@ survival%>%
   filter(size=="large")%>%
   rename(Ration=ration)%>%
   ggplot()+
-  geom_smooth(aes(x=julian_date,y=perc_surv*100,col=Ration),size=1.5,se=FALSE)+
+  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration),size=1.5,se=FALSE)+
   theme_bw(base_rect_size = 2)+
   ylab("% Survival")+xlab("Day of experiment")+
   theme(axis.text.x=element_text(size=20,face='bold'))+
@@ -667,6 +680,47 @@ survival%>%
   theme(plot.margin = unit(c(0.75,0.75,0.75,0.75),"cm"))+
   theme(legend.position=c(0.85,0.26))+
   ylim(0,102)
+
+# --- Survival manuscript figures ----
+SA<-survival%>%
+  filter(size=="small")%>%
+  rename(Ration=ration)%>%
+  ggplot()+
+  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),size=1,se=FALSE)+
+  theme_bw()+
+  ylab("% Survival")+xlab("Day of experiment")+
+  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
+  scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
+  theme(panel.grid=element_blank())+
+  ylim(25,102)+xlim(0,125)
+
+SB<-survival%>%
+  filter(size=="large")%>%
+  rename(Ration=ration)%>%
+  ggplot()+
+  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),se=FALSE,size=1)+
+  theme_bw()+
+  ylab("% Survival")+xlab("Day of experiment")+
+  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
+  scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
+  theme(panel.grid=element_blank())+
+  ylim(25,102)+xlim(0,125)
+
+ggarrange(SA,SB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
+          common.legend=TRUE,legend='top')
+
+
+
+
+tank_survival$date<-ymd(paste(tank_survival$year,tank_survival$month,tank_survival$day,sep="-"))
+tank_survival$julian_date<-yday(tank_survival$date)
+survival2<-tank_survival%>%
+  group_by(julian_date,ration,size)%>%
+  summarise(alive=sum(number))%>%
+  mutate(start=NA)%>%
+  mutate(start=replace(start,size=="large",54))%>%
+  mutate(start=replace9(start,size=="small",))
+View(survival2)
 
 # ---- Growth ------
 sgrsum<-lw%>%
@@ -800,7 +854,7 @@ ggplot(sgr_adjusted,aes(x=percent_adj,sgr_length,fill=size))+
   ggtitle("Length")+
   theme(plot.title = element_text(size=20,face='bold',hjust=0.5))
 
-sgr_adjusted%>%
+W<-sgr_adjusted%>%
   mutate(percent_adj=percent-0.05)%>%
   mutate(percent_adj=replace(percent_adj,size=="large",percent+0.05))%>%
   rename(Size=size)%>%
@@ -812,7 +866,7 @@ sgr_adjusted%>%
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
-sgr_adjusted%>%
+L<-sgr_adjusted%>%
   mutate(percent_adj=percent-0.05)%>%
   mutate(percent_adj=replace(percent_adj,size=="large",percent+0.05))%>%
   rename(Size=size)%>%
@@ -825,6 +879,24 @@ sgr_adjusted%>%
   theme(panel.grid=element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
 
+ggarrange(W,L+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
+          common.legend=TRUE,legend='top')
+
+
+table4<-sgr_adjusted%>%
+  group_by(ration,size)%>%
+  summarise(mean(sgr_weight),se=sd(sgr_weight/sqrt(n())),
+            mean(sgr_length),se=sd(sgr_length/sqrt(n())))
+table4.2<-sgr_adjusted%>%
+  group_by(ration)%>%
+  summarise(mean(sgr_weight),sew=sd(sgr_weight/sqrt(n())),
+            mean(sgr_length),sel=sd(sgr_length/sqrt(n())))
+
+sgr_adjusted%>%
+  filter(ration!="0.0%")%>%
+  summarise(m.w=mean(sgr_weight),m.sl=mean(sgr_length),
+         se.w=sd(sgr_weight)/sqrt(n()),
+         se.sl=sd(sgr_length)/sqrt(n()))
 #Relative Rate of increase
 names(lw)
 lw2<-length_weight%>%
