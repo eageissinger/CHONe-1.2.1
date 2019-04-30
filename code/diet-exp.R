@@ -819,9 +819,12 @@ F1<-ggplot(fce)+
   geom_boxplot(aes(y=FCE,x=as.factor(trt),colour=daily_temp))+
   geom_jitter(aes(y=FCE,x=as.factor(trt),colour=daily_temp),width=.15)+
   facet_wrap(aes(size))+
-  ylab("Feeding Rate")+xlab("Ration")+
-  theme_bw()+theme(panel.grid = element_blank())
-
+  ylab("Feed conversion\n efficiency")+xlab("Ration")+
+  theme_bw()+theme(panel.grid = element_blank())+
+  theme(axis.title = element_text(size=16, face='bold'))+
+  theme(axis.text = element_text(size=12,face='bold'))+
+  theme(axis.text.x = element_text(angle=30,hjust=.7))
+F1
 
 energy.0$F.rate[which(is.nan(energy.0$F.rate))] = NA
 energy.0$F.rate[which(is.infinite(energy.0$F.rate))] = NA
@@ -858,3 +861,27 @@ plot(m4)
 hist(resid(m4))
 summary(m4)
 Anova(m4,type="III")
+
+
+# ---- presentation figures ----
+fce%>%
+  filter(size=='small')%>%
+  ggplot()+
+  geom_boxplot(aes(y=FCE,x=as.factor(trt),colour=daily_temp))+
+  geom_jitter(aes(y=FCE,x=as.factor(trt),colour=daily_temp),width=.15)+
+  ylab("Feed conversion\n efficiency")+xlab("Ration")+
+  theme_bw()+theme(panel.grid = element_blank())+
+  theme(axis.title = element_text(size=16, face='bold'))+
+  theme(axis.text = element_text(size=12,face='bold'))+
+  theme(axis.text.x = element_text(angle=30,hjust=.7))
+
+energy.0%>%
+  filter(size=='small')%>%
+  ggplot()+
+  geom_boxplot(aes(y=F.rate,x=as.factor(trt),colour=daily_temp))+
+  geom_jitter(aes(y=F.rate,x=as.factor(trt),colour=daily_temp),width=.15)+
+  ylab("Feeding Rate")+xlab("Ration")+
+  theme_bw()+theme(panel.grid = element_blank())+
+  theme(axis.title = element_text(size=16, face='bold'))+
+  theme(axis.text = element_text(size=12,face='bold'))+
+  theme(axis.text.x = element_text(angle=30,hjust=.7))

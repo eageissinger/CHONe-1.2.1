@@ -77,3 +77,16 @@ ggplot(tempwinter,aes(x=date,y=meantemp))+geom_point()+
   theme(axis.text=element_text(size=12))+
   theme(axis.text.x=element_text(angle=45,hjust=1))+
   theme(plot.title = element_text(size=18,face='bold',hjust=.5))
+
+tempwinter%>%
+  filter(date>"2016-11-30")%>%
+  filter(date<"2017-05-31")%>%
+  ggplot(aes(x=date,y=meantemp))+geom_point()+
+  scale_x_date(breaks=date_breaks("months"),labels=date_format("%b-%Y"))+
+  theme_classic()+
+  xlab("Date")+ylab("Temperature (°C)\n")+
+  geom_hline(yintercept=0,linetype='dashed',colour='red',size=1.25)+
+  theme(axis.title=element_text(size=16))+
+  theme(axis.text=element_text(size=12))+
+  theme(axis.text.x=element_text(angle=45,hjust=1))+
+  theme(plot.title = element_text(size=18,face='bold',hjust=.5))
