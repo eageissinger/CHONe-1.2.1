@@ -22,6 +22,7 @@ library(scales)
 library(ggthemes)
 library(lubridate)
 library(tidyverse)
+library(ggpubr)
 
 # ---- data check ----
 #total
@@ -783,11 +784,14 @@ energy.0<-energy%>%
 names(energy)
 energy$FCE[which(is.nan(energy$FCE))] = NA
 energy$FCE[which(is.infinite(energy$FCE))] = NA
-m1<-lm(FCE~size+trt+daily_temp,data=energy.0)
+
+
+m1<-lm(FCE~size+factor(trt)+daily_temp,data=energy.0)
 plot(m1)
 hist(resid(m1))
 summary(m1)
 Anova(m1,type="III")
+
 
 # Feed Conversion Efficiency
 head(energy.0)
@@ -802,32 +806,55 @@ ggplot(energy.0,aes(y=FCE,x=julian_date,shape=as.factor(ration),colour=size))+
 fce<-energy.0%>%
   filter(FCE>-2)
 
-m1.2<-lm(FCE~size+factor(trt)+daily_temp,data=fce)
+m1.2<-lm(FCE~0+factor(trt)+size+daily_temp,data=fce)
 plot(m1.2)
 hist(resid(m1.2))
 summary(m1.2)
 Anova(m1.2,type="III")
 
-
 ggplot(fce,aes(y=FCE,x=daily_temp,colour=size))+
   geom_point()+
   facet_wrap(aes(ration))
-ggplot(fce)+
+F1<-ggplot(fce)+
   geom_boxplot(aes(y=FCE,x=as.factor(trt),colour=daily_temp))+
   geom_jitter(aes(y=FCE,x=as.factor(trt),colour=daily_temp),width=.15)+
-  facet_wrap(aes(size))
+  facet_wrap(aes(size))+
+  ylab("Feeding Rate")+xlab("Ration")+
+  theme_bw()+theme(panel.grid = element_blank())
 
 
 energy.0$F.rate[which(is.nan(energy.0$F.rate))] = NA
 energy.0$F.rate[which(is.infinite(energy.0$F.rate))] = NA
-m2<-lm(F.rate~factor(trt)+size+daily_temp,data=energy.0)
+
+m2<-lm(F.rate~0+factor(trt)+size+daily_temp,data=energy.0)
 plot(m2)
 hist(resid(m2))
 summary(m2)
 Anova(m2,type="III")
 
-ggplot(energy.0)+
+F2<-ggplot(energy.0)+
   geom_boxplot(aes(y=F.rate,x=as.factor(trt),colour=daily_temp))+
   geom_jitter(aes(y=F.rate,x=as.factor(trt),colour=daily_temp),width=.15)+
-  facet_wrap(aes(size))
+  facet_wrap(aes(size))+
+  ylab("Feeding Rate")+xlab("Ration")+
+  theme_bw()+theme(panel.grid = element_blank())
 
+ggarrange(F2+theme(axis.title.x=element_text(colour='white')),F1, labels=c("A","B"),ncol=1,nrow=2,
+          common.legend=TRUE,legend='right')
+
+
+dflarge<-energy.0%>%
+  filter(size=="large")
+m3<-lm(F.rate~factor(trt)+daily_temp,data=dflarge)
+plot(m3)
+hist(resid(m3))
+summary(m3)
+Anova(m3,type="III")
+
+dfsmall<-energy.0%>%
+  filter(size=="small")
+m4<-lm(F.rate~factor(trt)+daily_temp,data=dfsmall)
+plot(m4)
+hist(resid(m4))
+summary(m4)
+Anova(m4,type="III")

@@ -277,6 +277,12 @@ plot(lc.m1)
 summary(lc.m1)
 Anova(lc.m1,type="III")
 
+lc.m11<-lm(kavg~0+ration*size*julian_date,data=lc)
+lc.m11
+plot(lc.m11)
+summary(lc.m11)
+Anova(lc.m11,type="III")
+anova(lc.m1,lc.m11)
 # get rid of three way interaction
 lc.m2<-lm(kavg~(ration+size+julian_date)^2,data=lc)
 lc.m2
@@ -295,15 +301,15 @@ hist(resid(lc.m3))
 summary(lc.m3)
 Anova(lc.m3,type="III")
 levels(lc$ration)
-levels(lc$size)
-relevel(lc$ration,c("2.0%","1.0%","0.5%","0.0%"))
-lc.m4<-lmer(kavg~ration+size+ration*julian_date+size*julian_date+(1|tank),data=lc)
+
+lc.m4<-lmer(kavg~0+ration+size+ration*julian_date+size*julian_date+(1|tank),data=lc)
 lc.m4
 plot(lc.m4)
 hist(resid(lc.m4))
 qqnorm(resid(lc.m4))
 summary(lc.m4)
 Anova(lc.m4,type="III")
+
 table1<-lc%>%group_by(julian_date,ration)%>%
   summarise(mean=mean(kavg),se=sd(kavg)/sqrt(n()))
 table1.2<-lc%>%
@@ -406,10 +412,10 @@ hist(resid(d.m2))
 qqnorm(resid(d.m2))
 Anova(d.m2,type="III")
 
+
 table2<-finalK%>%
   group_by(ration)%>%
   summarise(mean(dry),mean(wet),se=sd(dry)/sqrt(n()))
-
 
 
 # model d.m2, glm with gamma distribution and loglink
@@ -719,7 +725,7 @@ survival2<-tank_survival%>%
   summarise(alive=sum(number))%>%
   mutate(start=NA)%>%
   mutate(start=replace(start,size=="large",54))%>%
-  mutate(start=replace9(start,size=="small",))
+  mutate(start=replace9(start,size=="small"))
 View(survival2)
 
 # ---- Growth ------
@@ -743,6 +749,7 @@ plot(sgrw.m1)
 hist(resid(sgrw.m1))
 qqnorm(resid(sgrw.m1))
 Anova(sgrw.m1,type="III")
+
 sgrw.m2<-lm(sgr_w~ration+size,data=sgr_all)
 plot(sgrw.m2)
 hist(resid(sgrw.m2))
