@@ -42,7 +42,7 @@ growth1<-left_join(growth1,trips)
 cohort.graph<-function(growth1,na.rm=TRUE, ...){
   
   cohort_list<-rev(unique(growth1$cohort))
-  pdf()
+  #pdf()
   for (i in seq_along(cohort_list)) {
     plot<-ggplot(subset(growth1,growth1$cohort==cohort_list[i]),
                  aes(x=date,y=meanSL,group=cohort,shape=factor(pulse)))+

@@ -1,7 +1,7 @@
 ### Growth rates - Pulse data ###
 
 # ---- set working directory ----
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office//")
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 
 # ---- load packages ----
 library(lubridate)
@@ -148,7 +148,7 @@ cohort2.graph<-function(growth,length,na.rm=TRUE, ...){
   
   cohort_list<-rev(unique(growth$cohort))
   
-  pdf("mixtures-length.pdf")
+  pdf("mixtures-length2.pdf")
   for (i in seq_along(cohort_list)) {
     plot<-ggplot()+
       geom_point(data=subset(growth,growth$cohort==cohort_list[i]),
@@ -156,7 +156,7 @@ cohort2.graph<-function(growth,length,na.rm=TRUE, ...){
       geom_errorbar(data=subset(growth,growth$cohort==cohort_list[i]),
                     aes(x=date,ymin=min_size,ymax=max_size),width=0)+
       geom_jitter(data=subset(length,length$cohort==cohort_list[i]),
-                  aes(x=date2,y=mmSL),colour='grey50',size=.75)+
+                  aes(x=date2,y=mmSL),colour='grey50',size=.25)+
       ylim(20,150)+
       theme_bw()+
       ggtitle(paste(cohort_list[i], "Cohort"))+

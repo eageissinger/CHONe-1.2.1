@@ -52,11 +52,11 @@ length_pulse<-length_pulse%>%
 cohort.graph<-function(length_pulse,na.rm=FALSE, ...){
   
   cohort_list<-rev(unique(length_pulse$cohort))
-  pdf()
+  pdf("coloured-pulse-plot.pdf")
   for (i in seq_along(cohort_list)) {
     plot<-ggplot(subset(length_pulse,length_pulse$cohort==cohort_list[i]),
                  aes(x=date,y=mmSL,group=cohort,colour=factor(pulse)))+
-      geom_jitter(size=.5)+
+      geom_jitter(size=.25)+
       theme_bw()+
       ylim(c(25,222))+
       ggtitle(paste(cohort_list[i], "Cohort"))+
@@ -64,7 +64,6 @@ cohort.graph<-function(length_pulse,na.rm=FALSE, ...){
       scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
     print(plot)
   }
+  dev.off()
 }
 cohort.graph(length_pulse)
-
-scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))

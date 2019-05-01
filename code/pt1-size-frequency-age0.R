@@ -6,7 +6,7 @@
 # Determine pulse structure of age 1 cod using mixture models
 
 # ----- set working directory ----
-setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 
 #load packages
 library(tidyverse)
@@ -3772,7 +3772,7 @@ trip17.2013<-mutate(trip17.2013,dummy_pulse=rev(seq(1:nrow(trip17.2013))))
 mixtures<-bind_rows(mixtures,trip17.2013)
 
 # September trip 18
-age0.2013<-filter(length,year==2013 & age == 0 & trip ==18)
+age0.2013<-filter(length,year==2013 & age == 0 & trip ==18 & mmSL<100) # take out age 1's
 
 # check histogram
 qplot(mmSL, data=age0.2013, binwidth=5)
@@ -3784,21 +3784,10 @@ summarise(age0.2013,min(mmSL),max(mmSL))
 group2013<-select(age0.2013,mmSL)
 
 # convert to frequency table
-age0group<-mixgroup(group2013, breaks = c(0,seq(35,125,5),131),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2013, breaks = c(0,seq(35,80,5),86),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
 plot(age0group)
-
-# set parameters
-age0param<-mixparam(c(60,110),c(5),pi=NULL)
-plot(age0group,age0param,"gamma")
-
-# fit mixture
-fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=5, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
 
 par<-groupstats(age0group)
 
@@ -3812,7 +3801,7 @@ trip18.2013<-mutate(trip18.2013,dummy_pulse=rev(seq(1:nrow(trip18.2013))))
 mixtures<-bind_rows(mixtures,trip18.2013)
 
 # October trip 19
-age0.2013<-filter(length, year==2013 & age ==0 & trip ==19)
+age0.2013<-filter(length, year==2013 & age ==0 & trip ==19 & mmSL<120) # take out age 1's
 
 # check histogram
 qplot(mmSL, data=age0.2013, binwidth=5)
@@ -3824,22 +3813,12 @@ summarise(age0.2013,min(mmSL),max(mmSL))
 group2013<-select(age0.2013,mmSL)
 
 # convert to frequency table
-age0group<-mixgroup(group2013, breaks = c(0,seq(40,120,5),123),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2013, breaks = c(0,seq(40,95,5),101),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
 plot(age0group)
 
 # set parameters
-age0param<-mixparam(c(70,120),c(5),pi=NULL)
-plot(age0group,age0param,"gamma")
-
-# fit mixture
-fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
-          emsteps=5, usecondit=FALSE, print.level=0)
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
 par<-groupstats(age0group)
 
 # store results
@@ -3890,7 +3869,7 @@ trip20.2013<-mutate(trip20.2013,dummy_pulse=rev(seq(1:nrow(trip20.2013))))
 mixtures<-bind_rows(mixtures,trip20.2013)
 
 # November trip 21
-age0.2013<-filter(length,year==2013 & age ==0 & trip == 21)
+age0.2013<-filter(length,year==2013 & age ==0 & trip == 21 & mmSL < 130)
 
 # check histogram
 qplot(mmSL, data=age0.2013, binwidth=5)
@@ -3902,13 +3881,13 @@ summarise(age0.2013,min(mmSL),max(mmSL))
 group2013<-select(age0.2013,mmSL)
 
 # convert to frequency table
-age0group<-mixgroup(group2013, breaks = c(0,seq(45,145,5),147),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2013, breaks = c(0,seq(45,120,5),125),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
 plot(age0group)
 
 # set parameters
-age0param<-mixparam(c(40,70,100,135),c(5),pi=NULL)
+age0param<-mixparam(c(40,70,100),c(5),pi=NULL)
 plot(age0group,age0param,"gamma")
 
 # fit mixture
@@ -4410,7 +4389,7 @@ trip19.2015<-mutate(trip19.2015,dummy_pulse=rev(seq(1:nrow(trip19.2015))))
 mixtures<-bind_rows(mixtures,trip19.2015)
 
 # October trip 20
-age0.2015<-filter(length, year==2015 & age == 0 & trip==20)
+age0.2015<-filter(length, year==2015 & age == 0 & trip==20 & mmSL<100)
 
 # check histogram
 qplot(mmSL, data=age0.2015, binwidth=5)
@@ -4422,7 +4401,7 @@ summarise(age0.2015,min(mmSL),max(mmSL))
 group2015<-select(age0.2015,mmSL)
 
 # convert to frequency table
-age0group<-mixgroup(group2015, breaks = c(0,seq(35,110,5),113),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2015, breaks = c(0,seq(35,95,5),98),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
 plot(age0group)
@@ -4448,7 +4427,7 @@ trip20.2015<-mutate(trip20.2015,dummy_pulse=rev(seq(1:nrow(trip20.2015))))
 mixtures<-bind_rows(mixtures,trip20.2015)
 
 # November Trip 21
-age0.2015<-filter(length, year==2015 & age == 0 & trip==21)
+age0.2015<-filter(length, year==2015 & age == 0 & trip==21 & mmSL < 110) # get rid of age 1's
 
 # check histogram
 qplot(mmSL, data=age0.2015, binwidth=5)
@@ -4460,13 +4439,13 @@ summarise(age0.2015,min(mmSL),max(mmSL))
 group2015<-select(age0.2015,mmSL)
 
 # convert to frequency table
-age0group<-mixgroup(group2015, breaks = c(0,seq(40,110,5),114),xname=NULL, k = NULL, usecondit = FALSE)
+age0group<-mixgroup(group2015, breaks = c(0,seq(40,95,5),100),xname=NULL, k = NULL, usecondit = FALSE)
 
 # plot frequency data
 plot(age0group)
 
 # set parameters
-age0param<-mixparam(c(40,62,100),c(5),pi=NULL)
+age0param<-mixparam(c(40,62),c(5),pi=NULL)
 plot(age0group,age0param,"gamma")
 
 # fit mixture

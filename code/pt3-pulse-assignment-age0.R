@@ -102,5 +102,5 @@ write.csv(range_final,"./data/data-working/age0-pulse-range.csv",row.names = FAL
 # ----- Pulse Check -----
 # check the frequency between pulses -> % overlap and % unaccounted for
 
-str(age1length_pulse)
+str(age0length_pulse)
 
