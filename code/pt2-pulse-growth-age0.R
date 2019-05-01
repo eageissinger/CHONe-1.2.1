@@ -103,7 +103,7 @@ new%>%
 cohort.graph<-function(growth,na.rm=TRUE, ...){
   
   cohort_list<-rev(unique(growth$cohort))
-  pdf()
+  #pdf()
   for (i in seq_along(cohort_list)) {
     plot<-ggplot(subset(growth,growth$cohort==cohort_list[i]),
                  aes(x=date,y=mean_size,group=cohort,shape=pulse))+
@@ -166,7 +166,7 @@ cohort2.graph<-function(growth,length,na.rm=TRUE, ...){
       theme(axis.text.x=element_text(angle=40))
     print(plot)
   }
-  dev.off()
+  #dev.off()
 }
 cohort2.graph(new,age0)
 

@@ -953,7 +953,13 @@ plot(fit1)
 
 plot(fit1,root=T)
 
-# can't determine pulse structure
+# store results
+head(age0.2000)
+trip21.2000<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2000,month=11,day=13,trip=21) # Oct 10
+trip21.2000<-mutate(trip21.2000,dummy_pulse=rev(seq(1:nrow(trip21.2000))))
+#add to mixtures
+mixtures<-bind_rows(mixtures,trip21.2000)
 
 # November trip 22
 age0.2000<-filter(length,year==2000 & age ==0 & month == 11 & trip==22)
@@ -2265,6 +2271,44 @@ trip17.2007<-mutate(trip17.2007,dummy_pulse=rev(seq(1:nrow(trip17.2007))))
 # add to mixtures
 mixtures<-bind_rows(mixtures,trip17.2007)
 
+# September # trip 18
+age0.2007<-filter(length,year==2007 & age ==0 & month ==9 & trip == 18)
+
+# check histogram
+qplot(mmSL, data=age0.2007, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2007,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2007<-select(age0.2007,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2007, breaks = c(0,seq(35,75,5),82),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(48,68),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=15, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1, root=T)
+
+# store results
+head(age0.2007)
+trip18.2007<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2007,month=9,day=24,trip = 18)
+trip18.2007<-mutate(trip18.2007,dummy_pulse=rev(seq(1:nrow(trip18.2007))))
+
+# add to mixtures
+mixtures<-bind_rows(mixtures,trip18.2007)
+
 # October trip 19
 age0.2007<-filter(length,year==2007 & age ==0 & month ==10 & trip ==19)
 
@@ -3300,10 +3344,83 @@ trip20.2011<-mutate(trip20.2011,dummy_pulse=rev(seq(1:nrow(trip20.2011))))
 # addd to mixtures
 mixtures<-bind_rows(mixtures,trip20.2011)
 
-#November
-age0.2011<-filter(length,year==2011 & age ==1 & month==11)
-# no fish
+#November trip 21
+age0.2011<-filter(length,year==2011 & age ==0 & trip==21)
 
+# check histogram
+qplot(mmSL, data=age0.2011, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2011,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2011<-select(age0.2011,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2011, breaks = c(0,seq(30,70,5),76),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+# set parameters
+age0param<-mixparam(c(46,65),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=3, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+
+par<-groupstats(age0group)
+
+# store results
+head(age0.2011)
+trip21.2011<-bind_cols(par)%>%
+  mutate(year=2011,month=11,day=7,trip=21)
+trip21.2011<-mutate(trip21.2011,dummy_pulse=rev(seq(1:nrow(trip21.2011))))
+
+# addd to mixtures
+mixtures<-bind_rows(mixtures,trip21.2011)
+
+#November trip 22
+age0.2011<-filter(length,year==2011 & age ==0 & trip==22)
+
+# check histogram
+qplot(mmSL, data=age0.2011, binwidth=5)
+
+# # detremine max and min SL
+summarise(age0.2011,min(mmSL),max(mmSL))
+
+# create dataframe with SL only
+group2011<-select(age0.2011,mmSL)
+
+# convert to frequency table
+age0group<-mixgroup(group2011, breaks = c(0,seq(40,70,5),75),xname=NULL, k = NULL, usecondit = FALSE)
+
+# plot frequency data
+plot(age0group)
+
+
+# set parameters
+age0param<-mixparam(c(46,70),c(5),pi=NULL)
+plot(age0group,age0param,"gamma")
+# fit mixture
+fit1<-mix(age0group,age0param,dist="gamma",mixconstr(consigma="CCV"),
+          emsteps=3, usecondit=FALSE, print.level=0)
+summary(fit1)
+plot(fit1)
+plot(fit1,root=T)
+par<-groupstats(age0group)
+
+# go with Fit 1 - 
+head(age0.2011)
+trip22.2011<-bind_cols(fit1$parameters,fit1$se)%>%
+  mutate(year=2011,month=11,day=22,trip=22)
+trip22.2011<-mutate(trip22.2011,dummy_pulse=rev(seq(1:nrow(trip22.2011))))
+
+# addd to mixtures
+mixtures<-bind_rows(mixtures,trip22.2011)
 # ---- age 0 2012 ----
 
 # May
