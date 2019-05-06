@@ -326,11 +326,14 @@ LCA<-lc%>%
   rename(Ration=ration)%>%
   filter(size=='small')%>%
   ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
-  geom_jitter(aes(shape=Ration,colour=Ration,fill=Ration))+
+  geom_point(aes(shape=Ration,colour=Ration,fill=Ration),
+             position = position_dodge(width=4))+
   stat_smooth(method="lm",se=FALSE,linetype='dashed')+
-  geom_errorbar(limitse,width=1)+
+  geom_errorbar(aes(ymin=kavg-sek,ymax=kavg+sek),
+                width=0,
+                position = position_dodge(width=4))+
   theme_bw(base_rect_size = 1)+
-  ylab("Condition factor (K)")+xlab("Day of experiment")+
+  ylab("Fulton's K")+xlab("Day of experiment")+
   scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
   scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
   scale_shape_manual(values=c(22:25))+
@@ -341,22 +344,77 @@ LCB<-lc%>%
   rename(Ration=ration)%>%
   filter(size=='large')%>%
   ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
-  geom_jitter(aes(shape=Ration,colour=Ration,fill=Ration))+
+  geom_point(aes(shape=Ration,colour=Ration,fill=Ration),
+             position=position_dodge(width=4))+
   stat_smooth(method="lm",se=FALSE,linetype='dashed')+
-  geom_errorbar(limitse,width=1)+
+  geom_errorbar(aes(ymin=kavg-sek,ymax=kavg+sek),
+                width=0,
+                position = position_dodge(width=4))+
   theme_bw(base_rect_size = 1)+
-  ylab("Condition factor (K)")+xlab("Day of experiment")+
+  ylab("Fulton's K")+xlab("Day of experiment")+
   scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
   scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
   ylim(0.55,1.05)+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
-
-
-
 ggarrange(LCA,LCB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
+
+# ---- live condition presentation figs -----
+
+limitse<-aes(ymin=kavg-sek,ymax=kavg+sek)
+lc%>%
+  rename(Ration=ration)%>%
+  filter(size=='small')%>%
+  ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
+  geom_point(aes(shape=Ration,colour=Ration,fill=Ration),
+             position = position_dodge(width=4))+
+  stat_smooth(method="lm",se=FALSE,linetype='dashed')+
+  geom_errorbar(aes(ymin=kavg-sek,ymax=kavg+sek),
+                width=0,
+                position = position_dodge(width=4))+
+  theme_bw(base_rect_size = 1)+
+  ylab("Fulton's K")+xlab("Day of experiment")+
+  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
+  scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
+  scale_shape_manual(values=c(22:25))+
+  theme(panel.grid=element_blank())+
+  ylim(0.55,1.05)+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  theme(axis.text.x=element_text(size=20,face='bold'))+
+  theme(axis.text.y=element_text(size=20,face='bold'))+
+  theme(legend.title=element_text(size=18,face='bold'))+
+  theme(axis.title=element_blank())+
+  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
+  theme(legend.key=element_blank())+
+  theme(legend.position=c(0.9,0.25))
+
+lc%>%
+  rename(Ration=ration)%>%
+  filter(size=='large')%>%
+  ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
+  geom_point(aes(shape=Ration,colour=Ration,fill=Ration),
+             position=position_dodge(width=4))+
+  stat_smooth(method="lm",se=FALSE,linetype='dashed')+
+  geom_errorbar(aes(ymin=kavg-sek,ymax=kavg+sek),
+                width=0,
+                position = position_dodge(width=4))+
+  theme_bw(base_rect_size = 1)+
+  ylab("Fulton's K")+xlab("Day of experiment")+
+  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
+  scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
+  scale_shape_manual(values=c(22:25))+
+  theme(panel.grid=element_blank())+
+  ylim(0.55,1.05)+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  theme(axis.text.x=element_text(size=20,face='bold'))+
+  theme(axis.text.y=element_text(size=20,face='bold'))+
+  theme(legend.title=element_text(size=18,face='bold'))+
+  theme(axis.title=element_blank())+
+  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
+  theme(legend.key=element_blank())+
+  theme(legend.position=c(0.9,0.25))
 
 # ----- Final Condition analysis ------
 summary(fishcond)
@@ -447,15 +505,17 @@ finalK%>%
   mutate(percent_adj=replace(percent_adj,size=="large",percent+0.05))%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,y=dry,fill=Size))+
-  geom_errorbar(limitse.dryK,width=.025)+
-  geom_pointrange(aes(shape=Size,ymin=dry-sedry,ymax=dry+sedry),size=.5)+
+  geom_errorbar(aes(ymin=dry-sedry,ymax=dry+sedry),
+                width=0,
+                position=position_dodge(width=0.25))+
+  geom_point(aes(shape=Size,fill=Size),
+             position=position_dodge(width = 0.25))+
   theme_bw(base_rect_size = 1)+
   ylab("Condition factor (K)")+xlab("Food ration (% body weight)")+
   scale_fill_manual(values=c('grey0','grey64'))+
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
-
 
 # Wet condition factor
 
@@ -698,7 +758,7 @@ SA<-survival%>%
   scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
   scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
   theme(panel.grid=element_blank())+
-  ylim(25,102)+xlim(0,125)
+  ylim(0,102)+xlim(0,125)
 
 SB<-survival%>%
   filter(size=="large")%>%
@@ -710,7 +770,7 @@ SB<-survival%>%
   scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
   scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
   theme(panel.grid=element_blank())+
-  ylim(25,102)+xlim(0,125)
+  ylim(0,102)+xlim(0,125)
 
 ggarrange(SA,SB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')

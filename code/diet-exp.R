@@ -559,7 +559,7 @@ hist(resid(m2))
 diet_final%>%
   filter(trt!="0.0%")%>%
   ggplot(aes(x=julian_date,y=percent_consumed))+
-  geom_smooth(method="lm",)+
+  geom_smooth(method="lm")+
   geom_point(aes(x=daily_temp,y=percent_consumed))
 
 diet_final%>%
@@ -816,14 +816,12 @@ ggplot(fce,aes(y=FCE,x=daily_temp,colour=size))+
   geom_point()+
   facet_wrap(aes(ration))
 F1<-ggplot(fce)+
-  geom_boxplot(aes(y=FCE,x=as.factor(trt),colour=daily_temp))+
+  geom_boxplot(aes(y=FCE,x=as.factor(trt),colour=daily_temp),
+               outlier.shape = NA)+
   geom_jitter(aes(y=FCE,x=as.factor(trt),colour=daily_temp),width=.15)+
   facet_wrap(aes(size))+
   ylab("Feed conversion\n efficiency")+xlab("Ration")+
-  theme_bw()+theme(panel.grid = element_blank())+
-  theme(axis.title = element_text(size=16, face='bold'))+
-  theme(axis.text = element_text(size=12,face='bold'))+
-  theme(axis.text.x = element_text(angle=30,hjust=.7))
+  theme_bw()+theme(panel.grid = element_blank())
 F1
 
 energy.0$F.rate[which(is.nan(energy.0$F.rate))] = NA
@@ -839,7 +837,7 @@ F2<-ggplot(energy.0)+
   geom_boxplot(aes(y=F.rate,x=as.factor(trt),colour=daily_temp))+
   geom_jitter(aes(y=F.rate,x=as.factor(trt),colour=daily_temp),width=.15)+
   facet_wrap(aes(size))+
-  ylab("Feeding Rate")+xlab("Ration")+
+  ylab("Feeding Rate (%/day)")+xlab("Ration (% body weight)")+
   theme_bw()+theme(panel.grid = element_blank())
 
 ggarrange(F2+theme(axis.title.x=element_text(colour='white')),F1, labels=c("A","B"),ncol=1,nrow=2,
@@ -854,6 +852,7 @@ hist(resid(m3))
 summary(m3)
 Anova(m3,type="III")
 
+
 dfsmall<-energy.0%>%
   filter(size=="small")
 m4<-lm(F.rate~factor(trt)+daily_temp,data=dfsmall)
@@ -864,24 +863,36 @@ Anova(m4,type="III")
 
 
 # ---- presentation figures ----
-fce%>%
+mid<-mean(fce$daily_temp)
+fce1<-fce%>%
   filter(size=='small')%>%
   ggplot()+
   geom_boxplot(aes(y=FCE,x=as.factor(trt),colour=daily_temp))+
   geom_jitter(aes(y=FCE,x=as.factor(trt),colour=daily_temp),width=.15)+
-  ylab("Feed conversion\n efficiency")+xlab("Ration")+
+  ylab("Feed conversion \nefficiency")+xlab("Ration (% body weight)")+
   theme_bw()+theme(panel.grid = element_blank())+
   theme(axis.title = element_text(size=16, face='bold'))+
   theme(axis.text = element_text(size=12,face='bold'))+
-  theme(axis.text.x = element_text(angle=30,hjust=.7))
+  theme(axis.text.x = element_text(angle=30,hjust=.7))+
+  scale_color_gradient(low="blue",high="red")+
+  theme(legend.title=element_text(size=16,face='bold'))+
+  theme(legend.text = element_text(size=12,face='bold'))
 
-energy.0%>%
+frate1<-energy.0%>%
   filter(size=='small')%>%
   ggplot()+
   geom_boxplot(aes(y=F.rate,x=as.factor(trt),colour=daily_temp))+
   geom_jitter(aes(y=F.rate,x=as.factor(trt),colour=daily_temp),width=.15)+
-  ylab("Feeding Rate")+xlab("Ration")+
+  ylab("Feeding Rate (% / day)")+xlab("Ration (% body weight)")+
   theme_bw()+theme(panel.grid = element_blank())+
   theme(axis.title = element_text(size=16, face='bold'))+
   theme(axis.text = element_text(size=12,face='bold'))+
-  theme(axis.text.x = element_text(angle=30,hjust=.7))
+  theme(axis.text.x = element_text(angle=30,hjust=.7))+
+  scale_color_gradient(low="blue",high="red")+
+  theme(legend.title=element_text(size=16,face='bold'))+
+  theme(legend.text = element_text(size=12,face='bold'))
+
+ggarrange(frate1+theme(axis.title.x = element_text(colour="white")),
+          fce1+theme(axis.title.x = element_text(colour="white")),
+          ncol=2,nrow=1,
+          common.legend=TRUE,legend='right')
