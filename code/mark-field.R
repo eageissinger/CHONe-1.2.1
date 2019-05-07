@@ -130,7 +130,6 @@ pulse.assign<-data.frame(trip=rep(pulse.range$trip,pulse.range$max-pulse.range$m
                          mmSL=unlist(mapply(seq,pulse.range$min,pulse.range$max)))
 #View(pulse.assign)
 
-# ---- pick up here ----
 # add new pulse assignments to missing data
 # assign 1 to NA trip
 pulse.assign<-pulse.assign%>%
@@ -144,7 +143,6 @@ data2<-data2%>%
   mutate(trip=replace(trip,is.na(trip),1))
 
 pulse.size2<-left_join(data2,pulses2)
-
 
 # need to combine individual fish pulse assignments to full data
 # without losing anything. 
@@ -161,134 +159,6 @@ final%>%
   filter(month!=5)%>%
   ggplot(aes(y=sl,x=date,colour=factor(pulse)))+
   geom_jitter()
-
-# ---- preliminary analysis: size distribution ----
-
-# select individual fish, size, and last date captured
-# week 1
-wk1<-subsample%>%
-  select(SL,date)%>%
-  filter(date=="2016-10-13")%>%
-  data.frame()
-wk2<-subsample%>%
-  select(SL,date)%>%
-  filter(date=="2016-10-19")%>%
-  data.frame()
-wk3<-data%>%
-  select(animal_id,sl,date)%>%
-  filter(date=="2016-10-28")%>%
-  data.frame()
-mayNB<-data%>%
-  select(animal_id,sl,date,site,age)%>%
-  filter(age==1 & date == "2017-05-24" & site == "NB" & sl >= 55)%>%
-  data.frame()
-mayMS<-data%>%
-  select(animal_id,sl,date,site,age)%>%
-  filter(age==1 & date=="2017-05-24" & site == "MS"& sl >= 55)%>%
-  data.frame()
-mayCC<-data%>%
-  select(animal_id,sl,date,site,age)%>%
-  filter(age==1 & date=="2017-05-24" & site == "CC" & sl >= 55)%>%
-  data.frame()
-names(wk1)<-c("sl","date")
-names(wk2)<-c("sl","date")
-
-
-
-oct<-bind_rows(wk1,wk2,select(wk3,sl,date))
-may<-bind_rows(mayNB,mayMS,mayCC)
-
-# ---- Size frequency plots ----
-
-ggplot(wk1,aes(x=sl))+
-  geom_histogram(binwidth = 5,colour='black',fill='white',size=1)+
-  xlim(25,150)+
-  ggtitle("October 14, 2016")+
-  theme_gray()+
-  xlab("Standard length (mm)")+ylab("Count")+
-  theme(axis.title=element_text(size=20,face='bold'),
-        axis.text=element_text(size=16,face='bold'))+
-  theme(plot.title=element_text(hjust=.5,size=24,face='bold'))
-
-ggplot(wk2,aes(x=sl))+
-  geom_histogram(binwidth = 5,colour='black',fill='white',size=1)+
-  xlim(25,153)+
-  ggtitle("October 19, 2016")+
-  theme_grey()+
-  xlab("Standard length (mm)")+ylab("Count")+
-  theme(axis.title=element_text(size=20,face='bold'),
-        axis.text=element_text(size=16,face='bold'))+
-  theme(plot.title=element_text(hjust=.5,size=24,face='bold'))
-
-ggplot(wk3,aes(x=sl))+
-  geom_histogram(binwidth = 5,colour='black',fill='white',size=1)+
-  xlim(25,150)+
-  ggtitle("October 28, 2016")+
-  theme_grey()+
-  xlab("Standard length (mm)")+ylab("Count")+
-  theme(axis.title=element_text(size=20,face='bold'),
-        axis.text=element_text(size=16,face='bold'))+
-  theme(plot.title=element_text(hjust=.5,size=24,face='bold'))
-
-ggplot(oct,aes(x=sl))+
-  geom_histogram(binwidth = 5, colour= 'black',fill='white',size=1)+
-  xlim(25,150)+
-  ggtitle("October 2016")+
-  theme_grey()+
-  xlab("Standard length (mm)")+ylab("Count")+
-  theme(axis.title=element_text(size=20,face='bold'),
-        axis.text=element_text(size=16,face='bold'))+
-  theme(plot.title=element_text(hjust=.5,size=24,face='bold'))+
-  theme(axis.title.x=element_blank())+
-  ylim(0,50)
-
-ggplot(mayNB,aes(x=sl))+
-  geom_histogram(binwidth = 5,colour='black',fill='white',size=1)+
-  xlim(25,153)+
-  ggtitle("Newbridge Cove")+
-  theme_grey()+
-  xlab("Standard length (mm)")+ylab("Count")+
-  theme(axis.title=element_text(size=20,face='bold'),
-        axis.text=element_text(size=16,face='bold'))+
-  theme(plot.title=element_text(hjust=.5,size=24,face='bold'))+
-  ylim(0,35)+
-  theme(axis.title=element_blank())
-
-ggplot(mayMS,aes(x=sl))+
-  geom_histogram(binwidth = 5,colour='black',fill='white',size=1)+
-  xlim(25,150)+
-  ggtitle("Mistaken Cove")+
-  theme_grey()+
-  xlab("Standard length (mm)")+ylab("Count")+
-  theme(axis.title=element_text(size=20,face='bold'),
-        axis.text=element_text(size=16,face='bold'))+
-  theme(plot.title=element_text(hjust=.5,size=24,face='bold'))+
-  ylim(0,35)+
-  theme(axis.title=element_blank())
-       
-       
-ggplot(mayCC,aes(x=sl))+
-  geom_histogram(binwidth = 5,colour='black',fill='white',size=1)+
-  xlim(25,150)+
-  ggtitle("Canning's Cove")+
-  theme_grey()+
-  xlab("Standard length (mm)")+ylab("Count")+
-  theme(axis.title=element_text(size=20,face='bold'),
-        axis.text=element_text(size=16,face='bold'))+
-  theme(plot.title=element_text(hjust=.5,size=24,face='bold'))+
-  ylim(0,35)+
-  theme(axis.title.x=element_blank())
-
-ggplot(may,aes(x=sl))+
-  geom_histogram(binwidth = 5, colour='black',fill='white',size=1)+
-  xlim(25,153)+
-  ggtitle("24 May 2017")+
-  theme_grey()+
-  xlab("Standard length (mm)")+ylab("Count")+
-  theme(axis.title=element_text(size=20,face='bold'),
-        axis.text=element_text(size=16,face='bold'))+
-  theme(plot.title=element_text(hjust=.5,size=24,face='bold'))+
-  ylim(0,50)
 
  # ---- mark analysis ----
 
@@ -375,13 +245,13 @@ nb.results<-nb.model()
 nb.results
 
 summary(nb.results[[1]])
-nb.results[[1]]
+nb.results[[1]]# deviance of 0, poor model fit
 PIMS(nb.results[[1]],"Phi")
 PIMS(nb.results[[1]],"p")
 nb.results$model.table
 nb.results[[1]]$output
 
-nb2.model<-function()
+nb2.model<-function() # change time frames
 {
   # process data for CJS model and make default design data
   nb.processed<-process.data(nb.all,time.intervals = c(5,21))
@@ -399,11 +269,11 @@ nb2.model<-function()
 }
 nb2.results<-nb2.model()
 nb2.results
-nb2.results[[1]]
+nb2.results[[1]] # still terrible fit
 summary(nb2.results[[1]])
 
 # ---- October only ----
-# ---- Add individual covariates -----
+# Add individual covariates
 # exclude fish that were culled mid study
 unique(mrkdata$date)
 mrkdata$id<-as.numeric(str_sub(mrkdata$animal_id,start=4))
@@ -460,7 +330,7 @@ PIMS(nb.results[[1]],"p")
 
 oct.results[[1]]$output
 
-# ---- survival by pulse ----
+# ---- CJS survival by pulse ----
 # Newbridge only
 # time and dependent - no length yet
 nb.pulse<-nb%>%
@@ -498,7 +368,7 @@ pulse.results<-pulse.model()
 pulse.results
 
 summary(pulse.results[[1]])
-pulse.results[[5]]$output
+pulse.results[[1]] # no pulse effect
 
 
 # --- JS ----
@@ -520,7 +390,7 @@ pop.model<-function()
   # create model list
   cml<-create.model.list(model="POPAN")
   # run and return models
-  return(mark.wrapper(cml,data=pop.processed,ddl=pop.ddl))
+  return(mark.wrapper(cml,data=pop.processed,ddl=pop.ddl,options="SIMANNEAL"))
 }
 pop.results<-pop.model()
 pop.results
@@ -529,12 +399,12 @@ summary(pop.results[[2]])
 summary(pop.results[[6]])
 pop.results[[2]]$output
 pop.results[[2]]
-
+summary(pop.results[[2]]$profile.int)
 
 # export
-pop.processed<-process.data(nb.all,model="POPAN",time.intervals = c(5,217))
-export.MARK(pop.processed, "codwinter",pop.results)
-# October JS
+#pop.processed<-process.data(nb.all,model="POPAN",time.intervals = c(5,217))
+#export.MARK(pop.processed, "codwinter",pop.results)
+# --- October JS ----
 oct.pop.model<-function()
 {
   # process data for CJS model and make default design data
@@ -563,7 +433,8 @@ oct.pop.results[[2]]
 oct.pop.results[[6]]
 # stick with constant phi
 summary(oct.pop.results[[2]])
-# add pulse
+
+#  --- add pulse -----
 pop.pulse.model<-function()
 {
   # process data for CJS model and make default design data
@@ -589,103 +460,8 @@ pop.pulse.model<-function()
 pop.pulse.results<-pop.pulse.model()
 pop.pulse.results
 summary(pop.pulse.results[[3]])
+pop.pulse.results[[3]]
 #pulse no effect
 
-# ---- data visualization ----
-plot(pop.results[[2]])
-pop.results[[2]]
+ # covariates not appropriate with POPAN
 
-# October
-time<-c(0,1,2)
-pop.oct<-function(x) {
-  y=0.721^x
-  print(y)
-}
-october<-pop.oct(time)
-
-# Overwinter
-time<-c(0,1,2)
-pop.winter <- function(x) {
-  y=0.797^x
-  print(y)
-}
-winter<-pop(time)
-
-survival<-as.data.frame(cbind(time,october,winter))
-survival$period<-c(1,2,3)
-survival
-
-
-ggplot(survival)+geom_line(aes(x=period,y=october),colour='black',size=1.5)+
-  scale_x_discrete(limits=c("1", "2", "3"))+
-  theme_classic()+
-  ylab("Proportion Survival")+xlab("Marking Period")+
-  theme(axis.title=element_text(size=20))+
-  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
-  theme(axis.text.x=element_text(size=20,face='bold'))+
-  theme(axis.text.y=element_text(size=20,face='bold'))+
-  theme(axis.title.y=element_text(margin=margin(t=0,r=10,b=0,l=0)))+
-  theme(axis.title.x=element_text(margin=margin(t=10,r=0,b=0,l=0)))
-
-ggplot(survival)+geom_line(aes(x=period,y=october),colour='black',size=1.5)+
-  geom_line(aes(x=period,y=winter),colour='blue',size=1.5)+
-  scale_x_discrete(limits=c("1", "2", "3"))+
-  theme_classic()+
-  ylab("Proportion Survival")+xlab("Marking Period")+
-  theme(axis.title=element_text(size=20))+
-  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
-  theme(axis.text.x=element_text(size=20,face='bold'))+
-  theme(axis.text.y=element_text(size=20,face='bold'))+
-  theme(axis.title.y=element_text(margin=margin(t=0,r=10,b=0,l=0)))+
-  theme(axis.title.x=element_text(margin=margin(t=10,r=0,b=0,l=0)))
-
-
-# Abundance
-# Overwinter
-N<-c(30.999997,77.00002,281.00000)
-lcl<-c(22.178494,63.113359,264.78343)
-ucl<-c(43.330257,93.942080,298.20975)
-occ<-c(1,2,4)
-
-overwinter<-as.data.frame(cbind(N,lcl,ucl,occ))
-overwinter$Season<-"Overwinter"
-ggplot(overwinter)+
-  geom_ribbon(aes(ymin=lcl,ymax=ucl,x=occ),fill='grey70')+
-  geom_line(aes(x=occ,y=N),colour='black',size=1.5)+
-  theme_classic()+
-  ylim(15,300)
-
-
-# October
-N<-c(25.0000,46.879729,86.476314)
-lcl<-c(17.526756,37.308927,75.475675)
-ucl<-c(35.659765,58.905716,99.080305)
-occ<-c(1,2,3)
-
-october<-as.data.frame(cbind(N,lcl,ucl,occ))
-october$Season<-"October"
-
-ggplot(october)+
-  geom_ribbon(aes(ymin=lcl,ymax=ucl,x=occ),fill='grey70')+
-  geom_line(aes(x=occ,y=N),colour='black',size=1.5)+
-  theme_classic()+
-  xlim(1,4)+ylim(15,300)
-
-
-abundance<-bind_rows(october,overwinter)
-
-ggplot(abundance)+
-  geom_point(aes(x=occ,y=N,shape=Season),colour='black',size=4)+
-  geom_errorbar(aes(ymin=lcl,ymax=ucl,x=occ),width=0,size=1)+
-  geom_line(aes(x=occ,y=N,group=Season),linetype='dashed',size=1)+
-  theme_classic()+
-  ylab("Estimated Abundance")+xlab("Marking Period")+
-  theme(axis.title=element_text(size=18,face = 'bold'))+
-  theme(plot.title=element_text(size=18,face="bold",hjust=0.5))+
-  theme(axis.text.x=element_text(size=14,face='bold'))+
-  theme(axis.text.y=element_text(size=14,face='bold'))+
-  theme(axis.title.y=element_text(margin=margin(t=0,r=10,b=0,l=0)))+
-  theme(axis.title.x=element_text(margin=margin(t=10,r=0,b=0,l=0)))+
-  theme(legend.title=element_text(size=18, face='bold'))+
-  theme(legend.position=c(0.25,0.80))+
-  theme(legend.text=element_text(size=16))
