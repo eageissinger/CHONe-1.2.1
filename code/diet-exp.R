@@ -812,16 +812,22 @@ hist(resid(m1.2))
 summary(m1.2)
 Anova(m1.2,type="III")
 
+# take % out of treatment label
+fce2<-fce%>%
+  mutate(percent=as.numeric(str_sub(trt,start = 1,end = 3)))
+
 ggplot(fce,aes(y=FCE,x=daily_temp,colour=size))+
   geom_point()+
   facet_wrap(aes(ration))
-F1<-ggplot(fce)+
-  geom_boxplot(aes(y=FCE,x=as.factor(trt),colour=daily_temp),
+F1<-ggplot(fce2)+
+  geom_boxplot(aes(y=FCE,x=as.factor(percent),colour=daily_temp),
                outlier.shape = NA)+
-  geom_jitter(aes(y=FCE,x=as.factor(trt),colour=daily_temp),width=.15)+
-  facet_wrap(aes(size))+
-  ylab("Feed conversion\n efficiency")+xlab("Ration")+
-  theme_bw()+theme(panel.grid = element_blank())
+  geom_jitter(aes(y=FCE,x=as.factor(percent),colour=daily_temp),width=.15)+
+  facet_wrap(aes(size=factor(size,levels=c("small","large"))))+
+  ylab("Feed conversion efficiency")+xlab("Ration (% body weight)")+
+  theme_bw()+theme(panel.grid = element_blank())+
+  scale_color_gradient(low="blue",high="red")+
+  labs(colour="Temp. (°C)")
 F1
 
 energy.0$F.rate[which(is.nan(energy.0$F.rate))] = NA
@@ -833,13 +839,17 @@ hist(resid(m2))
 summary(m2)
 Anova(m2,type="III")
 
-F2<-ggplot(energy.0)+
-  geom_boxplot(aes(y=F.rate,x=as.factor(trt),colour=daily_temp))+
-  geom_jitter(aes(y=F.rate,x=as.factor(trt),colour=daily_temp),width=.15)+
-  facet_wrap(aes(size))+
+energy.02<-energy.0%>%
+  mutate(percent=as.numeric(str_sub(trt,start = 1,end = 3)))
+F2<-ggplot(energy.02)+
+  geom_boxplot(aes(y=F.rate,x=as.factor(percent),colour=daily_temp))+
+  geom_jitter(aes(y=F.rate,x=as.factor(percent),colour=daily_temp),width=.15)+
+  facet_wrap(aes(size=factor(size,levels=c("small","large"))))+
   ylab("Feeding Rate (%/day)")+xlab("Ration (% body weight)")+
-  theme_bw()+theme(panel.grid = element_blank())
-
+  theme_bw()+theme(panel.grid = element_blank())+
+  scale_color_gradient(low="blue",high="red")+
+  labs(colour="Temp. (°C)")
+F2
 ggarrange(F2+theme(axis.title.x=element_text(colour='white')),F1, labels=c("A","B"),ncol=1,nrow=2,
           common.legend=TRUE,legend='right')
 
@@ -864,35 +874,25 @@ Anova(m4,type="III")
 
 # ---- presentation figures ----
 mid<-mean(fce$daily_temp)
-fce1<-fce%>%
-  filter(size=='small')%>%
-  ggplot()+
-  geom_boxplot(aes(y=FCE,x=as.factor(trt),colour=daily_temp))+
-  geom_jitter(aes(y=FCE,x=as.factor(trt),colour=daily_temp),width=.15)+
-  ylab("Feed conversion \nefficiency")+xlab("Ration (% body weight)")+
-  theme_bw()+theme(panel.grid = element_blank())+
-  theme(axis.title = element_text(size=16, face='bold'))+
+B<-F1+
+  theme(axis.title = element_text(size=14, face='bold'))+
   theme(axis.text = element_text(size=12,face='bold'))+
   theme(axis.text.x = element_text(angle=30,hjust=.7))+
-  scale_color_gradient(low="blue",high="red")+
-  theme(legend.title=element_text(size=16,face='bold'))+
-  theme(legend.text = element_text(size=12,face='bold'))
+  theme(legend.title=element_text(size=14,face='bold'))+
+  theme(legend.text = element_text(size=12,face='bold'))+
+  labs(colour="Temp. (°C)")
 
-frate1<-energy.0%>%
-  filter(size=='small')%>%
-  ggplot()+
-  geom_boxplot(aes(y=F.rate,x=as.factor(trt),colour=daily_temp))+
-  geom_jitter(aes(y=F.rate,x=as.factor(trt),colour=daily_temp),width=.15)+
-  ylab("Feeding Rate (% / day)")+xlab("Ration (% body weight)")+
-  theme_bw()+theme(panel.grid = element_blank())+
-  theme(axis.title = element_text(size=16, face='bold'))+
+A<-F2+
+  theme(axis.title = element_text(size=14, face='bold'))+
   theme(axis.text = element_text(size=12,face='bold'))+
   theme(axis.text.x = element_text(angle=30,hjust=.7))+
-  scale_color_gradient(low="blue",high="red")+
-  theme(legend.title=element_text(size=16,face='bold'))+
-  theme(legend.text = element_text(size=12,face='bold'))
+  theme(legend.title=element_text(size=14,face='bold'))+
+  theme(legend.text = element_text(size=12,face='bold'))+
+  labs(colour="Temp. (°C)")
 
-ggarrange(frate1+theme(axis.title.x = element_text(colour="white")),
-          fce1+theme(axis.title.x = element_text(colour="white")),
+ggarrange(A+
+            theme(strip.text = element_blank()),
+          B+
+            theme(strip.text = element_blank()),
           ncol=2,nrow=1,
           common.legend=TRUE,legend='right')

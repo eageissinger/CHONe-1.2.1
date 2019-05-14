@@ -316,8 +316,8 @@ table1.2<-lc%>%
   group_by(julian_date,ration,size)%>%
   summarise(mean=mean(kavg),se=sd(kavg)/sqrt(n()))
 lc%>%
-  filter(ration!= "0.0%")%>%
-  filter(julian_date==0 | julian_date==84 | julian_date==114)%>%
+  filter(ration== "0.0%")%>%
+  filter(julian_date==0 |julian_date==80 | julian_date==84 | julian_date==114)%>%
   group_by(julian_date,size)%>%
   summarise(mean=mean(kavg),se=sd(kavg)/sqrt(n()))
  # ---- Live condition figures -----
@@ -360,7 +360,17 @@ LCB<-lc%>%
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
 ggarrange(LCA,LCB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
-
+ggarrange(LCA+theme(axis.title=element_text(size=14,face='bold'))+
+            theme(axis.text = element_text(size=14,face='bold'))+
+            theme(legend.title = element_text(size=12,face='bold'))+
+            theme(legend.text = element_text(size=12)),
+          LCB+theme(axis.title.y=element_text(colour='white'))+
+            theme(axis.title = element_text(size=14,face='bold'))+
+            theme(axis.text = element_text(size=14,face='bold'))+
+            theme(legend.title = element_text(size=12,face='bold'))+
+            theme(legend.text = element_text(size=12)),
+          ncol=2,nrow=1,
+          common.legend=TRUE,legend='top')
 # ---- live condition presentation figs -----
 
 limitse<-aes(ymin=kavg-sek,ymax=kavg+sek)
@@ -511,7 +521,7 @@ finalK%>%
   geom_point(aes(shape=Size,fill=Size),
              position=position_dodge(width = 0.25))+
   theme_bw(base_rect_size = 1)+
-  ylab("Condition factor (K)")+xlab("Food ration (% body weight)")+
+  ylab("Fulton's K")+xlab("Food ration (% body weight)")+
   scale_fill_manual(values=c('grey0','grey64'))+
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
@@ -921,31 +931,35 @@ ggplot(sgr_adjusted,aes(x=percent_adj,sgr_length,fill=size))+
   ggtitle("Length")+
   theme(plot.title = element_text(size=20,face='bold',hjust=0.5))
 
+
 W<-sgr_adjusted%>%
-  mutate(percent_adj=percent-0.05)%>%
-  mutate(percent_adj=replace(percent_adj,size=="large",percent+0.05))%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,y=sgr_weight,fill=Size))+
-  geom_pointrange(aes(shape=Size,ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),size=.5)+
+  geom_errorbar(aes(ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),
+                width=0,
+                position=position_dodge(width=0.25))+
+  geom_point(aes(shape=Size,fill=Size),
+             position=position_dodge(width = 0.25))+
   theme_bw(base_rect_size = 1)+
-  ylab("Condition factor (K)")+xlab("Food ration (% body weight)")+
+  ylab("Specific growth rate")+xlab("Food ration (% body weight)")+
   scale_fill_manual(values=c('grey0','grey64'))+
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
 L<-sgr_adjusted%>%
-  mutate(percent_adj=percent-0.05)%>%
-  mutate(percent_adj=replace(percent_adj,size=="large",percent+0.05))%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,y=sgr_length,fill=Size))+
-  geom_pointrange(aes(shape=Size,ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),size=.5)+
+  geom_errorbar(aes(ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),
+                width=0,
+                position=position_dodge(width=0.25))+
+  geom_point(aes(shape=Size,fill=Size),
+             position=position_dodge(width = 0.25))+
   theme_bw(base_rect_size = 1)+
-  ylab("Condition factor (K)")+xlab("Food ration (% body weight)")+
+  ylab("Specific growth rate")+xlab("Food ration (% body weight)")+
   scale_fill_manual(values=c('grey0','grey64'))+
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
-
 ggarrange(W,L+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
 
