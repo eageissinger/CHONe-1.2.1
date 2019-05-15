@@ -1,0 +1,210 @@
+---
+title: "Age-1 Pulse Assignments"
+author: "Emilie Geissinger"
+date: "May 15, 2019"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+library(knitr)
+```
+
+```{r include=FALSE}
+# Data set up
+# ---- load data -----
+age0<-read.csv("../data/data-working/pulse_range_0_final.csv")
+age1<-read.csv("../data/data-working/age-1-mixture-dist.csv")
+catch.haul<-read.csv("../data/data-working/catch_haul.csv")
+fullcount<-read.csv("../data/data-working/newman-catch.csv")
+length<-read.csv('../data/data-working/newman-length.csv')
+
+# --- check data ----
+# age 0
+str(age0)
+summary(age0)
+head(age0)
+dim(age0)
+names(age0)
+
+age0<-age0%>%
+  mutate(cohort=year)
+names(age0)
+
+#age 1
+str(age1)
+dim(age1)
+summary(age1)
+head(age1)
+names(age1)
+
+# full count
+summary(fullcount)
+str(fullcount)
+dim(fullcount)
+head(fullcount)
+names(fullcount)
+
+trips<-length%>%
+  select(year,julian.date,trip,month,day)%>%
+  group_by(year,trip)%>%
+  filter(julian.date==min(julian.date))%>%
+  distinct(trip,year,julian.date,month,day)
+
+# ---- Date manipulation ----
+
+#format date
+fullcount$date<-ymd(paste(fullcount$year,fullcount$month,fullcount$day,sep="-"))
+age1$date<-ymd(paste(age1$year,age1$month,age1$day,sep="-"))
+age1$julian.date<-yday(age1$date)
+length$date<-ymd(paste(length$year,length$month,length$day,sep="-"))
+length<-length%>%
+  mutate(cohort=year-1)%>%
+  mutate(date2=date+3)
+# add trips to age 0 to add date
+age0<-left_join(age0,trips)
+age0$date<-ymd(paste(age0$year,age0$month,age0$day, sep="-"))
+head(age0)
+
+#mean size for age 0
+age0data<-age0%>%
+  select(date,cohort,month,age,pulse,min,max)%>%
+  mutate(meanSL=(min+max)/2)
+
+#create min and max for age 1
+# 2 standard deviations
+age1data<-age1%>%
+  select(date, cohort, month, age, dummy_pulse,mu,mu.se,sigma,sigma.se)%>%
+  filter(mu<300)%>% # get rid of outliers (>300 mm SL)
+  rename(meanSL=mu,stdev=sigma,pulse=dummy_pulse)%>%
+  mutate(min=meanSL-stdev,max=meanSL+stdev)%>%
+  select(-stdev,-sigma.se,-mu.se)
+
+names(age0data)
+names(age1data)
+growth<-bind_rows(age0data,age1data)
+unique(growth$pulse) # number of pulses present
+growth<-growth%>%filter(meanSL<250)%>%
+  filter(max<250)
+
+# ---- format count data -----
+# go from wide format to long format
+catch.haul2<-catch.haul%>%
+  gather(key=p1,value=count, starts_with('count'))%>%
+  gather(key=p2,value=extrap, starts_with('extrap'))%>%
+  separate(p1,c("count2","pulse1"))%>%
+  separate(p2,c("extrap2","pulse2"))
+
+# make count df and extrap df
+count_only<-catch.haul2%>%
+  select(-pulse2,-extrap,-extrap2,-count2)%>%
+  rename(pulse=pulse1)
+extrap_only<-catch.haul2%>%
+  select(-pulse1,-count,-count2,-extrap2)%>%
+  rename(pulse=pulse2)
+head(count_only)
+head(extrap_only)
+#combine adjusted df to be one complete 
+count_long<-left_join(count_only,extrap_only)
+
+# change NAs to 0 (confirmed that NAs are actually 0s)
+count_long$count[is.na(count_long$count)]<-0
+```
+### Pulse Figures
+***
+#### Age 1 only
+These plots show the estimated mean (point) of each pulse with +/- sd. The points represent each measured fish with a day offset of +3.
+```{r echo=FALSE, warning=FALSE}
+#As a loop
+cohort2.graph<-function(growth,length,na.rm=TRUE, ...){
+  growth<-growth%>%filter(age==1)
+  length<-length%>%filter(age==1)
+
+  
+  cohort_list<-unique(growth$cohort)
+  
+  #pdf("mixtures-length2.pdf")
+  for (i in seq_along(cohort_list)) {
+    plot<-ggplot()+
+      geom_point(data=subset(growth,growth$cohort==cohort_list[i]),
+                 aes(x=date,y=meanSL,group=cohort,shape=as.factor(pulse)),size=2)+
+      geom_errorbar(data=subset(growth,growth$cohort==cohort_list[i]),
+                    aes(x=date,ymin=min,ymax=max),width=0)+
+      geom_jitter(data=subset(length,length$cohort==cohort_list[i]),
+                  aes(x=date2,y=mmSL),colour='grey50',size=.25)+
+      ylim(20,250)+
+      theme_bw()+
+      ggtitle(paste(cohort_list[i], "Cohort"))+
+      xlab("Date")+ylab("Standard length (mm)")+
+      scale_x_date(date_breaks="1 month",
+                   date_labels="%b")+
+      theme(axis.text.x=element_text(angle=40))
+    print(plot)
+  }
+  #dev.off()
+}
+cohort2.graph(growth,length)
+```
+
+***
+
+#### Age 1 pulses graphed with age 0 grouped by cohort
+Age 0 and and age 1 pulses. Point represents mean standard length. Horizontal bars are min and max standard length for age 0's, and +/- 1 standard deviation for age 1's.
+
+```{r echo=FALSE,warning=FALSE}
+cohort.graph<-function(growth,na.rm=TRUE, ...){
+  growth<-growth%>%filter(cohort!=1995)
+  cohort_list<-unique(growth$cohort)
+  #pdf()
+  for (i in seq_along(cohort_list)) {
+    plot<-ggplot(subset(growth,growth$cohort==cohort_list[i]),
+                 aes(x=date,y=meanSL,group=as.factor(cohort),shape=factor(pulse)))+
+      geom_point(size=2)+
+      geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+      theme_bw()+
+      ggtitle(paste(cohort_list[i], "Cohort"))+
+      xlab("Date")+ylab("Standard length (mm)")+
+      scale_x_date(date_breaks="1 month",
+                   date_labels="%b-%y")+
+      theme(axis.text.x=element_text(angle=45,vjust=0.5))+
+      ylim(c(15,250))
+    print(plot)
+  }
+}
+cohort.graph(growth)
+```
+
+***
+
+### Summary Tables
+```{r echo=FALSE}
+# ---- format count data -----
+# go from wide format to long format
+catch.haul2<-catch.haul%>%
+  gather(key=p1,value=count, starts_with('count'))%>%
+  gather(key=p2,value=extrap, starts_with('extrap'))%>%
+  separate(p1,c("count2","pulse1"))%>%
+  separate(p2,c("extrap2","pulse2"))%>%
+  distinct()%>%
+  rename(pulse=pulse1)%>%
+  select(-count2,-extrap2,-pulse2)%>%
+  mutate(count=replace(count,is.na(count),0))%>%
+  mutate(extrap=replace(extrap,count==0,0))
+
+# ---- summary table of class-year strength -----
+pulse_table<-catch.haul2%>%
+  group_by(year,pulse)%>%
+  summarise(total_count=sum(count),avg_count=mean(count),total_extrap=sum(extrap),avg_extrap=mean(extrap))
+
+
+# ---- age 0 and age 1 Totals -----
+table_full<-fullcount%>%
+  group_by(year,age,month,trip)%>%
+  summarise(count=sum(count),mean=mean(count))
+kable(pulse_table,caption = "Table 1. Summary of age 0 cod grouped by pulse. Extrap is extrapolated catch based on weighted measurements. Count is raw count from all hauls.")
+
+kable(table_full, caption = "Table 2. Summary of age 0 and age 1 cod abundances grouped by trip")
+```
