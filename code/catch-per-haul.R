@@ -58,7 +58,8 @@ totalmeasured<-length0%>%
   summarise(measured=n())
 totalmeasured2<-totalmeasured%>%
   spread(pulse,measured,fill = 0)%>%
-  rename(p1='1',p2='2',p3='3',p4='4',p5='5',p6='6',unknown='<NA>')
+  rename(count_1='1',count_2='2',count_3='3',count_4='4',count_5='5',
+         count_6='6',count_unknown='<NA>')
 names(totalmeasured2)
 glimpse(totalmeasured2)
 catch_haul<-full_join(totalcatch,measured)
@@ -69,10 +70,10 @@ summary(catch_haul)
 
 extrap<-catch_haul%>%
   mutate(weight=total_catch/total_measured)%>%
-  mutate(extrap_1=(p1*weight)/num_hauls,extrap_2=(p2*weight)/num_hauls,
-         extrap_3=(p3*weight)/num_hauls,extrap_4=(p4*weight)/num_hauls,
-         extrap_5=(p5*weight)/num_hauls,extrap_6=(p6*weight)/num_hauls,
-         extrap_unknown=(unknown*weight)/num_hauls)%>%
+  mutate(extrap_1=(count_1*weight)/num_hauls,extrap_2=(count_2*weight)/num_hauls,
+         extrap_3=(count_3*weight)/num_hauls,extrap_4=(count_4*weight)/num_hauls,
+         extrap_5=(count_5*weight)/num_hauls,extrap_6=(count_6*weight)/num_hauls,
+         extrap_unknown=(count_unknown*weight)/num_hauls)%>%
   mutate(total=(total_catch*weight)/num_hauls)%>%
   ungroup()
 head(extrap, n = 20)
