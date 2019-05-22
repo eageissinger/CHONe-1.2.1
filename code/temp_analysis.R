@@ -1,7 +1,7 @@
 #Temperature expoloratory analysis for Condition paper
 
 # --- set working directory ----
-setwd("D:/work/")
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 
 # --- load packages ----
 library(tidyverse)
