@@ -2,7 +2,7 @@
 # Purpose: assign dummy pulses to length data for all age 1 cod
 
 # ---- set working directory ----
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # ---- load packages ----
 library(lubridate)
@@ -36,14 +36,6 @@ age1pulse$date<-ymd(paste(age1pulse$year,age1pulse$month,age1pulse$day,sep="-"))
 # make dataframe with min and max pulse ranges
 # use +/- standard deviation for "min" and "max"
 
-pulse_range<-age1pulse%>%
-  group_by(year,trip,dummy_pulse,cohort)%>%
-  summarise(min=(mu-sigma),max=mu+sigma,sd=sigma)%>%
-  mutate(min_round=floor(min),max_round=ceiling(max))# add rounded min and max to create an
-# integer column. Min is rounded down, max is rounded up
-
-# incorporate the 'in between' ranges
-# best way to do this is to split the difference between min of pulse 1 and max of pulse 2, etc.
 range_final<-pulse_range(age1pulse)
 # next step:
 # need to create a data frame that fills in all possible length 

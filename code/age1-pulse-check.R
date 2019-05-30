@@ -1,7 +1,7 @@
 # Assign remaining pulses
 
 # set working directory
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # ---- load packages ----
 library(tidyverse)
@@ -15,7 +15,7 @@ mixtures<-read.csv("./data/data-working/age-1-mixture-dist.csv")
 
 head(mixtures)
 
-
+# --- Mixture models ----
 mixtures<-mixtures%>%
   rename(mean=mu,pulse=dummy_pulse)%>%
   mutate(min=mean-sigma,max=mean+sigma)%>%
@@ -163,7 +163,7 @@ cohort2.graph<-function(growth,length,na.rm=TRUE, ...){
   length<-length%>%filter(age==1)%>%
     mutate(date2=date+3)%>%
     mutate(cohort=year-1)
-  pdf("mixtures-length-age1.pdf")
+  #pdf("mixtures-length-age1.pdf")
   for (i in seq_along(cohort_list)) {
     plot<-ggplot()+
       geom_point(data=subset(growth,growth$cohort==cohort_list[i]),
@@ -185,15 +185,16 @@ cohort2.graph<-function(growth,length,na.rm=TRUE, ...){
 }
 cohort2.graph(mix2,length)
 
-
+# ---- pulse assigned to length data ----
 
 # update pulse assignments for age 1
 str(range_final)
-
+summary(range_final)
+range_final<-range_final%>%
+  filter(!is.na(min), !is.na(max))
 
 pulse_assign1<-data.frame(trip=rep(range_final$trip,range_final$max-range_final$min+1),
                           year=rep(range_final$year,range_final$max-range_final$min+1),
-                          cohort=rep(range_final$cohort,range_final$max-range_final$min+1),
                           pulse=rep(range_final$pulse,range_final$max-range_final$min+1),
                           mmSL=unlist(mapply(seq,range_final$min,range_final$max)))
 
@@ -205,10 +206,9 @@ length1<-length%>%
   select(-pulse)
 
 length_pulse<-left_join(length1,pulse_assign1)
-View(length_pulse)
+head(length_pulse)
 length_pulse$date<-ymd(paste(length_pulse$year,length_pulse$month,length_pulse$day,sep="-"))
 length_pulse<-length_pulse%>%
-  select(-cohort)%>%
   mutate(cohort=year-1)
 
 
@@ -222,25 +222,22 @@ length_pulse%>%
   ylim(c(20,225))
 
 length_pulse<-length_pulse%>%
-  mutate(pulse=replace(pulse,is.na(pulse),0))%>%
   arrange(desc(cohort))
 # ---- All years as function -----
 cohort.graph<-function(length_pulse,na.rm=FALSE, ...){
   
   cohort_list<-rev(unique(length_pulse$cohort))
-  pdf("age1-full.pdf")
+  #pdf("age1-full-test.pdf")
   for (i in seq_along(cohort_list)) {
     plot<-ggplot(subset(length_pulse,length_pulse$cohort==cohort_list[i]),
                  aes(x=date,y=mmSL,group=cohort,colour=factor(pulse)))+
-      geom_jitter(size=.75)+
+      geom_jitter(size=1)+
       theme_bw()+
       ylim(c(25,250))+
       ggtitle(paste(cohort_list[i], "Cohort"))+
       xlab("Date")+ylab("Standard length (mm)")+
-      scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
+      scale_color_manual(values=c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
     print(plot)
   }
 }
 cohort.graph(length_pulse)
-
-scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))

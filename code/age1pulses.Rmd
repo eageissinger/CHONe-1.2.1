@@ -3,6 +3,7 @@ title: "Age-1 Pulse Assignments"
 author: "Emilie Geissinger"
 date: "May 15, 2019"
 output:
+  pdf_document: default
   html_document: default
 ---
 
@@ -21,6 +22,7 @@ age1<-read.csv("../data/data-working/age-1-mixture-dist.csv")
 catch.haul<-read.csv("../data/data-working/catch_haul.csv")
 fullcount<-read.csv("../data/data-working/newman-catch.csv")
 length<-read.csv('../data/data-working/newman-length.csv')
+range_final<-read.csv("../data/data-working/pulse_range_age1_final.csv")
 
 # --- check data ----
 # age 0
@@ -115,6 +117,35 @@ count_long$count[is.na(count_long$count)]<-0
 ```
 ### Pulse Figures
 ***
+
+#### Age 1 pulses graphed with age 0 grouped by cohort
+Age 0 and and age 1 pulses. Point represents mean standard length. Horizontal bars are min and max standard length for age 0's, and +/- 1 standard deviation for age 1's.
+
+```{r echo=FALSE,warning=FALSE}
+cohort.graph<-function(growth,na.rm=TRUE, ...){
+  growth<-growth%>%filter(cohort!=1995)
+  cohort_list<-unique(growth$cohort)
+  pdf("mixture-dist.pdf")
+  for (i in seq_along(cohort_list)) {
+    plot<-ggplot(subset(growth,growth$cohort==cohort_list[i]),
+                 aes(x=date,y=meanSL,group=as.factor(cohort),shape=factor(pulse)))+
+      geom_point(size=2)+
+      geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+      theme_bw()+
+      ggtitle(paste(cohort_list[i], "Cohort"))+
+      xlab("Date")+ylab("Standard length (mm)")+
+      scale_x_date(date_breaks="1 month",
+                   date_labels="%b-%y")+
+      theme(axis.text.x=element_text(angle=45,vjust=0.5))+
+      ylim(c(15,250))
+    print(plot)
+  }
+}
+cohort.graph(growth)
+```
+
+***
+
 #### Age 1 only
 These plots show the estimated mean (point) of each pulse with +/- sd. The points represent each measured fish with a day offset of +3.
 ```{r echo=FALSE, warning=FALSE}
@@ -126,7 +157,7 @@ cohort2.graph<-function(growth,length,na.rm=TRUE, ...){
   
   cohort_list<-unique(growth$cohort)
   
-  #pdf("mixtures-length2.pdf")
+  pdf("mixtures-length.pdf")
   for (i in seq_along(cohort_list)) {
     plot<-ggplot()+
       geom_point(data=subset(growth,growth$cohort==cohort_list[i]),
@@ -151,60 +182,58 @@ cohort2.graph(growth,length)
 
 ***
 
-#### Age 1 pulses graphed with age 0 grouped by cohort
-Age 0 and and age 1 pulses. Point represents mean standard length. Horizontal bars are min and max standard length for age 0's, and +/- 1 standard deviation for age 1's.
+#### All pulse assignments
+```{r echo=FALSE, warning=FALSE,include=FALSE}
+# update pulse assignments for age 1
+str(range_final)
+summary(range_final)
+range_final<-range_final%>%
+  filter(!is.na(min), !is.na(max))
 
+pulse_assign1<-data.frame(trip=rep(range_final$trip,range_final$max-range_final$min+1),
+                          year=rep(range_final$year,range_final$max-range_final$min+1),
+                          pulse=rep(range_final$pulse,range_final$max-range_final$min+1),
+                          mmSL=unlist(mapply(seq,range_final$min,range_final$max)))
+
+# Add to age 1 length data
+glimpse(length)
+glimpse(pulse_assign1)
+length1<-length%>%
+  filter(age==1)%>%
+  select(-pulse)
+
+length_pulse<-left_join(length1,pulse_assign1)
+head(length_pulse)
+length_pulse$date<-ymd(paste(length_pulse$year,length_pulse$month,length_pulse$day,sep="-"))
+length_pulse<-length_pulse%>%
+  mutate(cohort=year-1)
+
+length_pulse<-length_pulse%>%
+  arrange(desc(cohort))
+```
 ```{r echo=FALSE,warning=FALSE}
-cohort.graph<-function(growth,na.rm=TRUE, ...){
-  growth<-growth%>%filter(cohort!=1995)
-  cohort_list<-unique(growth$cohort)
-  #pdf()
+# ---- All years as function -----
+cohort.graph<-function(length_pulse,na.rm=FALSE, ...){
+  
+  cohort_list<-rev(unique(length_pulse$cohort))
+  pdf("age1-full-colour.pdf")
   for (i in seq_along(cohort_list)) {
-    plot<-ggplot(subset(growth,growth$cohort==cohort_list[i]),
-                 aes(x=date,y=meanSL,group=as.factor(cohort),shape=factor(pulse)))+
-      geom_point(size=2)+
-      geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+    plot<-ggplot(subset(length_pulse,length_pulse$cohort==cohort_list[i]),
+                 aes(x=date,y=mmSL,group=cohort,colour=factor(pulse)),shape=factor(pulse))+
+      geom_jitter(size=.25)+
       theme_bw()+
+      ylim(c(25,250))+
       ggtitle(paste(cohort_list[i], "Cohort"))+
       xlab("Date")+ylab("Standard length (mm)")+
-      scale_x_date(date_breaks="1 month",
-                   date_labels="%b-%y")+
-      theme(axis.text.x=element_text(angle=45,vjust=0.5))+
-      ylim(c(15,250))
+      scale_color_manual(values=c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
     print(plot)
   }
 }
-cohort.graph(growth)
+cohort.graph(length_pulse)
 ```
 
-***
 
-### Summary Tables
+### Age 1 Pulse Ranges
 ```{r echo=FALSE}
-# ---- format count data -----
-# go from wide format to long format
-catch.haul2<-catch.haul%>%
-  gather(key=p1,value=count, starts_with('count'))%>%
-  gather(key=p2,value=extrap, starts_with('extrap'))%>%
-  separate(p1,c("count2","pulse1"))%>%
-  separate(p2,c("extrap2","pulse2"))%>%
-  distinct()%>%
-  rename(pulse=pulse1)%>%
-  select(-count2,-extrap2,-pulse2)%>%
-  mutate(count=replace(count,is.na(count),0))%>%
-  mutate(extrap=replace(extrap,count==0,0))
-
-# ---- summary table of class-year strength -----
-pulse_table<-catch.haul2%>%
-  group_by(year,pulse)%>%
-  summarise(total_count=sum(count),avg_count=mean(count),total_extrap=sum(extrap),avg_extrap=mean(extrap))
-
-
-# ---- age 0 and age 1 Totals -----
-table_full<-fullcount%>%
-  group_by(year,age,month,trip)%>%
-  summarise(count=sum(count),mean=mean(count))
-kable(pulse_table,caption = "Table 1. Summary of age 0 cod grouped by pulse. Extrap is extrapolated catch based on weighted measurements. Count is raw count from all hauls.")
-
-kable(table_full, caption = "Table 2. Summary of age 0 and age 1 cod abundances grouped by trip")
+kable(range_final, caption = "Table 1. Size range for age 1 pulses grouped by year and trip. Minimum and maximum are expressed as standard length (mm).")
 ```
