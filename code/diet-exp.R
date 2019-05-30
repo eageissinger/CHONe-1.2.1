@@ -845,7 +845,7 @@ F2<-ggplot(energy.02)+
   geom_boxplot(aes(y=F.rate,x=as.factor(percent),colour=daily_temp))+
   geom_jitter(aes(y=F.rate,x=as.factor(percent),colour=daily_temp),width=.15)+
   facet_wrap(aes(size=factor(size,levels=c("small","large"))))+
-  ylab("Feeding Rate (%/day)")+xlab("Ration (% body weight)")+
+  ylab("Feeding rate (% body weight ·"~day^-1*")")+xlab("Ration (% body weight)")+
   theme_bw()+theme(panel.grid = element_blank())+
   scale_color_gradient(low="blue",high="red")+
   labs(colour="Temp. (°C)")

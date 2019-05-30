@@ -3,12 +3,11 @@ setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 #load data
 temp17<-read.csv("./data/data-working/temperature-2017.csv")
 temp<-read.csv("./data/data-working/daily-temp-corrected-newman.csv")
+exp<-read.csv("./data/data-working/temperature-exp.csv")
 
 
 #load packages
-library(dplyr)
-library(ggplot2)
-library(stringr)
+library(tidyverse)
 library(lubridate)
 library(scales)
 
@@ -23,9 +22,9 @@ summary(temp)
 names(temp)
 names(temp)<-c("date","year","month","day","meantemp")
 
-
-#format date
-#FUUUUCKKKKKKKK
+str(exp)
+names(exp)
+names(exp)<-c('year','month','day','time','tank','temp','notes')
 
 year<-as.numeric(substr(temp17$date,start=1,stop=4))
 
@@ -46,6 +45,7 @@ temp2$date<-with(mydata3,ymd(sprintf('%04d%02d%02d',year,month,day)))
 
 temp$date<-ymd(paste(temp$year,temp$month,temp$day,sep="-"))
 
+exp$date<-ymd(paste(exp$year,exp$month,exp$day,sep="-"))
 
 #select columms
 temp17<-temp2%>%
@@ -79,8 +79,8 @@ ggplot(tempwinter,aes(x=date,y=meantemp))+geom_point()+
   theme(plot.title = element_text(size=18,face='bold',hjust=.5))
 
 tempwinter%>%
-  filter(date>"2016-11-30")%>%
-  filter(date<"2017-05-31")%>%
+  filter(date>"2016-12-20")%>%
+  filter(date<"2017-04-24")%>%
   ggplot(aes(x=date,y=meantemp))+geom_point()+
   scale_x_date(breaks=date_breaks("months"),labels=date_format("%b-%Y"))+
   theme_classic()+
@@ -89,4 +89,26 @@ tempwinter%>%
   theme(axis.title=element_text(size=16))+
   theme(axis.text=element_text(size=12))+
   theme(axis.text.x=element_text(angle=45,hjust=1))+
-  theme(plot.title = element_text(size=18,face='bold',hjust=.5))
+  theme(plot.title = element_text(size=18,face='bold',hjust=.5))+
+  ylim(-1.5,2)
+
+
+
+# ---- experiment temperature ----
+exp2<-exp%>%
+  group_by(date)%>%
+  summarise(meantemp=mean(temp))
+head(exp2)
+
+exp2%>%
+  ggplot(aes(x=date,y=meantemp))+geom_point()+
+  scale_x_date(breaks=date_breaks("months"),labels=date_format("%b-%Y"))+
+  theme_classic()+
+  xlab("Date")+ylab("Temperature (°C)\n")+
+  geom_hline(yintercept=0,linetype='dashed',colour='red',size=1.25)+
+  theme(axis.title=element_text(size=16))+
+  theme(axis.text=element_text(size=12))+
+  theme(axis.text.x=element_text(angle=45,hjust=1))+
+  theme(plot.title = element_text(size=18,face='bold',hjust=.5))+
+  ylim(-1.5,2)
+summary(exp2)

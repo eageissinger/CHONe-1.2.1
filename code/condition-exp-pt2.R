@@ -820,13 +820,13 @@ hist(resid(sgrw.m1))
 qqnorm(resid(sgrw.m1))
 Anova(sgrw.m1,type="III")
 
-sgrw.m2<-lm(sgr_w~ration+size,data=sgr_all)
+sgrw.m2<-lm(sgr_w~0+ration+size,data=sgr_all)
 plot(sgrw.m2)
 hist(resid(sgrw.m2))
 Anova(sgrw.m2,type="III")
 summary(sgrw.m2)
 
-sgrw.m3<-lm(sgr_w~ration,data=sgr_all)
+sgrw.m3<-lm(sgr_w~0+ration,data=sgr_all)
 plot(sgrw.m3)
 hist(resid(sgrw.m3))
 Anova(sgrw.m3,type="III")
@@ -850,7 +850,7 @@ plot(sgrl.m1)
 Anova(sgrl.m1,type="III")
 
 # take out size
-sgrl.m2<-lm(sgr_sl~ration+size,data=sgr_all)
+sgrl.m2<-lm(sgr_sl~0+ration+size,data=sgr_all)
 
 plot(sgrl.m2)
 hist(resid(sgrl.m2))

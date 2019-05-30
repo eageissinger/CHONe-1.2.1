@@ -12,7 +12,6 @@ library(survival)
 library(survminer)
 library(ggfortify)
 library(ranger)
-library(strucchange)
 library(mgcv)
 # data manimpulation
 glimpse(tank_survival)
@@ -79,6 +78,11 @@ small_trt<-survfit(Surv(time,status)~ration,data=small)
 summary(small_trt,times=c(1,20,40,60,80,100,120))
 autoplot(s_trt)
 
+# 0%
+zero<-mydata%>%filter(ration=="0.0%")
+zero_trt<-survfit(Surv(time,status)~size,data=zero)
+summary(zero_trt)
+autoplot(zero_trt)
 
 # Cox Proportional Hazards Model
 cox<-coxph(Surv(time,status)~ration+size,data=mydata)
