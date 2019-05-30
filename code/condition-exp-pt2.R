@@ -1,7 +1,7 @@
 #----Overwinter Condition Analysis-----
 
 #load working directory
-setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 
 #----load data-----
 condition<-read.csv("./data/data-working/condition-exp.csv",header=TRUE)
@@ -438,12 +438,26 @@ finalcond<-fishcond%>%
 summary(finalcond)
 View(finalcond)
 
+# Change in condition
+fishcond%>%
+  filter(notes=='day 0')%>%
+  mutate(size=replace(size,is.na(size),'small'))%>%
+  group_by(size)%>%
+  summarise(mean(kdry),mean(kwet))
+
+
 finalK<-finalcond%>%
+  mutate(change=1.41)%>%
+  mutate(change=replace(change,size=='small',1.29))%>%
+  mutate(dDry=kdry-change)%>%
   group_by(tank,ration,size,percent)%>%
   summarise(dry=mean(kdry),wet=mean(kwet),hsi=mean(HSI),
             sedry=(sd(kdry)/sqrt(n())),
             sewet=(sd(kwet)/sqrt(n())),
-            sehsi=sd(HSI/sqrt(n())))
+            sehsi=sd(HSI/sqrt(n())),
+            delta.dry=mean(dDry),
+            delta.se=sd(dDry)/sqrt(n()))%>%
+  ungroup()
 View(finalK)
 
 
@@ -488,12 +502,24 @@ table2<-finalK%>%
 
 # model d.m2, glm with gamma distribution and loglink
 
+
+d.m3<-lm(delta.dry~0+ration+size,data=finalK)
+plot(d.m3)
+hist(resid(d.m3))
+summary(d.m3)
+Anova(d.m3,type="III")
+
+ggplot(finalK,aes(x=ration,y=delta.dry,colour=size))+geom_boxplot()
+ggplot(finalK,aes(x=ration,y=delta.dry,colour=size))+geom_point()
+
+# USE model3!!! 
+
 finalK%>%
-  mutate(percent_adj=percent-.05)%>%
+  mutate(percent_adj=percent-0.05)%>%
   mutate(percent_adj=replace(percent_adj,size=="large",percent+0.05))%>%
   rename(Size=size)%>%
-  ggplot(aes(x=percent_adj,y=dry,fill=Size))+
-  geom_pointrange(aes(shape=Size,ymin=dry-sedry,ymax=dry+sedry),size=.75)+
+  ggplot(aes(x=percent_adj,y=delta.dry,fill=Size))+
+  geom_pointrange(aes(shape=Size,ymin=delta.dry-delta.se,ymax=delta.dry+delta.se),size=.75)+
   theme_bw(base_rect_size = 2)+
   xlab("Food ration (% body weight)")+ylab("Condition factor (K)")+
   theme(axis.title=element_text(size=20))+
@@ -509,13 +535,13 @@ finalK%>%
   theme(legend.text = element_text(size=16))+
   theme(legend.key.size=unit(1,"cm"))
 
-limitse.dryK<-aes(ymin=dry-sedry,ymax=dry+sedry)
+limitse.dryK<-aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se)
 finalK%>%
   mutate(percent_adj=percent-0.05)%>%
   mutate(percent_adj=replace(percent_adj,size=="large",percent+0.05))%>%
   rename(Size=size)%>%
-  ggplot(aes(x=percent_adj,y=dry,fill=Size))+
-  geom_errorbar(aes(ymin=dry-sedry,ymax=dry+sedry),
+  ggplot(aes(x=percent_adj,y=delta.dry,fill=Size))+
+  geom_errorbar(aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se),
                 width=0,
                 position=position_dodge(width=0.25))+
   geom_point(aes(shape=Size,fill=Size),
@@ -556,7 +582,7 @@ day0%>%
 
 # ---- HSI -----
 
-hsi.m1<-lm(hsi~percent*size,data=finalK)
+hsi.m1<-lm(hsi~0+ration+size,data=finalK)
 hsi.m1
 plot(hsi.m1)
 summary(hsi.m1)
@@ -565,28 +591,49 @@ hist(resid(hsi.m1))
 qqnorm(resid(hsi.m1))
 Anova(hsi.m1,type = "III")
 
+ggplot(finalK,aes(x=ration,y=hsi,colour=size))+
+  geom_point(position='dodge')+
+  xlab("Ration")+
+  ylab("HSI")
 
-# Model 1 is best
-
-
-# use terminated only
-unique(finalcond$julian_date)
-endcond<-finalcond%>%
-  filter(julian_date==80 | julian_date == 84 | julian_date == 114)%>%
-  group_by(tank,ration,size,percent)%>%
-  summarise(hsi=mean(HSI),hsise=sd(HSI)/sqrt(n()))
+ggplot(finalK,aes(x=size,y=hsi,colour=ration))+
+  geom_boxplot()
 
 
-hsi.m2<-lm(hsi~percent*size,data=endcond)
+# Evaluate the change in hsi
+deltaHSI<-finalK%>%
+  mutate(change=1.49)%>%
+  mutate(change=replace(change,size=='small',0.868))%>%
+  mutate(dHSI=hsi-change)
+head(deltaHSI)
+
+hsi.m2<-lm(dHSI~0+ration+size,data=deltaHSI)
 plot(hsi.m2)
 hist(resid(hsi.m2))
-qqnorm(resid(hsi.m4))
+summary(hsi.m2)
+Anova(hsi.m2,type="III")
 
-hsi.m3<-glm(hsi~percent*size,data=endcond,
-              family = Gamma(link="log"))
-plot(hsi.m3)
-hist(resid(hsi.m3))
+ggplot(deltaHSI,aes(x=size,y=dHSI,colour=ration))+
+  geom_boxplot()
+ggplot(deltaHSI,aes(x=size,y=dHSI,colour=ration))+
+  geom_point(position='dodge')
 
+levels(deltaHSI$size)
+deltaHSI$size<-fct_relevel(deltaHSI$size,"small","large")
+
+deltaHSI%>%
+  rename(Ration=ration)%>%
+  ggplot(aes(x=size,y=dHSI,fill=Ration))+
+  geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
+  geom_boxplot(colour='black')+
+  scale_fill_manual(values=c('grey30','grey50','grey70','grey90'))+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab('Hepatosomatic Index')+xlab('Size class')+
+  theme(axis.text.x = element_text(size=12,face='bold'))+
+  theme(axis.text.y=element_text(face='bold'))+
+  theme(axis.title = element_text(size=12.5,face='bold'))
 
 # hsi.m1! figure out how to interpret the interaction!
 
