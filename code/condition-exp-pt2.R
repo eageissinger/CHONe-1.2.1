@@ -1,7 +1,7 @@
 #----Overwinter Condition Analysis-----
 
 #load working directory
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 #----load data-----
 condition<-read.csv("./data/data-working/condition-exp.csv",header=TRUE)
@@ -512,33 +512,44 @@ Anova(d.m3,type="III")
 ggplot(finalK,aes(x=ration,y=delta.dry,colour=size))+geom_boxplot()
 ggplot(finalK,aes(x=ration,y=delta.dry,colour=size))+geom_point()
 
-# USE model3!!! 
-
 finalK%>%
-  mutate(percent_adj=percent-0.05)%>%
-  mutate(percent_adj=replace(percent_adj,size=="large",percent+0.05))%>%
+  group_by(size,ration)%>%
+  summarise(K=mean(delta.dry),se=sd(delta.dry/sqrt(n())))
+
+# USE model3!!! 
+K_adj0<-finalK%>%
+  filter(size=='small')%>%
+  mutate(percent_adj=percent-0.05)
+Kadj1<-finalK%>%
+  filter(size=='large')%>%
+  mutate(percent_adj=percent+0.05)
+K2<-bind_rows(K_adj0,Kadj1)
+write.csv(K2,'./data/data-working/deltaK.csv',row.names=FALSE)
+K2.2<-read.csv('./data/data-working/deltaK2.csv')
+K2.2%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,y=delta.dry,fill=Size))+
+  #geom_smooth(aes(x=percent,y=delta.dry,linetype=Size),se=FALSE,colour='grey1')+
   geom_pointrange(aes(shape=Size,ymin=delta.dry-delta.se,ymax=delta.dry+delta.se),size=.75)+
   theme_bw(base_rect_size = 2)+
-  xlab("Food ration (% body weight)")+ylab("Condition factor (K)")+
+  xlab("Food ration (% body weight)")+ylab(expression(Delta*"Fulton's K"))+
   theme(axis.title=element_text(size=20))+
   theme(legend.key=element_blank())+
   theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
   theme(axis.text.x=element_text(size=20,face='bold'))+
   theme(axis.text.y=element_text(size=20,face='bold'))+
   theme(legend.title=element_text(size=18,face='bold'))+
-  theme(legend.position=c(0.88,0.21))+
+  theme(legend.position=c(0.85,0.21))+
   scale_fill_manual(values=c('grey0','grey64'))+
   scale_shape_manual(values=c(22:23))+
   theme(panel.grid = element_blank())+
   theme(legend.text = element_text(size=16))+
-  theme(legend.key.size=unit(1,"cm"))
+  theme(legend.key.size=unit(1,"cm"))+
+  theme(axis.title.y=element_text(margin=margin(r=5)))
+
 
 limitse.dryK<-aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se)
-finalK%>%
-  mutate(percent_adj=percent-0.05)%>%
-  mutate(percent_adj=replace(percent_adj,size=="large",percent+0.05))%>%
+K2.2%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,y=delta.dry,fill=Size))+
   geom_errorbar(aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se),
@@ -547,7 +558,7 @@ finalK%>%
   geom_point(aes(shape=Size,fill=Size),
              position=position_dodge(width = 0.25))+
   theme_bw(base_rect_size = 1)+
-  ylab("Fulton's K")+xlab("Food ration (% body weight)")+
+  ylab(expression(Delta *"Fulton's K"))+xlab("Food ration (% body weight)")+
   scale_fill_manual(values=c('grey0','grey64'))+
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
@@ -613,6 +624,9 @@ hist(resid(hsi.m2))
 summary(hsi.m2)
 Anova(hsi.m2,type="III")
 
+deltaHSI%>%
+  group_by(size,ration)%>%
+  summarise(mean(dHSI),se=sd(dHSI)/sqrt(n()))
 ggplot(deltaHSI,aes(x=size,y=dHSI,colour=ration))+
   geom_boxplot()
 ggplot(deltaHSI,aes(x=size,y=dHSI,colour=ration))+
@@ -630,10 +644,46 @@ deltaHSI%>%
   theme_bw(base_rect_size = 1)+
   theme(panel.grid = element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  ylab('Hepatosomatic Index')+xlab('Size class')+
-  theme(axis.text.x = element_text(size=12,face='bold'))+
-  theme(axis.text.y=element_text(face='bold'))+
-  theme(axis.title = element_text(size=12.5,face='bold'))
+  ylab(expression(Delta*'HSI'))+xlab('Size class')+
+  theme(axis.text.x = element_text(size=12))+
+  theme(axis.title = element_text(size=12.5))
+
+hsiA<-deltaHSI%>%
+  filter(size=='small')%>%
+  rename(Ration=ration)%>%
+  ggplot(aes(x=Ration,y=dHSI))+
+  geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
+  geom_boxplot(colour='black',fill='grey90')+
+  geom_jitter(aes(x=Ration,y=dHSI,colour=Ration),width=0.25)+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab(expression(Delta*'HSI'))+xlab('Ration')+
+  theme(axis.text.x = element_text(size=12))+
+  theme(axis.title = element_text(size=12.5))+
+  scale_colour_manual(values=c('grey1','grey22','grey40','grey60'))+
+  theme(legend.position = 'none')+
+  ylim(-0.6,0.7)
+
+hsiB<-deltaHSI%>%
+  filter(size=='large')%>%
+  rename(Ration=ration)%>%
+  ggplot(aes(x=Ration,y=dHSI))+
+  geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
+  geom_boxplot(colour='black',fill='grey90')+
+  geom_jitter(aes(x=Ration,y=dHSI,colour=Ration),width=0.25)+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab(expression(Delta*'HSI'))+xlab('Ration')+
+  theme(axis.text.x = element_text(size=12))+
+  theme(axis.title = element_text(size=12.5))+
+  scale_colour_manual(values=c('grey1','grey22','grey40','grey60'))+
+  theme(legend.position = 'none')+
+  ylim(-0.6,0.7)
+
+
+ggarrange(hsiA,hsiB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1)
 
 # hsi.m1! figure out how to interpret the interaction!
 
@@ -940,9 +990,13 @@ sgrsmall<-sgrsum%>%
   data.frame()
 
 sgr_adjusted<-bind_rows(sgrlarge,sgrsmall)
-
-ggplot(sgr_adjusted,aes(x=percent_adj,sgr_weight,fill=size))+
-  geom_pointrange(aes(shape=size,ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),size=.75)+
+write.csv(sgr_adjusted,'./data/data-working/sgr.csv',row.names=FALSE)
+sgr_adjusted2<-read.csv('./data/data-working/sgr2.csv')
+sgr_adjusted2%>%
+  rename(Size=size)%>%
+  ggplot(aes(x=percent_adj,sgr_weight,fill=Size))+
+  #geom_smooth(aes(x=percent,y=sgr_weight,linetype=Size),se=FALSE,colour='grey1')+
+  geom_pointrange(aes(shape=Size,ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),size=.5)+
   theme_bw(base_rect_size = 2)+
   xlab("Food ration (% body weight)")+ylab("Specific growth rate")+
   theme(axis.title=element_text(size=20))+
@@ -951,35 +1005,44 @@ ggplot(sgr_adjusted,aes(x=percent_adj,sgr_weight,fill=size))+
   theme(axis.text.x=element_text(size=20,face='bold'))+
   theme(axis.text.y=element_text(size=20,face='bold'))+
   theme(legend.title=element_text(size=18,face='bold'))+
-  theme(legend.position=c(0.88,0.23))+
+  theme(legend.position=c(0.85,0.23))+
   scale_fill_manual(values=c('grey0','grey64'))+
   scale_shape_manual(values=c(22:23))+
   theme(panel.grid = element_blank())+
-  theme(legend.text = element_text(size=16))+
-  theme(legend.key.size=unit(1,"cm"))+
-  theme(plot.title = element_text(size=20,face='bold',hjust=0.5))
+  theme(legend.text = element_text(size=14))+
+  theme(legend.key.size=unit(.8,"cm"))+
+  #ggtitle('Weight')+
+  theme(plot.title = element_text(size=20,face='bold',hjust=0.5))+
+  theme(axis.title.y=element_text(margin=margin(r=5)))
 
-ggplot(sgr_adjusted,aes(x=percent_adj,sgr_length,fill=size))+
-  geom_pointrange(aes(shape=size,ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),size=.75)+
+l<-sgr_adjusted2%>%
+  rename(Size=size)%>%
+  ggplot(aes(x=percent_adj,sgr_length,fill=Size))+
+  geom_smooth(aes(x=percent,y=sgr_length,linetype=Size),se=FALSE,colour='grey1')+
+  geom_pointrange(aes(shape=Size,ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),size=.5)+
   theme_bw(base_rect_size = 2)+
-  xlab("Food ration (% body weight)")+ylab("Specific growth rate")+
-  theme(axis.title=element_text(size=22,face='bold'))+
+  xlab("Food ration (% body weight)")+ylab("SGR")+
+  theme(axis.title=element_text(size=20,face='bold'))+
   theme(legend.key=element_blank())+
   theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
   theme(axis.text.x=element_text(size=20,face='bold'))+
   theme(axis.text.y=element_text(size=20,face='bold'))+
   theme(legend.title=element_text(size=18,face='bold'))+
-  theme(legend.position=c(0.88,0.23))+
+  theme(legend.position=c(0.8,0.23))+
   scale_fill_manual(values=c('grey0','grey64'))+
   scale_shape_manual(values=c(22:23))+
   theme(panel.grid = element_blank())+
-  theme(legend.text = element_text(size=16))+
-  theme(legend.key.size=unit(1,"cm"))+
+  theme(legend.text = element_text(size=14))+
+  theme(legend.key.size=unit(.8,"cm"))+
   ggtitle("Length")+
-  theme(plot.title = element_text(size=20,face='bold',hjust=0.5))
+  theme(plot.title = element_text(size=20,face='bold',hjust=0.5))+
+  theme(axis.title.x=element_text(margin=margin(t=20)))+
+  theme(axis.title.y=element_text(margin=margin(r=5)))
+ggarrange(l+theme(legend.position = 'none')+theme(axis.title.x = element_blank()),
+          w+theme(axis.title.y=element_text(colour='white'))+theme(axis.title.x=element_blank()),
+          ncol=2,nrow=1)
 
-
-W<-sgr_adjusted%>%
+W<-sgr_adjusted2%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,y=sgr_weight,fill=Size))+
   geom_errorbar(aes(ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),
@@ -993,7 +1056,7 @@ W<-sgr_adjusted%>%
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
-L<-sgr_adjusted%>%
+L<-sgr_adjusted2%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,y=sgr_length,fill=Size))+
   geom_errorbar(aes(ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),
