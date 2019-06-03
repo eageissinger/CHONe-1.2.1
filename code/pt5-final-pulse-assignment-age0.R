@@ -215,10 +215,31 @@ final<-pulse.length%>%
   mutate(pulse=replace(pulse,year==2010 & trip ==21 & mmSL<60,3))%>%
   mutate(pulse=replace(pulse,year==2010 & trip == 22 & mmSL<40,4))%>%
   mutate(pulse=replace(pulse,year==2010 & trip == 22 & mmSL>40,3))%>%
-  mutate(pulse=replace(pulse,year==2011 & trip <15,1))%>%
+  
+  
+  mutate(pulse=replace(pulse,year==2011 & trip <=16,1))%>%
+  mutate(pulse=replace(pulse,year==2011 & trip == 17 & mmSL<35,3))%>%
+  mutate(pulse=replace(pulse,year==2011 & trip == 18 & mmSL<35,3))%>%
+  mutate(pulse=replace(pulse,year==2011 & trip == 19 & mmSL<50,3))%>%
+  mutate(pulse=replace(pulse,year==2011 & trip == 19 & pulse == 1 & mmSL<70,2))%>%
+  mutate(pulse=replace(pulse,year==2011 & trip == 19 & mmSL<29,4))%>%
+  mutate(pulse=replace(pulse,year==2011 & trip == 20 & pulse==1 & mmSL<80,2))%>%
+  mutate(pulse=replace(pulse,year==2011 & trip == 20 & pulse == 2 & mmSL<60,3))%>%
+  mutate(pulse=replace(pulse,year==2011 & trip == 20 & mmSL<35,4))%>%
+  mutate(pulse=replace(pulse,year==2011 & trip == 21 & mmSL >61,2))%>%
+  mutate(pulse=replace(pulse,year==2011 & trip == 21 & mmSL<41,4))%>%
+  mutate(pulse=replace(pulse,year==2011 & trip == 21 & pulse == 1,3))%>%
+  mutate(pulse=replace(pulse,year==2011 & trip == 22 & pulse == 2,4))%>%
+  mutate(pulse=replace(pulse,year==2011 & trip == 22 & pulse==1,3))%>%
+  mutate(pulse=replace(pulse,year==2011 & trip == 22 & mmSL>70,2))%>%
+  mutate(pulse=replace(pulse,year==2011 & trip == 22 & mmSL<41,4))%>%
   mutate(pulse=replace(pulse,year==2011 & trip == 19 & mmSL<60,2))%>%
   mutate(pulse=replace(pulse,year==2011 & trip == 20 & mmSL>70,1))%>%
   mutate(pulse=replace(pulse,year==2011 & trip>20,2))%>%
+  
+  
+  
+  
   mutate(pulse=replace(pulse,year==2012 & is.na(pulse),1))%>%
   mutate(pulse=replace(pulse,year==2012 & trip == 16 & mmSL<35,2))%>%
   mutate(pulse=replace(pulse,year==2012 & trip == 17 & mmSL<45,2))%>%
@@ -273,12 +294,12 @@ final<-pulse.length%>%
   mutate(pulse=replace(pulse,year==2018 & trip == 23 & pulse == 3 & mmSL>76,2))%>%
   mutate(pulse=replace(pulse,year==2018 & trip == 23 & pulse == 1 & mmSL<100, 2))
 #final%>%
-#  filter(year==2018 & age == 0)%>%
+#  filter(year==2011 & age == 0)%>%
 #  ggplot(aes(y=mmSL,x=trip,colour=factor(pulse)))+geom_point(size=1)
 
-#final$date<-ymd(paste(final$year,final$month,final$day,sep="-"))
+final$date<-ymd(paste(final$year,final$month,final$day,sep="-"))
 final%>%
-  filter(year==2018)%>%
+  filter(year==2011 & age ==0)%>%
   ggplot(aes(x=date,y=mmSL,colour=factor(pulse)))+geom_jitter(size=1)
 
 final_range<-final%>%
