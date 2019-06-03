@@ -233,13 +233,6 @@ final<-pulse.length%>%
   mutate(pulse=replace(pulse,year==2011 & trip == 22 & pulse==1,3))%>%
   mutate(pulse=replace(pulse,year==2011 & trip == 22 & mmSL>70,2))%>%
   mutate(pulse=replace(pulse,year==2011 & trip == 22 & mmSL<41,4))%>%
-  mutate(pulse=replace(pulse,year==2011 & trip == 19 & mmSL<60,2))%>%
-  mutate(pulse=replace(pulse,year==2011 & trip == 20 & mmSL>70,1))%>%
-  mutate(pulse=replace(pulse,year==2011 & trip>20,2))%>%
-  
-  
-  
-  
   mutate(pulse=replace(pulse,year==2012 & is.na(pulse),1))%>%
   mutate(pulse=replace(pulse,year==2012 & trip == 16 & mmSL<35,2))%>%
   mutate(pulse=replace(pulse,year==2012 & trip == 17 & mmSL<45,2))%>%
