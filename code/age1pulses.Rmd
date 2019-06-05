@@ -3,7 +3,6 @@ title: "Age-1 Pulse Assignments"
 author: "Emilie Geissinger"
 date: "May 15, 2019"
 output:
-  pdf_document: default
   html_document: default
 ---
 

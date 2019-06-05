@@ -23,60 +23,51 @@ mixtures<-mixtures%>%
 
 mix2<-mixtures%>%
   mutate(pulse=replace(pulse,cohort==1998 & trip == 10 & pulse == 1,3))%>%
-  mutate(pulse=replace(pulse,cohort==1999 & trip == 13 & pulse == 2,3))%>%
-  mutate(pulse=replace(pulse,cohort==1999 & trip == 13 & pulse == 1,2))%>%
-  mutate(pulse=replace(pulse,cohort==1999 & trip == 17 & pulse == 3,4))%>%
-  mutate(pulse=replace(pulse,cohort==1999 & trip == 17 & pulse == 2,3))%>%
-  mutate(pulse=replace(pulse,cohort==1999 & trip == 17 & pulse == 1,2))%>%
-  mutate(pulse=replace(pulse,cohort==1999 & trip == 20 & pulse == 4,5))%>%
-  mutate(pulse=replace(pulse,cohort==1999 & trip == 20 & pulse == 3,4))%>%
-  mutate(pulse=replace(pulse,cohort==1999 & trip == 20 & pulse == 2,3))%>%
-  mutate(pulse=replace(pulse,cohort==1999 & trip == 20 & pulse == 1,2))%>%
-  mutate(pulse=replace(pulse,cohort==1999 & trip == 21 & pulse == 3,5))%>%
-  mutate(pulse=replace(pulse,cohort==1999 & trip == 21 & pulse == 2,4))%>%
-  mutate(pulse=replace(pulse,cohort==1999 & trip == 21 & pulse == 1,3))%>%
+  mutate(pulse=replace(pulse,cohort==1999 & trip == 17 & pulse == 2,1))%>%
+  mutate(pulse=replace(pulse,cohort==1999 & trip == 17 & pulse == 3,2))%>%
+  mutate(pulse=replace(pulse,cohort==1999 & trip == 18 & pulse==1,NA))%>%
+  mutate(pulse=replace(pulse,cohort==1999 & trip == 18 & pulse == 2,1))%>%
+  mutate(pulse=replace(pulse,cohort==1999 & trip == 18 & pulse == 3,1))%>%
+  mutate(pulse=replace(pulse,cohort==1999 & trip == 18 & pulse == 4,2))%>%
+  mutate(pulse=replace(pulse,cohort==1999 & trip == 20 & pulse == 2,1))%>%
+  mutate(pulse=replace(pulse,cohort==1999 & trip == 20 & pulse == 3,2))%>%
+  mutate(pulse=replace(pulse,cohort==1999 & trip == 20 & pulse == 4,2))%>%
+  mutate(pulse=replace(pulse,cohort==1999 & trip == 21 & pulse == 3,2))%>%
   mutate(pulse=replace(pulse,cohort==2000 & trip == 14 & pulse == 2,3))%>%
   mutate(pulse=replace(pulse,cohort==2000 & trip == 14 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2000 & trip == 19 & pulse == 3,2))%>%
   mutate(pulse=replace(pulse,cohort==2000 & trip == 19 & pulse == 4,3))%>%
   mutate(pulse=replace(pulse,cohort==2000 & trip == 20 & pulse == 3,2))%>%
   mutate(pulse=replace(pulse,cohort==2000 & trip == 21 & pulse == 3,2))%>%
-  mutate(pulse=replace(pulse,cohort==2000 & trip == 21 & pulse == 2,1))%>%
+  mutate(pulse=replace(pulse,cohort==2000 & trip == 22 & pulse == 2,1))%>%
   mutate(pulse=replace(pulse,cohort==2000 & trip == 22 & pulse == 3,2))%>%
   mutate(pulse=replace(pulse,cohort==2000 & trip == 22 & pulse == 4,2))%>%
   mutate(pulse=replace(pulse,cohort==2000 & trip == 22 & pulse == 5,3))%>%
-  mutate(pulse=replace(pulse,cohort==2001 & trip == 10 & pulse == 3,5))%>%
-  mutate(pulse=replace(pulse,cohort==2001 & trip == 10 & pulse == 2,4))%>%
-  mutate(pulse=replace(pulse,cohort==2001 & trip == 10 & pulse == 1,3))%>%
-  mutate(pulse=replace(pulse,cohort==2001 & trip == 11 & pulse == 3,5))%>%
-  mutate(pulse=replace(pulse,cohort==2001 & trip == 11 & pulse == 2,4))%>%
-  mutate(pulse=replace(pulse,cohort==2001 & trip == 12 & pulse == 4,5))%>%
-  mutate(pulse=replace(pulse,cohort==2001 & trip == 12 & pulse == 3,4))%>%
-  mutate(pulse=replace(pulse,cohort==2001 & trip == 12 & pulse == 2,3))%>%
-  mutate(pulse=replace(pulse,cohort==2001 & trip == 12 & pulse == 1,2))%>%
-  mutate(pulse=replace(pulse,cohort==2001 & trip == 13 & pulse == 3,5))%>%
-  mutate(pulse=replace(pulse,cohort==2001 & trip == 13 & pulse == 2,4))%>%
-  mutate(pulse=replace(pulse,cohort==2001 & trip == 13 & pulse == 1,3))%>%
-  mutate(pulse=replace(pulse,cohort==2001 & trip == 14 & pulse == 2,5))%>%
-  mutate(pulse=replace(pulse,cohort==2001 & trip == 14 & pulse == 1,4))%>%
-  mutate(pulse=replace(pulse,cohort==2002 & trip == 14 & pulse == 3,4))%>%
-  mutate(pulse=replace(pulse,cohort==2002 & trip == 14 & pulse == 2,3))%>%
-  mutate(pulse=replace(pulse,cohort==2002 & trip == 14 & pulse == 1,2))%>%
-  mutate(pulse=replace(pulse,cohort==2002 & trip == 16 & pulse == 3,4))%>%
-  mutate(pulse=replace(pulse,cohort==2002 & trip == 16 & pulse == 2,3))%>%
-  mutate(pulse=replace(pulse,cohort==2002 & trip == 16 & pulse == 1,2))%>%
-  mutate(pulse=replace(pulse,cohort==2002 & trip == 18 & pulse == 3,4))%>%
-  mutate(pulse=replace(pulse,cohort==2002 & trip == 18 & pulse == 2,3))%>%
-  mutate(pulse=replace(pulse,cohort==2002 & trip == 19 & pulse == 4,5))%>%
-  mutate(pulse=replace(pulse,cohort==2002 & trip == 19 & pulse == 3,4))%>%
-  mutate(pulse=replace(pulse,cohort==2002 & trip == 19 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2001 & trip == 10 & pulse == 3,4))%>%
+  mutate(pulse=replace(pulse,cohort==2001 & trip == 10 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2001 & trip == 10 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2001 & trip == 11 & pulse == 3,4))%>%
+  mutate(pulse=replace(pulse,cohort==2001 & trip == 11 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2001 & trip == 13 & pulse == 3,4))%>%
+  mutate(pulse=replace(pulse,cohort==2001 & trip == 13 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2001 & trip == 13 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2001 & trip == 14 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2001 & trip == 14 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 17 & pulse == 3,2))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 17 & pulse == 4,3))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 19 & pulse == 4,3))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 20 & pulse == 2,1))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 20 & pulse == 3,2))%>%
+  mutate(pulse=replace(pulse,cohort==2002 & trip == 20 & pulse >= 4,3))%>%
   mutate(pulse=replace(pulse,cohort==2004 & trip == 9 & pulse == 4,5))%>%
   mutate(pulse=replace(pulse,cohort==2004 & trip == 9 & pulse == 3,4))%>%
   mutate(pulse=replace(pulse,cohort==2004 & trip == 9 & pulse == 2,3))%>%
-  mutate(pulse=replace(pulse,cohort==2004 & trip == 9 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2004 & trip == 13 & pulse == 1,NA))%>%
   mutate(pulse=replace(pulse,cohort==2004 & trip == 13 & pulse == 3,4))%>%
   mutate(pulse=replace(pulse,cohort==2004 & trip == 13 & pulse == 2,3))%>% 
   mutate(pulse=replace(pulse,cohort==2004 & trip == 18 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2004 & trip == 20 & pulse == 1,NA))%>%
+  mutate(pulse=replace(pulse,cohort==2004 & trip == 20 & pulse == 2,1))%>%
   mutate(pulse=replace(pulse,cohort==2005 & trip == 9,3))%>%
   mutate(pulse=replace(pulse,cohort==2006 & trip == 9 & pulse == 3,4))%>%
   mutate(pulse=replace(pulse,cohort==2006 & trip == 9 & pulse == 2,4))%>%
@@ -87,34 +78,37 @@ mix2<-mixtures%>%
   mutate(pulse=replace(pulse,cohort==2007 & trip == 10 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2007 & trip == 12 & pulse == 2,3))%>%
   mutate(pulse=replace(pulse,cohort==2007 & trip == 12 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2007 & trip == 16 & pulse ==5,NA))%>%
+  mutate(pulse=replace(pulse,cohort==2007 & trip == 16 & pulse == 2,1))%>%
   mutate(pulse=replace(pulse,cohort==2007 & trip == 16 & pulse == 3,2))%>%
   mutate(pulse=replace(pulse,cohort==2007 & trip == 16 & pulse == 4,3))%>%
-  mutate(pulse=replace(pulse,cohort==2007 & trip == 16 & pulse == 5,4))%>%
-  mutate(pulse=replace(pulse,cohort==2007 & trip == 18 & pulse == 3,2))%>%
-  mutate(pulse=replace(pulse,cohort==2007 & trip == 18 & pulse == 4,3))%>%
-  mutate(pulse=replace(pulse,cohort==2007 & trip == 18 & pulse == 5,4))%>%
+  mutate(pulse=replace(pulse,cohort==2007 & trip == 18 & pulse == 5,NA))%>%
+  mutate(pulse=replace(pulse,cohort==2007 & trip == 18 & pulse == 3,1))%>%
+  mutate(pulse=replace(pulse,cohort==2007 & trip == 18 & pulse == 2,1))%>%
+  mutate(pulse=replace(pulse,cohort==2007 & trip == 18 & pulse == 4,2))%>%
   mutate(pulse=replace(pulse,cohort==2008 & trip == 9 & pulse == 3,6))%>%
   mutate(pulse=replace(pulse,cohort==2008 & trip == 9 & pulse == 2,4))%>%
-  mutate(pulse=replace(pulse,cohort==2008 & trip == 9 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2009 & trip == 10 & pulse == 3,4))%>%
   mutate(pulse=replace(pulse,cohort==2009 & trip == 10 & pulse == 2,3))%>%
   mutate(pulse=replace(pulse,cohort==2009 & trip == 10 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2009 & trip == 13 & pulse == 2,4))%>%
-  mutate(pulse=replace(pulse,cohort==2009 & trip == 13 & pulse == 1,3))%>%
+  mutate(pulse=replace(pulse,cohort==2009 & trip == 13 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2010 & trip == 10 & pulse == 2,3))%>%
   mutate(pulse=replace(pulse,cohort==2010 & trip == 10 & pulse == 1,2))%>% 
   mutate(pulse=replace(pulse,cohort==2010 & trip == 12 & pulse == 2,3))%>%
   mutate(pulse=replace(pulse,cohort==2010 & trip == 12 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2010 & trip == 15 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2010 & trip == 15 & pulse == 2,3))%>%
   mutate(pulse=replace(pulse,cohort==2010 & trip == 15 & pulse == 1,2))%>%
-  mutate(pulse=replace(pulse,cohort==2011 & trip == 10 & pulse == 3,2))%>%
-  mutate(pulse=replace(pulse,cohort==2011 & trip == 12 & pulse == 1,2))%>%
-  mutate(pulse=replace(pulse,cohort==2011 & trip == 20 & pulse < 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2011 & trip == 10 & pulse == 3,4))%>%
+  mutate(pulse=replace(pulse,cohort==2011 & trip == 10 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2011 & trip == 12 & pulse == 1,4))%>%
+  mutate(pulse=replace(pulse,cohort==2011 & trip == 20 & pulse ==3,4))%>%
+  mutate(pulse=replace(pulse,cohort==2011 & trip == 20 & pulse == 2,3))%>%
   mutate(pulse=replace(pulse,cohort==2012 & trip == 9 & pulse == 2,3))%>%
   mutate(pulse=replace(pulse,cohort==2012 & trip == 9 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2012 & trip == 20 & pulse == 3,NA))%>%
   mutate(pulse=replace(pulse,cohort==2012 & trip == 20 & pulse == 2,3))%>%
-  mutate(pulse=replace(pulse,cohort==2012 & trip == 20 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2012 & trip == 21 & pulse == 2,1))%>%
   mutate(pulse=replace(pulse,cohort==2012 & trip == 21 & pulse == 3,2))%>%
   mutate(pulse=replace(pulse,cohort==2012 & trip == 21 & pulse == 4,3))%>%
@@ -124,36 +118,48 @@ mix2<-mixtures%>%
   mutate(pulse=replace(pulse,cohort==2013 & trip == 14 & pulse == 3,4))%>%
   mutate(pulse=replace(pulse,cohort==2013 & trip == 14 & pulse == 2,3))%>%
   mutate(pulse=replace(pulse,cohort==2013 & trip == 14 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 20 & pulse ==2,3))%>%
   mutate(pulse=replace(pulse,cohort==2013 & trip == 22 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2014 & trip == 10 & pulse == 3,4))%>%
-  mutate(pulse=replace(pulse,cohort==2014 & trip == 10 & pulse == 2,3))%>%
-  mutate(pulse=replace(pulse,cohort==2014 & trip == 10 & pulse == 1,2))%>%
-  mutate(pulse=replace(pulse,cohort==2015 & trip == 10 & pulse == 3,4))%>%
-  mutate(pulse=replace(pulse,cohort==2015 & trip == 10 & pulse == 2,3))%>%
-  mutate(pulse=replace(pulse,cohort==2015 & trip == 10 & pulse == 1,2))%>%
-  mutate(pulse=replace(pulse,cohort==2015 & trip == 13 & pulse == 3,4))%>%
-  mutate(pulse=replace(pulse,cohort==2015 & trip == 13 & pulse == 2,3))%>%
-  mutate(pulse=replace(pulse,cohort==2015 & trip == 14 & pulse == 2,4))%>%
-  mutate(pulse=replace(pulse,cohort==2015 & trip == 14 & pulse == 1,3))%>%
-  mutate(pulse=replace(pulse,cohort==2015 & trip == 15 & pulse == 2,4))%>%
-  mutate(pulse=replace(pulse,cohort==2015 & trip == 16 & pulse == 2,4))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip == 17 & pulse == 1,NA))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip == 17 & pulse == 2,1))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip == 17 & pulse == 3,2))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 12 & pulse == 2,1))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 12 & pulse == 3,2))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 12 & pulse == 4,3))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 14 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 14 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 15 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 16 & pulse == 3,NA))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 16 & pulse == 2,3))%>%
   mutate(pulse=replace(pulse,cohort==2015 & trip == 16 & pulse == 1,2))%>%
-  mutate(pulse=replace(pulse,cohort==2015 & trip == 17 & pulse == 3,4))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 18 & pulse == 4,3))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 19 & pulse == 4,3))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 20 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 20 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 21 & pulse == 4,NA))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 21 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 21 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2016 & trip == 10 & pulse == 3,4))%>%
-  mutate(pulse=replace(pulse,cohort==2016 & trip == 14 & pulse == 3,4))%>%
-  mutate(pulse=replace(pulse,cohort==2016 & trip == 14 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 13 & pulse ==3,2))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 14 & pulse==3,4))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 16 & pulse == 2,1))%>%
   mutate(pulse=replace(pulse,cohort==2016 & trip == 16 & pulse == 3,2))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 17 & pulse == 3,2))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 19 & pulse == 3,2))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 20 & pulse == 3,2))%>%
   mutate(pulse=replace(pulse,cohort==2017 & trip == 9 & pulse == 3,4))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 13 & pulse == 2,1))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 13 & pulse == 3,2))%>%
   mutate(pulse=replace(pulse,cohort==2017 & trip == 14 & pulse == 3,4))%>%
-  mutate(pulse=replace(pulse,cohort==2017 & trip == 14 & pulse == 2,3))%>%
-  mutate(pulse=replace(pulse,cohort==2017 & trip == 18 & pulse == 4,5))%>%
-  mutate(pulse=replace(pulse,cohort==2017 & trip == 18 & pulse == 3,4))%>%
-  mutate(pulse=replace(pulse,cohort==2017 & trip == 18 & pulse == 2,3))%>%
-  mutate(pulse=replace(pulse,cohort==2017 & trip == 19 & pulse == 2,4))%>%
-  mutate(pulse=replace(pulse,cohort==2017 & trip == 19 & pulse == 1,3))%>%
-  mutate(pulse=replace(pulse,cohort==2017 & trip == 20 & pulse == 3,4))%>%
-  mutate(pulse=replace(pulse,cohort==2017 & trip == 20 & pulse == 2,4))%>%
-  mutate(pulse=replace(pulse,cohort==2017 & trip == 20 & pulse == 1,3))
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 15 & pulse == 2,1))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 15 & pulse == 3,2))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 17 & pulse == 1,NA))%>%
+  mutate(pulse,replace(pulse,cohort==2017 & trip == 17 & pulse == 2,1))%>%
+  mutate(pulse,replace(pulse,cohort==2017 & trip == 17 & pulse == 3,2))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 18 & pulse == 3,2))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 19 & pulse == 1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 20 & pulse == 3,4))
 
 cohort2.graph<-function(growth,length,na.rm=TRUE, ...){
   
@@ -163,7 +169,7 @@ cohort2.graph<-function(growth,length,na.rm=TRUE, ...){
   length<-length%>%filter(age==1)%>%
     mutate(date2=date+3)%>%
     mutate(cohort=year-1)
-  #pdf("mixtures-length-age1.pdf")
+  pdf("mixtures-length-age1.pdf")
   for (i in seq_along(cohort_list)) {
     plot<-ggplot()+
       geom_point(data=subset(growth,growth$cohort==cohort_list[i]),
@@ -227,7 +233,7 @@ length_pulse<-length_pulse%>%
 cohort.graph<-function(length_pulse,na.rm=FALSE, ...){
   
   cohort_list<-rev(unique(length_pulse$cohort))
-  #pdf("age1-full-test.pdf")
+  pdf("age1-full-test.pdf")
   for (i in seq_along(cohort_list)) {
     plot<-ggplot(subset(length_pulse,length_pulse$cohort==cohort_list[i]),
                  aes(x=date,y=mmSL,group=cohort,colour=factor(pulse)))+
