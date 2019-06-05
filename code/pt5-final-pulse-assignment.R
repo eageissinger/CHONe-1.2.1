@@ -1,5 +1,5 @@
 # set working directory 
-setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 
 # ---- load packages ----
 library(tidyverse)
@@ -151,7 +151,7 @@ mydata<-pulserange%>%
   mutate(pulse=replace(pulse,cohort==2017 & trip == 19 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2017 & trip == 20 & pulse == 3,4))
 #temporary...
-write.csv(mydata,"./data/data-working/pulse_range_age1_final.csv",row.names = FALSE)
+#write.csv(mydata,"./data/data-working/pulse_range_age1_final.csv",row.names = FALSE)
 
 
 #---- Assignments part 2 ----
@@ -272,15 +272,123 @@ final<-pulse.length%>%
   mutate(pulse=replace(pulse,cohort==2012 & trip == 19 & mmSL<135,3))%>%
   mutate(pulse=replace(pulse,cohort==2012 & trip == 20 & pulse == 3 & mmSL>136,2))%>%
   mutate(pulse=replace(pulse,cohort==2012 & trip == 22 & mmSL<150,3))%>%
-  mutate(pulse=replace(pulse,cohort==2012 & is.na(pulse),2))
+  mutate(pulse=replace(pulse,cohort==2012 & is.na(pulse),2))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 10 & is.na(pulse),1))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 13 & pulse==1 & mmSL<150,2))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 16 & mmSL>165,1))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 17 & mmSL>170,1))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip ==18 & pulse==1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip==19 & pulse==1 & mmSL<175,2))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 20 & pulse==1 & mmSL<175,2))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip ==21 & mmSL>174,1))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 22 & mmSL>175,1))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 13 & pulse==2 & mmSL<100,3))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 15 & mmSL>125,2))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 16 & pulse == 4 & mmSL>118,2))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 17 & pulse ==3 & mmSL> 130,2))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 18 & mmSL<140,3))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 19 & mmSL<151,3))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 21 & mmSL<159,3))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 22 & mmSL<159,3))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 13 & mmSL<69,4))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 15 & is.na(pulse),3))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 16 & pulse == 4 & mmSL>90,3))%>%
+  mutate(pulse=replace(pulse,cohort==2013 & trip == 17 & mmSL<90,4))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip == 10 & pulse ==1 & mmSL<88,2))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip == 10 & mmSL<58,4))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip ==13 & mmSL>105,1))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip == 14 & mmSL>110,1))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip == 17 & mmSL>132,1))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip == 18 & mmSL>140,1))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip >= 19 & mmSL>149,1))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip == 13 & is.na(pulse) & mmSL>90,2))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip == 14 & is.na(pulse) & mmSL>95,2))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip == 16 & mmSL>105,2))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip == 17 & pulse==3 & mmSL>116,2))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip == 18 & is.na(pulse) & mmSL>125,2))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip == 19 & is.na(pulse) & mmSL>125,2))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip == 20 & mmSL>130,2))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & trip == 22 & is.na(pulse) & mmSL>135,2))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & pulse == 3,4))%>%
+  mutate(pulse=replace(pulse,cohort==2014 & is.na(pulse),4))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 12 & pulse ==1 & mmSL<100,2))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 13 & pulse == 1 & mmSL<120,2))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 15 & pulse == 3 & mmSL>110,2))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 17 & pulse == 2 & mmSL<128,3))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 18 & pulse == 2 & mmSL<140,3))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 19 & pulse == 2 & mmSL<130,3))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 21 & pulse == 2 & mmSL<120,3))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 21 & is.na(pulse) & mmSL>110,3))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 12 & mmSL>175,NA))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 22 & mmSL>200,1))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 22 & mmSL<150,3))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 16 & mmSL>115,2))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 17 & mmSL>128,2))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 17 & mmSL>150,1))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & pulse == 4,3))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 20 & mmSL>176,1))%>%
+  mutate(pulse=replace(pulse,cohort==2015 & trip == 21 & mmSL>185,1))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip ==13 & mmSL>111,1))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 14 & pulse == 1 & mmSL<124,2))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 16 & mmSL>140,1))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 16 & pulse == 4 & mmSL>100,2))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip ==17 &  mmSL>135,1))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 17 & pulse == 3 & mmSL>100,2))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 17 & pulse == 3,4))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 18 & pulse == 1 & mmSL<145,2))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 18 & mmSL<100,4))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 19 & mmSL>145,1))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 19 & mmSL<108,4))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 20 & mmSL<109,4))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 15 & mmSL<90,4))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip == 15 & mmSL>94,2))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip >= 21 & mmSL<112,4))%>%
+  mutate(pulse=replace(pulse,cohort==2016 & trip >=21 & is.na(pulse),2))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 9 & pulse==1 & mmSL<118,2))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 9 & pusle ==4 & mmSL>60,2))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip ==13 & pulse==1 & mmSL<140,2))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 14 & pulse == 4 & mmSL>90,2))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 15 & pulse == 1 & mmSL<175,2))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 16 & mmSL>100,2))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 17 & mmSL<109,4))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 17 & mmSL>170,1))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 17 & pulse == 3,2))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 18 & mmSL<125,4))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 19 & mmSL<127,4))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 20 & pulse ==1,2))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 20 & mmSL<127,4))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip >= 21 & mmSL<129,4))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 21 & mmSL>175,1))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & is.na(pulse),2)) # 2017 needs a double check
+
+
+# --- check results ----
+# ---- All years as function -----
+cohort.graph<-function(length_pulse,na.rm=FALSE, ...){
+  length_pulse$date<-ymd(paste(length_pulse$year,length_pulse$month,length_pulse$day))
+  cohort_list<-rev(unique(length_pulse$cohort))
+  #pdf("age1-full-test.pdf")
+  for (i in seq_along(cohort_list)) {
+    plot<-ggplot(subset(length_pulse,length_pulse$cohort==cohort_list[i]),
+                 aes(x=date,y=mmSL,group=cohort,colour=factor(pulse)))+
+      geom_jitter(size=1)+
+      theme_bw()+
+      ylim(c(25,250))+
+      ggtitle(paste(cohort_list[i], "Cohort"))+
+      xlab("Date")+ylab("Standard length (mm)")+
+      scale_color_manual(values=c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
+    print(plot)
+  }
+}
+cohort.graph(final)
 
 
 
 
 final%>%
-  filter(cohort==2012)%>%
+  filter(cohort==2017)%>%
   ggplot(aes(y=mmSL,x=trip,colour=factor(pulse)))+geom_point(size=1)
-pulse.length%>%filter(cohort==2012)%>%distinct(trip, month, day)
+pulse.length%>%filter(cohort==2017)%>%distinct(trip, month, day)
 #final$date<-ymd(paste(final$year,final$month,final$day,sep="-"))
 
 final_range<-final%>%
