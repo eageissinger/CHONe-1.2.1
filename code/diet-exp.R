@@ -824,10 +824,14 @@ F1<-ggplot(fce2)+
                outlier.shape = NA)+
   geom_jitter(aes(y=FCE,x=as.factor(percent),colour=daily_temp),width=.15)+
   facet_wrap(aes(size=factor(size,levels=c("small","large"))))+
-  ylab("Feed conversion efficiency")+xlab("Ration (% body weight)")+
+  ylab("Feed conversion efficiency (g · "~g^-1*")")+xlab("Ration (% body weight)")+
   theme_bw()+theme(panel.grid = element_blank())+
   scale_color_gradient(low="blue",high="red")+
-  labs(colour="Temp. (°C)")
+  labs(colour="Temp. (°C)")+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
 F1
 
 energy.0$F.rate[which(is.nan(energy.0$F.rate))] = NA
@@ -845,10 +849,14 @@ F2<-ggplot(energy.02)+
   geom_boxplot(aes(y=F.rate,x=as.factor(percent),colour=daily_temp))+
   geom_jitter(aes(y=F.rate,x=as.factor(percent),colour=daily_temp),width=.15)+
   facet_wrap(aes(size=factor(size,levels=c("small","large"))))+
-  ylab("Feeding rate (% body weight ·"~day^-1*")")+xlab("Ration (% body weight)")+
+  ylab("Feeding rate (% body weight · "~day^-1*")")+xlab("Ration (% body weight)")+
   theme_bw()+theme(panel.grid = element_blank())+
   scale_color_gradient(low="blue",high="red")+
-  labs(colour="Temp. (°C)")
+  labs(colour="Temp. (°C)")+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
 F2
 ggarrange(F2+theme(axis.title.x=element_text(colour='white')),F1, labels=c("A","B"),ncol=1,nrow=2,
           common.legend=TRUE,legend='right')

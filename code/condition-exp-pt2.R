@@ -339,7 +339,12 @@ LCA<-lc%>%
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
   ylim(0.55,1.05)+
-  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
+  
 LCB<-lc%>%
   rename(Ration=ration)%>%
   filter(size=='large')%>%
@@ -357,7 +362,12 @@ LCB<-lc%>%
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
   ylim(0.55,1.05)+
-  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
+
 ggarrange(LCA,LCB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
 ggarrange(LCA+theme(axis.title=element_text(size=14,face='bold'))+
@@ -562,7 +572,10 @@ K2.2%>%
   scale_fill_manual(values=c('grey0','grey64'))+
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
-  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
 
 # Wet condition factor
 
@@ -650,37 +663,39 @@ deltaHSI%>%
 
 hsiA<-deltaHSI%>%
   filter(size=='small')%>%
-  rename(Ration=ration)%>%
-  ggplot(aes(x=Ration,y=dHSI))+
+  ggplot(aes(x=as.factor(percent),y=dHSI))+
   geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
   geom_boxplot(colour='black',fill='grey90')+
-  geom_jitter(aes(x=Ration,y=dHSI,colour=Ration),width=0.25)+
+  geom_jitter(aes(x=as.factor(percent),y=dHSI,colour=ration),width=0.25)+
   theme_bw(base_rect_size = 1)+
   theme(panel.grid = element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  ylab(expression(Delta*'HSI'))+xlab('Ration')+
-  theme(axis.text.x = element_text(size=12))+
-  theme(axis.title = element_text(size=12.5))+
+  ylab(expression(Delta*'HSI'))+xlab('Food ration (% body weight)')+
   scale_colour_manual(values=c('grey1','grey22','grey40','grey60'))+
   theme(legend.position = 'none')+
-  ylim(-0.6,0.7)
+  ylim(-0.6,0.7)+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
 
 hsiB<-deltaHSI%>%
   filter(size=='large')%>%
-  rename(Ration=ration)%>%
-  ggplot(aes(x=Ration,y=dHSI))+
+  ggplot(aes(x=as.factor(percent),y=dHSI))+
   geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
   geom_boxplot(colour='black',fill='grey90')+
-  geom_jitter(aes(x=Ration,y=dHSI,colour=Ration),width=0.25)+
+  geom_jitter(aes(x=as.factor(percent),y=dHSI,colour=ration),width=0.25)+
   theme_bw(base_rect_size = 1)+
   theme(panel.grid = element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  ylab(expression(Delta*'HSI'))+xlab('Ration')+
-  theme(axis.text.x = element_text(size=12))+
-  theme(axis.title = element_text(size=12.5))+
+  ylab(expression(Delta*'HSI'))+xlab('Food ration (% body weight)')+
   scale_colour_manual(values=c('grey1','grey22','grey40','grey60'))+
   theme(legend.position = 'none')+
-  ylim(-0.6,0.7)
+  ylim(-0.6,0.7)+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
 
 
 ggarrange(hsiA,hsiB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1)
@@ -865,7 +880,11 @@ SA<-survival%>%
   scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
   scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
   theme(panel.grid=element_blank())+
-  ylim(0,102)+xlim(0,125)
+  ylim(0,102)+xlim(0,125)+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
 
 SB<-survival%>%
   filter(size=="large")%>%
@@ -877,7 +896,11 @@ SB<-survival%>%
   scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
   scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
   theme(panel.grid=element_blank())+
-  ylim(0,102)+xlim(0,125)
+  ylim(0,102)+xlim(0,125)+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
 
 ggarrange(SA,SB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
@@ -1051,11 +1074,16 @@ W<-sgr_adjusted2%>%
   geom_point(aes(shape=Size,fill=Size),
              position=position_dodge(width = 0.25))+
   theme_bw(base_rect_size = 1)+
-  ylab("Specific growth rate")+xlab("Food ration (% body weight)")+
+  ylab("Specific growth rate (grams · "~day^-1*")")+xlab("Food ration (% body weight)")+
   scale_fill_manual(values=c('grey0','grey64'))+
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
-  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
+
 L<-sgr_adjusted2%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,y=sgr_length,fill=Size))+
@@ -1065,12 +1093,17 @@ L<-sgr_adjusted2%>%
   geom_point(aes(shape=Size,fill=Size),
              position=position_dodge(width = 0.25))+
   theme_bw(base_rect_size = 1)+
-  ylab("Specific growth rate")+xlab("Food ration (% body weight)")+
+  ylab("Specific growth rate (mm · "~day^-1*")")+xlab("Food ration (% body weight)")+
   scale_fill_manual(values=c('grey0','grey64'))+
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
-  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))
-ggarrange(W,L+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
+
+ggarrange(W,L, labels=c("A","B"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
 
 
