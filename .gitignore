@@ -11,3 +11,6 @@ code/*.Rhistory
 .RData
 methods-report_files/
 *.pdf
+*.png
+*.docx
+*.tex
