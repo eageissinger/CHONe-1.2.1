@@ -328,7 +328,7 @@ LCA<-lc%>%
   ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
   geom_point(aes(shape=Ration,colour=Ration,fill=Ration),
              position = position_dodge(width=4))+
-  stat_smooth(method="lm",se=FALSE,linetype='dashed')+
+  stat_smooth(aes(linetype=Ration),method="lm",se=FALSE)+
   geom_errorbar(aes(ymin=kavg-sek,ymax=kavg+sek),
                 width=0,
                 position = position_dodge(width=4))+
@@ -351,7 +351,7 @@ LCB<-lc%>%
   ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
   geom_point(aes(shape=Ration,colour=Ration,fill=Ration),
              position=position_dodge(width=4))+
-  stat_smooth(method="lm",se=FALSE,linetype='dashed')+
+  stat_smooth(aes(linetype=Ration),method="lm",se=FALSE)+
   geom_errorbar(aes(ymin=kavg-sek,ymax=kavg+sek),
                 width=0,
                 position = position_dodge(width=4))+
@@ -370,71 +370,19 @@ LCB<-lc%>%
 
 ggarrange(LCA,LCB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
-ggarrange(LCA+theme(axis.title=element_text(size=14,face='bold'))+
-            theme(axis.text = element_text(size=14,face='bold'))+
-            theme(legend.title = element_text(size=12,face='bold'))+
-            theme(legend.text = element_text(size=12)),
+ggarrange(LCA+theme(axis.title=element_text(size=22,face='bold'))+
+            theme(axis.text = element_text(size=22,face='bold'))+
+            theme(legend.title = element_text(size=20,face='bold'))+
+            theme(legend.text = element_text(size=20)),
           LCB+theme(axis.title.y=element_text(colour='white'))+
-            theme(axis.title = element_text(size=14,face='bold'))+
-            theme(axis.text = element_text(size=14,face='bold'))+
-            theme(legend.title = element_text(size=12,face='bold'))+
-            theme(legend.text = element_text(size=12)),
+            theme(axis.title = element_text(size=22,face='bold'))+
+            theme(axis.text = element_text(size=22,face='bold'))+
+            theme(legend.title = element_text(size=20,face='bold'))+
+            theme(legend.text = element_text(size=20)),
           ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
-# ---- live condition presentation figs -----
 
-limitse<-aes(ymin=kavg-sek,ymax=kavg+sek)
-lc%>%
-  rename(Ration=ration)%>%
-  filter(size=='small')%>%
-  ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
-  geom_point(aes(shape=Ration,colour=Ration,fill=Ration),
-             position = position_dodge(width=4))+
-  stat_smooth(method="lm",se=FALSE,linetype='dashed')+
-  geom_errorbar(aes(ymin=kavg-sek,ymax=kavg+sek),
-                width=0,
-                position = position_dodge(width=4))+
-  theme_bw(base_rect_size = 1)+
-  ylab("Fulton's K")+xlab("Day of experiment")+
-  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
-  scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
-  scale_shape_manual(values=c(22:25))+
-  theme(panel.grid=element_blank())+
-  ylim(0.55,1.05)+
-  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  theme(axis.text.x=element_text(size=20,face='bold'))+
-  theme(axis.text.y=element_text(size=20,face='bold'))+
-  theme(legend.title=element_text(size=18,face='bold'))+
-  theme(axis.title=element_blank())+
-  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
-  theme(legend.key=element_blank())+
-  theme(legend.position=c(0.9,0.25))
 
-lc%>%
-  rename(Ration=ration)%>%
-  filter(size=='large')%>%
-  ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
-  geom_point(aes(shape=Ration,colour=Ration,fill=Ration),
-             position=position_dodge(width=4))+
-  stat_smooth(method="lm",se=FALSE,linetype='dashed')+
-  geom_errorbar(aes(ymin=kavg-sek,ymax=kavg+sek),
-                width=0,
-                position = position_dodge(width=4))+
-  theme_bw(base_rect_size = 1)+
-  ylab("Fulton's K")+xlab("Day of experiment")+
-  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
-  scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
-  scale_shape_manual(values=c(22:25))+
-  theme(panel.grid=element_blank())+
-  ylim(0.55,1.05)+
-  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  theme(axis.text.x=element_text(size=20,face='bold'))+
-  theme(axis.text.y=element_text(size=20,face='bold'))+
-  theme(legend.title=element_text(size=18,face='bold'))+
-  theme(axis.title=element_blank())+
-  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
-  theme(legend.key=element_blank())+
-  theme(legend.position=c(0.9,0.25))
 
 # ----- Final Condition analysis ------
 summary(fishcond)
@@ -539,11 +487,12 @@ K2.2<-read.csv('./data/data-working/deltaK2.csv')
 K2.2%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,y=delta.dry,fill=Size))+
-  #geom_smooth(aes(x=percent,y=delta.dry,linetype=Size),se=FALSE,colour='grey1')+
+  geom_hline(yintercept=0,linetype='dashed',colour='red',size=1)+
+  geom_smooth(aes(x=percent,y=delta.dry,linetype=Size),se=FALSE,colour='grey1')+
   geom_pointrange(aes(shape=Size,ymin=delta.dry-delta.se,ymax=delta.dry+delta.se),size=.75)+
   theme_bw(base_rect_size = 2)+
   xlab("Food ration (% body weight)")+ylab(expression(Delta*"Fulton's K"))+
-  theme(axis.title=element_text(size=20))+
+  theme(axis.title=element_text(size=20,face='bold'))+
   theme(legend.key=element_blank())+
   theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
   theme(axis.text.x=element_text(size=20,face='bold'))+
@@ -555,7 +504,8 @@ K2.2%>%
   theme(panel.grid = element_blank())+
   theme(legend.text = element_text(size=16))+
   theme(legend.key.size=unit(1,"cm"))+
-  theme(axis.title.y=element_text(margin=margin(r=5)))
+  theme(axis.title.y=element_text(margin=margin(r=5)))+
+  theme(axis.title.x=element_text(margin=margin(t=10)))
 
 
 limitse.dryK<-aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se)
@@ -874,7 +824,7 @@ SA<-survival%>%
   filter(size=="small")%>%
   rename(Ration=ration)%>%
   ggplot()+
-  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),size=1,se=FALSE)+
+  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),size=1.5,se=FALSE)+
   theme_bw()+
   ylab("% Survival")+xlab("Day of experiment")+
   scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
@@ -890,7 +840,7 @@ SB<-survival%>%
   filter(size=="large")%>%
   rename(Ration=ration)%>%
   ggplot()+
-  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),se=FALSE,size=1)+
+  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),se=FALSE,size=1.5)+
   theme_bw()+
   ylab("% Survival")+xlab("Day of experiment")+
   scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
@@ -905,7 +855,17 @@ SB<-survival%>%
 ggarrange(SA,SB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
 
-
+ggarrange(SA+theme(axis.title=element_text(size=22,face='bold'))+
+            theme(axis.text = element_text(size=22,face='bold'))+
+            theme(legend.title = element_text(size=20,face='bold'))+
+            theme(legend.text = element_text(size=20)),
+          SB+theme(axis.title.y=element_text(colour='white'))+
+            theme(axis.title = element_text(size=22,face='bold'))+
+            theme(axis.text = element_text(size=22,face='bold'))+
+            theme(legend.title = element_text(size=20,face='bold'))+
+            theme(legend.text = element_text(size=20)),
+          ncol=2,nrow=1,
+          common.legend=TRUE,legend='top')
 
 
 tank_survival$date<-ymd(paste(tank_survival$year,tank_survival$month,tank_survival$day,sep="-"))
@@ -1015,10 +975,11 @@ sgrsmall<-sgrsum%>%
 sgr_adjusted<-bind_rows(sgrlarge,sgrsmall)
 write.csv(sgr_adjusted,'./data/data-working/sgr.csv',row.names=FALSE)
 sgr_adjusted2<-read.csv('./data/data-working/sgr2.csv')
-sgr_adjusted2%>%
+w<-sgr_adjusted2%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,sgr_weight,fill=Size))+
-  #geom_smooth(aes(x=percent,y=sgr_weight,linetype=Size),se=FALSE,colour='grey1')+
+  geom_hline(yintercept=0,linetype='dashed',colour='red',size=1)+
+  geom_smooth(aes(x=percent,y=sgr_weight,linetype=Size),se=FALSE,colour='grey1')+
   geom_pointrange(aes(shape=Size,ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),size=.5)+
   theme_bw(base_rect_size = 2)+
   xlab("Food ration (% body weight)")+ylab("Specific growth rate")+
@@ -1034,13 +995,14 @@ sgr_adjusted2%>%
   theme(panel.grid = element_blank())+
   theme(legend.text = element_text(size=14))+
   theme(legend.key.size=unit(.8,"cm"))+
-  #ggtitle('Weight')+
-  theme(plot.title = element_text(size=20,face='bold',hjust=0.5))+
+  ggtitle('Weight')+
+  theme(plot.title = element_text(size=24,face='bold',hjust=0.5))+
   theme(axis.title.y=element_text(margin=margin(r=5)))
 
 l<-sgr_adjusted2%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,sgr_length,fill=Size))+
+  geom_hline(yintercept=0,linetype='dashed',colour='red',size=1)+
   geom_smooth(aes(x=percent,y=sgr_length,linetype=Size),se=FALSE,colour='grey1')+
   geom_pointrange(aes(shape=Size,ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),size=.5)+
   theme_bw(base_rect_size = 2)+
@@ -1058,11 +1020,11 @@ l<-sgr_adjusted2%>%
   theme(legend.text = element_text(size=14))+
   theme(legend.key.size=unit(.8,"cm"))+
   ggtitle("Length")+
-  theme(plot.title = element_text(size=20,face='bold',hjust=0.5))+
+  theme(plot.title = element_text(size=24,face='bold',hjust=0.5))+
   theme(axis.title.x=element_text(margin=margin(t=20)))+
   theme(axis.title.y=element_text(margin=margin(r=5)))
-ggarrange(l+theme(legend.position = 'none')+theme(axis.title.x = element_blank()),
-          w+theme(axis.title.y=element_text(colour='white'))+theme(axis.title.x=element_blank()),
+ggarrange(w+theme(legend.position = 'none')+theme(axis.title.x = element_blank()),
+          l+theme(axis.title.y=element_text(colour='white'))+theme(axis.title.x=element_blank()),
           ncol=2,nrow=1)
 
 W<-sgr_adjusted2%>%
