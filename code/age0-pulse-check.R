@@ -1,4 +1,5 @@
-# Assign remaining pulses
+# Double check that all assignments make sense
+# find mistakes if necessasry
 
 # set working directory
 setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
