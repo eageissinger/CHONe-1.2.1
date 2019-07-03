@@ -133,6 +133,12 @@ lw<-lw%>%
 
 lw<-left_join(lw,tanks)
 
+# Alternate SGR 
+lw_sgr<-length_weight%>%
+  mutate(julian_date=replace(julian_date,julian_date>360,0))%>%
+  group_by(julian_date,size,ration,tank,fish_number)%>%
+  mutate(sgr_sl=log(length_mm)-log(lag(length_mm))/(julian_date-lag(julian_date))*100)%>%
+  ungroup()
 #Condition Summary
 
 cond<-condition%>%
@@ -610,6 +616,18 @@ deltaHSI%>%
   ylab(expression(Delta*'HSI'))+xlab('Size class')+
   theme(axis.text.x = element_text(size=12))+
   theme(axis.title = element_text(size=12.5))
+finalK%>%
+  rename(Ration=ration)%>%
+  ggplot(aes(x=Ration,y=hsi,fill=size))+
+  geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
+  geom_boxplot()+
+  scale_fill_manual(values=c('grey30','grey50','grey70','grey90'))+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab(expression(Delta*'HSI'))+xlab('Size class')+
+  theme(axis.text.x = element_text(size=12))+
+  theme(axis.title = element_text(size=12.5))
 
 hsiA<-deltaHSI%>%
   filter(size=='small')%>%
@@ -648,7 +666,7 @@ hsiB<-deltaHSI%>%
   theme(axis.title.x= element_text(margin=margin(t=15)))
 
 
-ggarrange(hsiA,hsiB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1)
+ggarrange(hsiA,hsiB+theme(axis.title.y=element_text(colour='white')), labels=c("Small","Large"),ncol=2,nrow=1)
 
 # hsi.m1! figure out how to interpret the interaction!
 
@@ -671,46 +689,6 @@ survival%>%
 survival%>%
   filter(size=="large")%>%
   ggplot(aes(x=julian_date,y=exp_surv,linetype=ration))+geom_smooth()
-
-large.surv0<-survival%>%filter(size=="large" & ration == "0.0%")%>%
-  as.data.frame()
-
-# ---- breaking points ----
-l0ts<-ts(large.surv0,start=1,end=114,frequency=1,
-                  deltat=1)
-l2<-window(l0ts,start=1,end=114)
-coint.res<-residuals(lm(exp_surv~1,data=l2))
-coint.res<-stats::lag(ts(coint.res,start=1,end=114,freq=1),k=-1)
-l2<-cbind(l0ts,diff(l2),coint.res)
-l2<-window(l2,start=20,end=114)
-colnames(l2)<-c("size","ration","julian_date","date","start",
-                "total","exp_surv","temperature",
-                "diff.size","diff.ration","diff.julian_date","diff.start",
-                "diff.total","diff.exp_surv","diff.temperature","coint.res")
-ecm.model<-diff.perc_surv~coint.res+1
-
-l3<-window(l2,start=20,end=30)
-me.efp<-efp(ecm.model,type="ME",data=l2,h=.5)
-me.mefp<-mefp(me.efp,alpha=0.05)
-l3<-window(l2,start=20,end=30)
-me.mefp<-monitor(me.mefp)
-plot(me.mefp)
-me.mefp
-temp3<-window(l2,start=20,end=40)
-me.mefp<-monitor(me.mefp)
-plot(me.mefp)
-temp3<-window(l2,start=20,end=50)
-me.mefp<-monitor(me.mefp)
-plot(me.mefp)
-temp3<-window(l2,start=20,end=60)
-me.mefp<-monitor(me.mefp)
-plot(me.mefp)
-temp3<-window(l2,start=20,end=70)
-me.mefp<-monitor(me.mefp)
-plot(me.mefp)
-temp3<-window(l2,start=20,end=80)
-me.mefp<-monitor(me.mefp)
-plot(me.mefp)
 
 # ----- survival models ----
 
