@@ -58,28 +58,34 @@ for(i in 1:length(file_names)){
 } }
 revised(file_names,pulses)
 
-# ----- set up data for condition analysis ----
+# ----- lab measurements ----
 
-revised_files<-list.files(path="C:/Users/geissingere/Documents/CHONe-1.2.1-office/data/TNNP Revised Data/TNNP/output/",
-                          full.names=FALSE, include.dirs = FALSE)
-head(revised_files)
+lab_file_names<-list.files(path="C:/Users/geissingere/Documents/CHONe-1.2.1-office/data/TNNP Revised Data/TNNP/lab-measured//",
+                       full.names=FALSE, include.dirs = FALSE)
+head(lab_file_names)
+lab.revised<-function(lab_file_names,pulses) {
+  
+  
+  for(i in 1:length(lab_file_names)){
+    
+    setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/data/TNNP Revised Data/TNNP/lab-measured/") #pullfilesfromhere
+    
+    length<-read.csv(lab_file_names[i])
+    length$Year<-as.integer(as.character(length$Year))
+    length$Time<-as.integer(as.character(length$Time))
+    mydata<-length%>%
+      select(-Pulse)
+    final<-left_join(mydata,pulses)%>%
+      select(-contains("X"))
+    
+    setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/data/TNNP Revised Data/TNNP/output/lab-measured") #writenewfilestohere
+    
+    write.csv(x = final, row.names=FALSE, file = paste("revised",lab_file_names[i],sep = "_"))
+  } }
+lab.revised(lab_file_names,pulses)
 
 
 
-dataset<- lapply(revised_files, read.csv)
-
-df<-bind_rows(dataset)
-
-head(df)
-
-# length
-length<-df%>%
-  mutate(month=as.numeric(str_sub(Date,start=5,end=6)))%>%
-  rename(year=Year,julian.date=Julian.Date,trip=Trip,time=Time,site=Site,species=Species,
-         age=Age,weighting=Weighting,notes=Notes,pulse=Pulse,day=Day)%>%
-  select(-Date,-Month)
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
-write.csv(length,"./data/data-working/newman-length-all.csv",row.names=FALSE)
 
 
 
