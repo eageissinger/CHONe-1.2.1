@@ -48,7 +48,8 @@ for(i in 1:length(file_names)){
   length$Time<-as.integer(as.character(length$Time))
   
   mydata<-length%>%
-    select(-Pulse)
+    select(-Pulse)%>%
+    mutate(Species=replace(Species,Species=="AC ","AC"))
   final<-left_join(mydata,pulses)%>%
     select(-contains("X"))
   
