@@ -4,6 +4,53 @@
 # ----- set working directory -----
 setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
+# ----- set up data for condition analysis ----
+
+revised_files<-list.files(path="C:/Users/geissingere/Documents/CHONe-1.2.1-office/data/TNNP Revised Data/TNNP/output/length/",
+                          full.names=FALSE, include.dirs = FALSE)
+head(revised_files)
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/data/TNNP Revised Data/TNNP/output/length/")
+dataset1<- lapply(revised_files, read.csv)
+
+df1<-bind_rows(dataset1)
+
+lab_revised<-list.files(path="C:/Users/geissingere/Documents/CHONe-1.2.1-office/data/TNNP Revised Data/TNNP/output/lab-measured/",
+                        full.names = FALSE,include.dirs = FALSE)
+head(lab_revised)
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/data/TNNP Revised Data/TNNP/output/lab-measured/")
+dataset2<-lapply(lab_revised,read.csv)
+
+df2<-bind_rows(dataset2)
+
+
+head(df1)
+head(df2)
+
+fulldata<-bind_rows(df1,df2)
+
+
+
+# length
+length<-fulldata%>%
+  mutate(month=as.numeric(str_sub(Date,start=5,end=6)))%>%
+  rename(year=Year,julian.date=Julian.Date,trip=Trip,time=Time,site=Site,species=Species,
+         age=Age,weighting=Weighting,notes=Notes,pulse=Pulse,day=Day)%>%
+  select(-Date,-Month)
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+write.csv(length,"./data/data-working/newman-length-all.csv",row.names=FALSE)
+
+length.all<-read.csv("./data/data-working/newman-length-all.csv")
+length.old<-read.csv("./data/data-working/newman-length.csv")
+
+length.all.check<-length.all%>%
+  filter(species=="AC" | species=="Ga")%>%
+  filter(!is.na(year))
+length.old.check<-length.old%>%
+  filter(!is.na(year))
+
+length.old != length.all.check
+
+duplicated(length.old)
 # ----- load data ------
 ac0length<-read.csv("./data/data-working/newman-AC0-length.csv")
 ac0length2018<-read.csv("./data/data-working/newman-AC0-length-2018.csv")
