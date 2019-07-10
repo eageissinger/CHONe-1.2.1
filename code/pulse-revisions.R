@@ -4,9 +4,8 @@ setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 library(tidyverse)
 library(data.table)
 
-file_names<-list.files(path="C:/Users/geissingere/Documents/CHONe-1.2.1-office/data/TNNP Revised Data/TNNP/length/",
-                       full.names=FALSE, include.dirs = FALSE)
-head(file_names)
+
+
 
 age0<-read.csv("./data/data-working/pulse_range_age0_final.csv")
 age1<-read.csv("./data/data-working/pulse_range_age1_final.csv")
@@ -34,6 +33,9 @@ pulses<-bind_rows(pulse_assign0,pulse_assign1)%>%
   rename(Year=year,Trip=trip,Age=age,Pulse=pulse)
 head(pulses)
 
+file_names<-list.files(path="C:/Users/geissingere/Documents/CHONe-1.2.1-office/data/TNNP Revised Data/TNNP/length/",
+                       full.names=FALSE, include.dirs = FALSE)
+head(file_names)
 revised<-function(file_names,pulses) {
   
 
@@ -41,7 +43,7 @@ for(i in 1:length(file_names)){
   
   setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/data/TNNP Revised Data/TNNP/length/") #pullfilesfromhere
   
-  length<-read.csv(files[i])
+  length<-read.csv(file_names[i])
   length$Year<-as.integer(as.character(length$Year))
   length$Time<-as.integer(as.character(length$Time))
   
@@ -78,3 +80,8 @@ length<-df%>%
   select(-Date,-Month)
 setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 write.csv(length,"./data/data-working/newman-length-all.csv",row.names=FALSE)
+
+
+
+
+
