@@ -43,12 +43,11 @@ length.all<-read.csv("./data/data-working/newman-length-all.csv")
 length.old<-read.csv("./data/data-working/newman-length.csv")
 
 length.all.check<-length.all%>%
-  filter(species=="AC" | species=="Ga")%>%
+  filter(species=="AC")%>%
   filter(!is.na(year))
 length.old.check<-length.old%>%
   filter(!is.na(year))
 
-length.old != length.all.check
 
 duplicated(length.old)
 # ----- load data ------

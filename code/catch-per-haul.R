@@ -3,9 +3,12 @@
 setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 
 # ---- load data ----
-length0<-read.csv("./data/data-working/length_pulse_0_final.csv")
+length<-read.csv("./data/data-working/newman-length-all.csv")
 count<-read.csv("./data/data-working/newman-catch.csv")
 hauls<-read.csv("./data/data-working/hauls.csv")
+
+
+
 
 # ---- load packages -----
 library(tidyverse)
@@ -13,11 +16,13 @@ library(lubridate)
 #library(arsenal)
 
 # ---- check data ----
-summary(length0)
-str(length0)
-dim(length0)
-head(length0)
-names(length0)
+summary(length)
+str(length)
+dim(length)
+head(length)
+names(length)
+length<-length%>%
+  filter(species=="AC")
 
 summary(count)
 str(count)
@@ -34,7 +39,7 @@ hauls<-hauls%>%
   rename(year=Year,julian.date=J..Start.Date,num_hauls=X..of.Hauls)
 
 # ---- format dates ----
-length0$date<-ymd(paste(length0$year,length0$month,length0$day,sep="-"))
+length$date<-ymd(paste(length$year,length$month,length$day,sep="-"))
 count$date<-ymd(paste(count$year,count$month,count$day,sep="-"))
 
 # create trips df that can be joined to hauls
@@ -45,15 +50,17 @@ hauls<-left_join(hauls,trips)
 # ---- Calculate extrapolated catch/haul -----
 # create total catch column
 totalcatch<-count%>%
-  filter(age==0)%>%
+  #filter(age==0)%>%
   group_by(year,trip,age)%>%
   summarise(total_catch=sum(count))
-measured<-length0%>%
+measured<-length%>%
+  #filter(age==0)%>%
   group_by(year,trip,age)%>%
   summarise(total_measured=n())%>%
   mutate(total_measured=replace(total_measured,NA,0))
 
-totalmeasured<-length0%>%
+totalmeasured<-length%>%
+  #filter(age==0)%>%
   group_by(year,trip,age,pulse)%>%
   summarise(measured=n())
 totalmeasured2<-totalmeasured%>%
@@ -78,7 +85,7 @@ extrap<-catch_haul%>%
   ungroup()
 head(extrap, n = 20)
 test<-extrap%>%
-  filter(age==0 & year==2000)
+  filter(year==2000)
 View(test)
 
 
