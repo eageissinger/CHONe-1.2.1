@@ -1,10 +1,7 @@
-#----Overwinter Growth and Condition Part 1-----
-
-# Purpose
-# Preliminary analysis with a focus on visual representation of the data
+#----Overwinter Condition Analysis-----
 
 #load working directory
-setwd("C:/Users/Emilie/Dropbox/Thesis/Research/CHONe-1.2.1/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 #----load data-----
 condition<-read.csv("./data/data-working/condition-exp.csv",header=TRUE)
@@ -14,79 +11,87 @@ temp<-read.csv("./data/data-working/temperature-exp.csv",header=TRUE)
 tanks<-read.csv("./data/data-working/tank-assignments-exp.csv")
 
 # ----load pacakges -----
-library(lubridate)
-library(dplyr)
-library(tidyr)
 library(car)
-library(ggplot2)
-library(stats)
+library(MASS)
 library(lattice)
-library(ggpmisc)
+library(lubridate)
+library(stats)
+library(lme4)
+library(lmtest)
+library(rcompanion)
+library(multcompView)
+library(emmeans)
+library(strucchange)
+library(tidyverse)
+library(reshape2)
+library(ggpubr)
 
 # --- check data -----
 #length-weight
 str(length_weight)
 summary(length_weight)
+names(length_weight)
 head(length_weight)
 tail(length_weight)
 dim(length_weight)
-names(length_weight) # need to fix name of first column
-length_weight<-length_weight%>%rename(year=ï..year)
 
 #condition
 str(condition)
 summary(condition)
+names(condition)
 head(condition)
 tail(condition)
 dim(condition)
-names(condition)
-condition<-condition%>%rename(year=ï..year)
 
 #tank survival
 str(tank_survival)
 summary(tank_survival)
+names(tank_survival)
 head(tank_survival)
 tail(tank_survival)
 dim(tank_survival)
-names(tank_survival)
-tank_survival<-tank_survival%>%rename(year=ï..year)
 
 #temperature
 str(temp)
 summary(temp)
+names(temp)
 head(temp)
 tail(temp)
 dim(temp)
-names(temp)
-temp<-temp%>%rename(year=ï..year,notes=X)
 
-# ---- Format date ------
+# --- format data -----
+
+# ---- Fix date ------
 
 # length-weight
+names(length_weight)<-c('year','month','day','tank','size','ration','length_mm','weight_g',
+                        'fish_number','notes')
 length_weight$date<-ymd(paste(length_weight$year,length_weight$month,length_weight$day,sep="-"))
 length_weight$julian_date<-yday(length_weight$date)
 
 #condition
-
+names(condition)<-c("year",'month','day','time','tank','num','sl_mm','wet_total_weight_g',
+                    'wet_liver_g','wet_evis_g','dry_liver_mg','dry_evis_g','mortality','notes',
+                    'drying_notes')
 condition$date<-ymd(paste(condition$year,condition$month,condition$day,sep="-"))
 condition$julian_date<-yday(condition$date)
 
 #survival
-
+names(tank_survival)<-c('year','month','day','tank','size',
+                        'ration','number')
 tank_survival$date<-ymd(paste(tank_survival$year,tank_survival$month,tank_survival$day,sep="-"))
 tank_survival$julian_date<-yday(tank_survival$date)
 
 #temperature
-
+names(temp)<-c('year','month','day','time','tank','temperature','notes')
 temp$date<-ymd(paste(temp$year,temp$month,temp$day,sep="-"))
 temp$julian_date<-yday(temp$date)
 
 # ----- calculations and summary -----
 
 # Temperature
-temp<-left_join(temp,tanks) # combine tank assignments to temperature data
+temp<-left_join(temp,tanks)
 
-#summary table
 tempdata<-temp%>%
   unite(group,size,ration,sep=' ')%>%
   group_by(group,julian_date,date)%>%
@@ -97,12 +102,12 @@ tempdata<-temp%>%
 tempdata<-separate(tempdata,group,c("size","ration"),sep=' ', convert=TRUE)
 
 tempdata<-tempdata%>%
-  mutate(julian_date=replace(julian_date,julian_date>365,0))%>% # set Dec 31 as day 0
+  mutate(julian_date=replace(julian_date,julian_date>365,0))%>%
   data.frame()
 
 #Lenght-weight
-# Cacluate Specific growth rate
-# SGR=(lnwwt2-lnwwt1)/(t2-t1)x100
+#Specific growth rate
+#SGR=(lnwwt2-lnwwt1)/(t2-t1)x100
 
 lw<-length_weight%>%
   mutate(julian_date=replace(julian_date,julian_date>364,0))%>%
@@ -112,15 +117,12 @@ lw<-length_weight%>%
   ungroup()
 
 #combine survival data with lw summary
-tank_survival<-tank_survival%>%
-  mutate(julian_date=replace(julian_date,julian_date>364,0)) # set dec31 as day 0
-lw<-left_join(tank_survival,lw)
+tank_survival<-tank_survival%>%mutate(julian_date=replace(julian_date,julian_date>364,0))
+lw<-left_join(tank_survival,lw,by=NULL)
 lw<-lw%>%
   filter(julian_date%in%c(0,30,31,58,59,86,87))
 lw<-na.omit(lw)
 
-# calculate SGR for weight and SL
-# use mean weight and length for each tank
 lw<-lw%>%
   group_by(tank)%>%
   mutate(sgr_w=(log(mean_weight)-log(lag(mean_weight)))/(julian_date-lag(julian_date))*100,
@@ -128,26 +130,38 @@ lw<-lw%>%
   ungroup()%>%
   data.frame()
 
-lw<-left_join(lw,tanks) # add tank groupings to lw df
 
-# Condition Summary
-# caculate wet and dry condition factors
+lw<-left_join(lw,tanks)
+
+# Alternate SGR 
+lw_sgr<-length_weight%>%
+  mutate(julian_date=replace(julian_date,julian_date>360,0))%>%
+  group_by(julian_date,size,ration,tank,fish_number)%>%
+  mutate(sgr_sl=log(length_mm)-log(lag(length_mm))/(julian_date-lag(julian_date))*100)%>%
+  ungroup()
+#Condition Summary
+
 cond<-condition%>%
   mutate(kwet=100*wet_total_weight_g/(sl_mm*.1)^3)%>%
   mutate(kdry=1000*dry_evis_g/(sl_mm*.1)^3)%>%
   mutate(HSI=((dry_liver_mg*.001)/dry_evis_g)*1000)
 
+head(cond)
+summary(cond)
 #add size and rations
+
 cond<-left_join(cond,tanks)
 
-# Day 0 calculations
+# need to add day-0 information
 # new column labeling as day 0
+# add size group
+
 day0<-cond%>%
   filter(date=="2016-12-16")%>%
   data.frame()
-# add size group
-day0$size[day0$sl_mm<=84]<-"small" # assign to small size class
-day0$size[day0$sl_mm>=89]<-"large" # assign to large size class
+
+day0$size[day0$sl_mm<=84]<-"small"
+day0$size[day0$sl_mm>=89]<-"large"
 day0$tank<-0
 
 cond<-cond%>%
@@ -158,9 +172,10 @@ fishcond<-bind_rows(day0,cond)
 str(fishcond)
 
 #Survival
-#total starting number for large = 27, max for small = 54
+#max for large = 27, max for small = 54
 #make data frame with start values to attach to new data
-tank_survival$start[tank_survival$size=="small"]<-54 
+
+tank_survival$start[tank_survival$size=="small"]<-54
 tank_survival$start[tank_survival$size=="large"]<-27
 
 survival<-tank_survival%>%
@@ -173,48 +188,50 @@ survival<-tank_survival%>%
 
 survival<-separate(survival,group,c("size","ration"), sep=' ', convert=TRUE)
 
-  
+View(tempdata)
+
 survival<-left_join(survival,tempdata)
 
 # ---- Live condition data ------
-#data summary - final condition for fish lasting until april
+#data summary 
+# format data to have early terminations in as well....
 aprilcond<-fishcond%>%
-  select(year,month,day,tank,size,ration,sl_mm,wet_total_weight_g,date,julian_date)%>%
   filter(month==4)%>%
   filter(day==24)%>%
   data.frame()
-# condition for early terminated fish (mortalities)
+
 earlyterm<-fishcond%>%
-  select(year,month,day,tank,size,ration,sl_mm,wet_total_weight_g,date,julian_date)%>%
   filter(month==3)%>%
   filter(day%in%c(21,25))%>%
   data.frame()
 
-names(aprilcond)
-names(length_weight)
-aprilcond<-rename(aprilcond,weight_g=wet_total_weight_g,length_mm=sl_mm)
 
+names(aprilcond)
 names(earlyterm)
-earlyterm<-rename(earlyterm,weight_g=wet_total_weight_g,length_mm=sl_mm)
+names(length_weight)
 
 livecond<-length_weight%>%
-  select(year,month,day,tank,size,ration,length_mm,weight_g,date,julian_date)
-
-# check that column names line up
-names(aprilcond)
+  mutate(julian_date=replace(julian_date,julian_date>364,0))%>%
+  mutate(k=100*weight_g/(length_mm*.1)^3)%>%
+  select(-length_mm,-weight_g,-fish_number,-notes)%>%
+  data.frame()
+aprilcond<-aprilcond%>%
+  mutate(k=kwet)%>%
+  select(year,month,day,tank,size,ration,date,julian_date,k)%>%
+  data.frame()
+earlyterm<-earlyterm%>%
+  mutate(k=kwet)%>%
+  select(year,month,day,tank,size,ration,date,julian_date,k)%>%
+  data.frame()
+glimpse(livecond)
+glimpse(earlyterm)
+glimpse(aprilcond)
 names(livecond)
 names(earlyterm)
+names(aprilcond)
+livecond<-union_all(livecond,earlyterm)
+livecond<-union_all(livecond,aprilcond)
 
-#combine to single dataframe
-livecond<-rbind(livecond,earlyterm,aprilcond)
-
-livecond<-livecond%>%
-  mutate(julian_date=replace(julian_date,julian_date>364,0))%>% # day 364/365 = day 0
-  mutate(k=100*weight_g/(length_mm*.1)^3)%>% # calculate condition
-  group_by(tank,size,ration,julian_date)%>%
-  summarise(kavg=mean(k),sd=sd(k),se=sd/sqrt(n()))%>% # average by tank
-  ungroup()%>%
-  data.frame()
 
 # add temperature data
 str(livecond)
@@ -224,229 +241,316 @@ tempdata$size<-as.factor(tempdata$size)
 tempdata$ration<-as.factor(tempdata$ration)
 
 livecond<-left_join(livecond,tempdata)
-  
+
 #visualize data
-ggplot(livecond,aes(x=julian_date,y=kavg))+
-         geom_point()
-ggplot(livecond,aes(x=julian_date,y=kavg,colour=ration))+
+ggplot(livecond,aes(x=julian_date,y=k))+
   geom_point()
-ggplot(livecond,aes(x=julian_date,y=kavg,colour=size))+
+ggplot(livecond,aes(x=julian_date,y=k,colour=ration))+
+  geom_point()
+ggplot(livecond,aes(x=julian_date,y=k,colour=size))+
   geom_point()
 
-#plot without size
+xyplot(k~julian_date|tank,data=livecond)
 
-limitse<-aes(ymin=kavg-se,ymax=kavg+se)
+head(livecond)
+str(livecond)
+livecond$tank<-as.factor(livecond$tank)
 
-livecond.plot<-ggplot(livecond,aes(x=julian_date,y=kavg,colour=ration,linetype=size))+
-  geom_jitter(aes(shape=ration,colour=ration,fill=ration),size=3)+
-  stat_smooth(method="lm",size=1,se=FALSE)+
-  geom_errorbar(limitse,width=1)+
-  theme_classic()+
-  ggtitle("Condition over time: All")+
-  ylab("Condition")+xlab("Day of Experiment")+
-  theme(axis.text.x=element_text(size=20,face='bold'))+
-  theme(axis.text.y=element_text(size=20,face='bold'))+
-  theme(legend.title=element_text(size=18,face='bold'))+
-  ylim(0.6,1.0)+
-  theme(axis.title=element_text(size=20))+
-  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
-  theme(legend.key=element_blank())+
-  theme(legend.position=c(0.9,0.19))+
-  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
-  scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
-  scale_shape_manual(values=c(22:25))
-livecond.plot
+# create new df for analysis
+# ration -> percent food 
 
-# plot by size
-#small
-livecond.small<-livecond%>%
-  filter(size=="small")%>%
-  ggplot(aes(x=julian_date,y=kavg,colour=ration))+
-  geom_jitter(aes(shape=ration,colour=ration,fill=ration),size=3)+
-  stat_smooth(method="lm",linetype='dashed',size=1,se=FALSE)+
-  geom_errorbar(limitse,width=1)+
-  xlab("Day of Experiment")+ylab("Condition factor (K)")+
-  theme_classic()+
-  theme(axis.text.x=element_text(size=20,face='bold'))+
-  theme(axis.text.y=element_text(size=20,face='bold'))+
-  theme(legend.title=element_text(size=18,face='bold'))+
-  ylim(0.6,1.0)+
-  theme(axis.title=element_text(size=20))+
-  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
-  theme(legend.key=element_blank())+
-  theme(legend.position=c(0.9,0.19))+
+lc<-livecond%>%
+  group_by(tank,julian_date,ration,size)%>%
+  summarise(kavg=mean(k),sdk=sd(k),sek=sdk/sqrt(n()),temp=mean(temperature))%>%
+  data.frame()
+lc$tank<-as.factor(lc$tank)
+str(lc)
+summary(lc)
+lc$julian_date<-as.integer(lc$julian_date)
+unique(lc$julian_date)
+# select measurement days only
+# 0 , 30, 58, 84, 86, 114, small day 80
+str(lc)
+lc<-lc%>%
+  filter(julian_date == 80 & size == "small" |julian_date == 0 |
+           julian_date==30 | julian_date==58 | julian_date == 84 | 
+           julian_date == 86 | julian_date==114)
+
+# ---- LC Models ----
+lc.m1<-lm(kavg~ration*size*julian_date,data=lc)
+lc.m1
+plot(lc.m1)
+summary(lc.m1)
+Anova(lc.m1,type="III")
+
+lc.m11<-lm(kavg~0+ration*size*julian_date,data=lc)
+lc.m11
+plot(lc.m11)
+summary(lc.m11)
+Anova(lc.m11,type="III")
+anova(lc.m1,lc.m11)
+# get rid of three way interaction
+lc.m2<-lm(kavg~(ration+size+julian_date)^2,data=lc)
+lc.m2
+plot(lc.m2)
+summary(lc.m2)
+Anova(lc.m2,type="III")
+
+hist(resid(lc.m2))
+
+lc.m3<-lm(kavg~ration+size+julian_date+ration*julian_date+size*julian_date,
+          data=lc)
+
+lc.m3
+plot(lc.m3)
+hist(resid(lc.m3))
+summary(lc.m3)
+Anova(lc.m3,type="III")
+levels(lc$ration)
+
+lc.m4<-lmer(kavg~0+ration+size+ration*julian_date+size*julian_date+(1|tank),data=lc)
+lc.m4
+plot(lc.m4)
+hist(resid(lc.m4))
+qqnorm(resid(lc.m4))
+summary(lc.m4)
+Anova(lc.m4,type="III")
+
+table1<-lc%>%group_by(julian_date,ration)%>%
+  summarise(mean=mean(kavg),se=sd(kavg)/sqrt(n()))
+table1.2<-lc%>%
+  group_by(julian_date,ration,size)%>%
+  summarise(mean=mean(kavg),se=sd(kavg)/sqrt(n()))
+lc%>%
+  filter(ration== "0.0%")%>%
+  filter(julian_date==0 |julian_date==80 | julian_date==84 | julian_date==114)%>%
+  group_by(julian_date,size)%>%
+  summarise(mean=mean(kavg),se=sd(kavg)/sqrt(n()))
+ # ---- Live condition figures -----
+limitse<-aes(ymin=kavg-sek,ymax=kavg+sek)
+LCA<-lc%>%
+  rename(Ration=ration)%>%
+  filter(size=='small')%>%
+  ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
+  geom_point(aes(shape=Ration,colour=Ration,fill=Ration),
+             position = position_dodge(width=4))+
+  stat_smooth(aes(linetype=Ration),method="lm",se=FALSE)+
+  geom_errorbar(aes(ymin=kavg-sek,ymax=kavg+sek),
+                width=0,
+                position = position_dodge(width=4))+
+  theme_bw(base_rect_size = 1)+
+  ylab("Fulton's K")+xlab("Day of experiment")+
   scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
   scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
   scale_shape_manual(values=c(22:25))+
-  ggtitle("Small Size Class")
-livecond.small
-
-#large
-livecond.large<-livecond%>%
-  filter(size=="large")%>%
-  filter(julian_date!=80)%>%
-  ggplot(aes(x=julian_date,y=kavg,colour=ration))+
-  geom_point(aes(shape=ration,colour=ration,fill=ration),size=3)+
-  stat_smooth(method="lm",linetype='dashed',size=1,se=FALSE)+
-  geom_errorbar(limitse,width=1)+
-  theme_classic()+
-  ylim(0.6,1.0)+
-  theme(axis.title=element_text(size=20))+
-  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
-  theme(legend.key=element_blank())+
-  theme(axis.title.x=element_blank())+
-  theme(axis.title.y=element_blank())+
-  theme(axis.text.x=element_text(size=20,face='bold'))+
-  theme(axis.text.y=element_text(size=20,face='bold'))+
-  theme(legend.title=element_text(size=18,face='bold'))+
-  theme(legend.position=c(0.9,0.19))+
+  theme(panel.grid=element_blank())+
+  ylim(0.55,1.05)+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
+  
+LCB<-lc%>%
+  rename(Ration=ration)%>%
+  filter(size=='large')%>%
+  ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
+  geom_point(aes(shape=Ration,colour=Ration,fill=Ration),
+             position=position_dodge(width=4))+
+  stat_smooth(aes(linetype=Ration),method="lm",se=FALSE)+
+  geom_errorbar(aes(ymin=kavg-sek,ymax=kavg+sek),
+                width=0,
+                position = position_dodge(width=4))+
+  theme_bw(base_rect_size = 1)+
+  ylab("Fulton's K")+xlab("Day of experiment")+
   scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
   scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
   scale_shape_manual(values=c(22:25))+
-  ggtitle("Large Size Class")
-livecond.large
+  theme(panel.grid=element_blank())+
+  ylim(0.55,1.05)+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
+
+ggarrange(LCA,LCB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
+          common.legend=TRUE,legend='top')
+ggarrange(LCA+theme(axis.title=element_text(size=22,face='bold'))+
+            theme(axis.text = element_text(size=22,face='bold'))+
+            theme(legend.title = element_text(size=20,face='bold'))+
+            theme(legend.text = element_text(size=20)),
+          LCB+theme(axis.title.y=element_text(colour='white'))+
+            theme(axis.title = element_text(size=22,face='bold'))+
+            theme(axis.text = element_text(size=22,face='bold'))+
+            theme(legend.title = element_text(size=20,face='bold'))+
+            theme(legend.text = element_text(size=20)),
+          ncol=2,nrow=1,
+          common.legend=TRUE,legend='top')
+
+
 
 # ----- Final Condition analysis ------
+summary(fishcond)
+dim(fishcond)
+View(fishcond)
 
-#Summarise Data
+# take out day 0 condition
 finalcond<-fishcond%>%
-  select(tank,sl_mm,date,kwet,kdry,HSI,size,ration,percent)%>%
-  group_by(tank,percent,size)%>%
-  summarise(kwet=mean(kwet),kdry=mean(kdry),hsi=mean(HSI),
-            sd_kwet=sd(kwet),sd_kdry=sd(kdry),sd_hsi=sd(HSI),
-            se_kwet=sd_kwet/sqrt(n()),se_kdry=sd_kdry/sqrt(n()),se_hsi=sd_hsi/sqrt(n()))%>%
-  ungroup()%>%
-  data.frame()
+  filter(notes!="day 0")
+   
+summary(finalcond)
+View(finalcond)
 
-finalcond<-finalcond%>%
-  filter(!is.na(percent))%>%
-  data.frame()
+# Change in condition
+fishcond%>%
+  filter(notes=='day 0')%>%
+  mutate(size=replace(size,is.na(size),'small'))%>%
+  group_by(size)%>%
+  summarise(mean(kdry),mean(kwet))
+
+
+finalK<-finalcond%>%
+  mutate(change=1.41)%>%
+  mutate(change=replace(change,size=='small',1.29))%>%
+  mutate(dDry=kdry-change)%>%
+  group_by(tank,ration,size,percent)%>%
+  summarise(dry=mean(kdry),wet=mean(kwet),hsi=mean(HSI),
+            sedry=(sd(kdry)/sqrt(n())),
+            sewet=(sd(kwet)/sqrt(n())),
+            sehsi=sd(HSI/sqrt(n())),
+            delta.dry=mean(dDry),
+            delta.se=sd(dDry)/sqrt(n()))%>%
+  ungroup()
+View(finalK)
+
 
 # Dry condition model analysis
 
-# Dry condition factor
-
-dry<-fishcond%>%
-  select(tank,size,percent,kdry)%>%
-  filter(tank>0)%>%
-  group_by(tank,size,percent)%>%
-  summarise(kavg=mean(kdry),sd=sd(kdry),se=sd/sqrt(n()))%>%
-  ungroup()
-
-dry$size<-relevel(dry$size,"small")
-levels(dry$size)
-
-ggplot(dry,aes(x=percent,y=kavg))+
-  geom_point()
-
-ggplot(dry,aes(x=percent,y=kavg,colour=size))+
-  geom_point()
-
 #model dry condition
-dry.m1<-lm(kavg~percent,data=dry)
-summary(dry.m1)
+d.m0<-lm(dry~percent*size,data=finalK)
+plot(d.m0)
+hist(resid(d.m0))
+qqnorm(resid(d.m0))
+exp(logLik(d.m0))
 
-plot(dry.m1)
+# not linear....
 
-#add size
+# GLMM
 
-dry.m2<-lm(kavg~percent*size,data=dry)
-summary(dry.m2)
+d.m1<-glm(dry~percent*size,data=finalK,
+            family=Gamma(link = "log"))
+d.m1
+summary(d.m1)
+plot(d.m1)
+hist(resid(d.m1))
+qqnorm(resid(d.m1))
+Anova(d.m1,type = "III")
+exp(logLik(d.m1))
 
-plot(dry.m2)
+d.m2<-glm(dry~ration+size,data=finalK,
+            family=Gamma(link = "log"))
 
-#SIZE INSIGNIFICANT
-
-#let's try nonparametric regression.....
-
-
-
-
-
-
+d.m2
+summary(d.m2)
+plot(d.m2)
+hist(resid(d.m2))
+qqnorm(resid(d.m2))
+Anova(d.m2,type="III")
 
 
-#################################
-drylarge<-dry%>%
-  filter(size=="large")%>%
-  mutate(percent_adj=percent+0.1)%>%
-  data.frame()
+table2<-finalK%>%
+  group_by(ration)%>%
+  summarise(mean(dry),mean(wet),se=sd(dry)/sqrt(n()))
 
-drysmall<-dry%>%
-  filter(size=="small")%>%
-  mutate(percent_adj=percent-0.1)%>%
-  data.frame()
 
-dry_adjusted<-bind_rows(drylarge,drysmall)
+# model d.m2, glm with gamma distribution and loglink
 
-#when size=large, add .1 to percent
 
-Fig3<-ggplot(dry_adjusted,aes(x=percent_adj,kavg,fill=size))+
-  geom_pointrange(aes(shape=size,ymin=kavg-se,ymax=kavg+se),size=.75)+
-  theme_classic()+
-  xlab("Food ration (% body weight)")+ylab("Condition factor (K)")+
-  theme(axis.title=element_text(size=22,face='bold'))+
+d.m3<-lm(delta.dry~0+ration+size,data=finalK)
+plot(d.m3)
+hist(resid(d.m3))
+summary(d.m3)
+Anova(d.m3,type="III")
+
+ggplot(finalK,aes(x=ration,y=delta.dry,colour=size))+geom_boxplot()
+ggplot(finalK,aes(x=ration,y=delta.dry,colour=size))+geom_point()
+
+finalK%>%
+  group_by(size,ration)%>%
+  summarise(K=mean(delta.dry),se=sd(delta.dry/sqrt(n())))
+
+# USE model3!!! 
+K_adj0<-finalK%>%
+  filter(size=='small')%>%
+  mutate(percent_adj=percent-0.05)
+Kadj1<-finalK%>%
+  filter(size=='large')%>%
+  mutate(percent_adj=percent+0.05)
+K2<-bind_rows(K_adj0,Kadj1)
+write.csv(K2,'./data/data-working/deltaK.csv',row.names=FALSE)
+K2.2<-read.csv('./data/data-working/deltaK2.csv')
+K2.2%>%
+  rename(Size=size)%>%
+  ggplot(aes(x=percent_adj,y=delta.dry,fill=Size))+
+  geom_hline(yintercept=0,linetype='dashed',colour='red',size=1)+
+  geom_smooth(aes(x=percent,y=delta.dry,linetype=Size),se=FALSE,colour='grey1')+
+  geom_pointrange(aes(shape=Size,ymin=delta.dry-delta.se,ymax=delta.dry+delta.se),size=.75)+
+  theme_bw(base_rect_size = 2)+
+  xlab("Food ration (% body weight)")+ylab(expression(Delta*"Fulton's K"))+
+  theme(axis.title=element_text(size=20,face='bold'))+
   theme(legend.key=element_blank())+
   theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
   theme(axis.text.x=element_text(size=20,face='bold'))+
   theme(axis.text.y=element_text(size=20,face='bold'))+
   theme(legend.title=element_text(size=18,face='bold'))+
-  theme(legend.position=c(0.9,0.15))+
+  theme(legend.position=c(0.85,0.21))+
   scale_fill_manual(values=c('grey0','grey64'))+
   scale_shape_manual(values=c(22:23))+
-  ggtitle("Dry Condition")
-Fig3
+  theme(panel.grid = element_blank())+
+  theme(legend.text = element_text(size=16))+
+  theme(legend.key.size=unit(1,"cm"))+
+  theme(axis.title.y=element_text(margin=margin(r=5)))+
+  theme(axis.title.x=element_text(margin=margin(t=10)))
 
 
-ggplot(dry,aes(x=percent,y=kavg))+
-  geom_point()+theme_classic()+
-  ggtitle("Dry weight")
-
-
-xyplot(kavg~percent|size,data=dry,
-       xlab="Ration",
-       ylab="Condition Factor (K)")
-
-dry.m1<-lm(kavg~percent*size,data=dry)
-summary(dry.m1)
-
-dry.m2<-lm(kavg~percent+size,data=dry)
-summary(dry.m2)
-
-plot(dry.m2)
-
-TukeyHSD(dry.m2)
+limitse.dryK<-aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se)
+K2.2%>%
+  rename(Size=size)%>%
+  ggplot(aes(x=percent_adj,y=delta.dry,fill=Size))+
+  geom_errorbar(aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se),
+                width=0,
+                position=position_dodge(width=0.25))+
+  geom_point(aes(shape=Size,fill=Size),
+             position=position_dodge(width = 0.25))+
+  theme_bw(base_rect_size = 1)+
+  ylab(expression(Delta *"Fulton's K"))+xlab("Food ration (% body weight)")+
+  scale_fill_manual(values=c('grey0','grey64'))+
+  scale_shape_manual(values=c(22:25))+
+  theme(panel.grid=element_blank())+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
 
 # Wet condition factor
 
-wet<-fishcond%>%
-  select(tank,size,ration,kwet)%>%
-  filter(tank>0)%>%
-  group_by(tank,size,ration)%>%
-  summarise(kavg=mean(kwet),sd=sd(kwet),se=sd/sqrt(n()))%>%
-  ungroup()%>%
-  data.frame()
+w.m1<-lm(wet~percent*size,data=finalK)
+w.m1
+summary(w.m1)
+plot(w.m1)
+hist(resid(w.m1))
+qqnorm(resid(w.m1))
+Anova(w.m1,type = "III")
 
-Fig3.1<-ggplot(wet,aes(x=ration,kavg,fill=size))+
-  geom_boxplot(position='dodge')+
-  theme_bw()+
-  xlab("Ration")+
-  ylab("Condition factor (K)")+
-  ggtitle("Condition factor (K) - wet weight")+
-  theme(axis.title=element_text(size=14))+
-  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
-  theme(legend.key=element_blank())
+#GLMM
+w.m2<-glm(wet~percent*size,data=finalK,
+            family = Gamma(link = "log"))
+plot(w.m2)
+hist(resid(w.m2))
+qqnorm(resid(w.m2))
 
-dry.m1<-lm(kavg~ration*size,data=dry)
-summary(dry.m1)
-
-dry.m2<-lm(kavg~ration+size,data=dry)
-summary(dry.m2)
-
-plot(dry.m2)
-
-
-
+#use dry condition for results (proven to be more reliaable)
 
 # ----- Day 0 HSI -------
 d0HSI<-day0%>%
@@ -456,170 +560,375 @@ day0%>%
   group_by(size)%>%
   summarise(mean=mean(HSI))
 
-#HSI
-hsi<-fishcond%>%
-  select(tank,size,percent,HSI,ration)%>%
-  filter(tank>0)%>%
-  group_by(tank,size,percent,ration)%>%
-  summarise(HSIavg=mean(HSI),sd=sd(HSI),se=sd/sqrt(n()))%>%
-  ungroup()%>%
-  data.frame() 
+# ---- HSI -----
 
-hsi$size<-relevel(hsi$size,"small")
-levels(hsi$size)
-
-hsi_large<-hsi%>%
-  filter(size=="large")%>%
-  mutate(percent_adj=percent+0.1)%>%
-  data.frame()
-
-hsi_small<-hsi%>%
-  filter(size=="small")%>%
-  mutate(percent_adj=percent-0.1)%>%
-  data.frame()
-
-hsi_adjusted<-bind_rows(hsi_large,hsi_small)
-
-
-Fig4<-ggplot(hsi_adjusted,aes(x=percent_adj,y=HSIavg,shape=size))+
-  geom_pointrange(aes(shape=size,fill=size,ymin=HSIavg-se,ymax=HSIavg+se),size=1)+
-  theme_classic()+
-  xlab("Food ration (% body weight)")+
-  ylab("HSI")+
-  ggtitle("Hepatosomatic Index")+
-  theme(axis.title=element_text(size=22,face='bold'))+
-  theme(legend.key=element_blank())+
-  theme(axis.text.x=element_text(size=20,face='bold'))+
-  theme(axis.text.y=element_text(size=20,face='bold'))+
-  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
-  theme(legend.title=element_text(size=18))+
-  theme(legend.position=c(0.9,0.9))+
-  scale_fill_manual(values=c('grey0','grey64'))+
-  scale_shape_manual(values=c(22:23))
-Fig4
-
-Fig4.1<-ggplot(hsi,aes(x=ration,y=HSIavg,fill=size))+
-  geom_boxplot(position='dodge')+
-  xlab("Ration")+
-  ylab("HSI")+
-  ggtitle("Hepatosomatic Index")+
-  theme_bw()+
-  theme(axis.title=element_text(size=14))+
-  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
-  theme(legend.key=element_blank())
-
-hsi.m1<-lm(HSIavg~percent*size,data=hsi)
-summary(hsi.m1)
+hsi.m1<-lm(hsi~0+ration+size,data=finalK)
+hsi.m1
 plot(hsi.m1)
+summary(hsi.m1)
+
+hist(resid(hsi.m1))
+qqnorm(resid(hsi.m1))
+Anova(hsi.m1,type = "III")
+
+ggplot(finalK,aes(x=ration,y=hsi,colour=size))+
+  geom_point(position='dodge')+
+  xlab("Ration")+
+  ylab("HSI")
+
+ggplot(finalK,aes(x=size,y=hsi,colour=ration))+
+  geom_boxplot()
+
+
+# Evaluate the change in hsi
+deltaHSI<-finalK%>%
+  mutate(change=1.49)%>%
+  mutate(change=replace(change,size=='small',0.868))%>%
+  mutate(dHSI=hsi-change)
+head(deltaHSI)
+
+hsi.m2<-lm(dHSI~0+ration+size,data=deltaHSI)
+plot(hsi.m2)
+hist(resid(hsi.m2))
+summary(hsi.m2)
+Anova(hsi.m2,type="III")
+
+deltaHSI%>%
+  group_by(size,ration)%>%
+  summarise(mean(dHSI),se=sd(dHSI)/sqrt(n()))
+ggplot(deltaHSI,aes(x=size,y=dHSI,colour=ration))+
+  geom_boxplot()
+ggplot(deltaHSI,aes(x=size,y=dHSI,colour=ration))+
+  geom_point(position='dodge')
+
+levels(deltaHSI$size)
+deltaHSI$size<-fct_relevel(deltaHSI$size,"small","large")
+
+deltaHSI%>%
+  rename(Ration=ration)%>%
+  ggplot(aes(x=size,y=dHSI,fill=Ration))+
+  geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
+  geom_boxplot(colour='black')+
+  scale_fill_manual(values=c('grey30','grey50','grey70','grey90'))+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab(expression(Delta*'HSI'))+xlab('Size class')+
+  theme(axis.text.x = element_text(size=12))+
+  theme(axis.title = element_text(size=12.5))
+finalK%>%
+  rename(Ration=ration)%>%
+  ggplot(aes(x=Ration,y=hsi,fill=size))+
+  geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
+  geom_boxplot()+
+  scale_fill_manual(values=c('grey30','grey50','grey70','grey90'))+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab(expression(Delta*'HSI'))+xlab('Size class')+
+  theme(axis.text.x = element_text(size=12))+
+  theme(axis.title = element_text(size=12.5))
+
+hsiA<-deltaHSI%>%
+  filter(size=='small')%>%
+  ggplot(aes(x=as.factor(percent),y=dHSI))+
+  geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
+  geom_boxplot(colour='black',fill='grey90')+
+  geom_jitter(aes(x=as.factor(percent),y=dHSI,colour=ration),width=0.25)+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab(expression(Delta*'HSI'))+xlab('Food ration (% body weight)')+
+  scale_colour_manual(values=c('grey1','grey22','grey40','grey60'))+
+  theme(legend.position = 'none')+
+  ylim(-0.6,0.7)+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
+
+hsiB<-deltaHSI%>%
+  filter(size=='large')%>%
+  ggplot(aes(x=as.factor(percent),y=dHSI))+
+  geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
+  geom_boxplot(colour='black',fill='grey90')+
+  geom_jitter(aes(x=as.factor(percent),y=dHSI,colour=ration),width=0.25)+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab(expression(Delta*'HSI'))+xlab('Food ration (% body weight)')+
+  scale_colour_manual(values=c('grey1','grey22','grey40','grey60'))+
+  theme(legend.position = 'none')+
+  ylim(-0.6,0.7)+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
+
+
+ggarrange(hsiA,hsiB+theme(axis.title.y=element_text(colour='white')), labels=c("Small","Large"),ncol=2,nrow=1)
+
+# hsi.m1! figure out how to interpret the interaction!
 
 # ---- Survival -----
 
 #Cacluate survival rate by tank
 #group by treatment with st.error
-survival<-tank_survival%>%
-  group_by(tank,julian_date)%>%
-  mutate(survival=(number/9)*100)%>%
-  group_by(size,trt,julian_date)%>%
-  summarise(avg_surv=mean(survival),
-            se_surv=sd(survival)/sqrt(n()))
+#survival<-tank_survival%>%
+#  group_by(tank,julian_date)%>%
+#  mutate(survival=(number/9))%>%
+#  ungroup()%>%
+#  group_by(tank,size,ration,julian_date)%>%
+#  summarise(perc_surv=mean(survival))%>%
+#  filter(perc_surv!=0)
 
-
-
-#create dataframe with tank averages
-tanksurvival<-tank_survival%>%
-  group_by(tank,julian_date)%>%
-  mutate(survival=(number/9)*100)%>%
-  group_by(tank,size,ration,julian_date)%>%
-  summarise(avg_surv=mean(survival),
-            se_surv=sd(survival)/sqrt(n()))
-
-tank_by_trt<-tanksurvival%>%
-  group_by(julian_date,ration,size)%>%
-  summarise(surv=mean(avg_surv),se=sd(avg_surv)/sqrt(n()))%>%
-  data.frame()
-
-#create new data frames divided by size
-mort_small<-tank_by_trt%>%
+# Visualize data
+survival%>%
   filter(size=="small")%>%
-  as.data.frame()
-
-mort_large<-tank_by_trt%>%
+  ggplot(aes(x=julian_date,y=exp_surv,linetype=ration))+geom_smooth()
+survival%>%
   filter(size=="large")%>%
-  as.data.frame()
+  ggplot(aes(x=julian_date,y=exp_surv,linetype=ration))+geom_smooth()
+
+# ----- survival models ----
+
+# GLS
+s.m1<-gls(exp_surv~size*ration*julian_date,data=survival)
+plot(s.m1)
+
+s.m2<-lm(exp_surv~size*ration*julian_date,data=survival)
+plot(s.m2)
+
+s.m3<-glm(exp_surv~size*ration*julian_date,data=survival,family=Gamma(link="log"))
+plot(s.m3)
+glimpse(survival)
+
+s.m4<-glmer(exp_surv~size*ration*julian_date+(1|julian_date),
+            family=Gamma(link="log"),data=survival)
+plot(s.m4)
 
 
+# split into increments of 30 days
+# survival at day 20, 40, 60, 80
+S<-survival%>%
+  filter(julian_date==0 | julian_date==23 | 
+           julian_date==46 | 
+           julian_date ==69| julian_date == 114)%>%
+  mutate(percent=0.0)%>%
+  mutate(percent=replace(percent,ration=="0.5%",0.5))%>%
+  mutate(percent=replace(percent,ration=="1.0%",1.0))%>%
+  mutate(percent=replace(percent,ration=="2.0%",2.0))
+typeof(S$julian_date)
+S$julian_date<-as.factor(S$julian_date)
 
-#plot without model
+s.m5<-lm(exp_surv~ration+size+factor(julian_date),data=S)
+plot(s.m5)
+hist(resid(s.m5))
 
-mortality_small<-ggplot(data=mort_small, aes(x=julian_date, y=surv,linetype=ration,col=ration))+
-  geom_smooth(size=1.5,se=FALSE)+
-  theme_classic()+
-  xlab("Day of Experiment")+ylab("% Survival")+
-  ggtitle("Survival of small group")+
-  ylim(0,105)+
-  theme(legend.position=c(0.9,0.19))+
-  theme(plot.title=element_text(size=20,face='bold'))+
-  theme(axis.text.x=element_text(size=16,face='bold'))+
-  theme(axis.text.y=element_text(size=16,face='bold'))+
+qqnorm(resid(s.m5))
+Anova(s.m5,type = "III")
+
+s.m6<-glm(exp_surv~ration+size+factor(julian_date),data=S,
+          family=Gamma(link = "log"))
+plot(s.m6)
+hist(resid(s.m6))
+Anova(s.m6,type="III")
+
+S<-survival%>%
+  filter(julian_date==0 | julian_date==30 | 
+           julian_date==60 | 
+           julian_date ==90| julian_date == 114)%>%
+  mutate(percent=0.0)%>%
+  mutate(percent=replace(percent,ration=="0.5%",0.5))%>%
+  mutate(percent=replace(percent,ration=="1.0%",1.0))%>%
+  mutate(percent=replace(percent,ration=="2.0%",2.0))
+typeof(S$julian_date)
+S$julian_date<-as.factor(S$julian_date)
+
+s.m5<-lm(exp_surv~ration+size+factor(julian_date),data=S)
+plot(s.m5)
+hist(resid(s.m5))
+qqnorm(resid(s.m5))
+Anova(s.m5,type = "III")
+
+s.m6<-glm(exp_surv~ration+size+factor(julian_date),data=S,
+          family = Gamma(link = "log"))
+plot(s.m6)
+hist(resid(s.m6))
+survival%>%
+  filter(size=="small")%>%
+  rename(Ration=ration)%>%
+  ggplot()+
+  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration),size=1.5,se=FALSE)+
+  theme_bw(base_rect_size = 2)+
+  ylab("% Survival")+xlab("Day of experiment")+
+  theme(axis.text.x=element_text(size=20,face='bold'))+
+  theme(axis.text.y=element_text(size=20,face='bold'))+
   theme(legend.title=element_text(size=16,face='bold'))+
-  theme(axis.title=element_text(size=18,face='bold'))+
-  scale_x_continuous(breaks=NULL)+xlim(-.5,120)+
-  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))
-mortality_small
+  theme(axis.title=element_text(size=20))+
+  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
+  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
+  scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
+  scale_shape_manual(values=c(22:25))+
+  theme(panel.grid=element_blank())+
+  theme(legend.text = element_text(size=16))+
+  theme(plot.margin = unit(c(0.75,0.75,0.75,0.75),"cm"))+
+  theme(legend.position=c(0.85,0.26))+
+  ylim(0,102)
 
-mortality_large<-ggplot(data=mort_large,aes(x=julian_date,y=surv,colour=ration,linetype=ration))+
-  geom_smooth(size=1.5,se=FALSE)+
-  theme_classic()+
-  xlab("Day of Experiment")+ylab("% Survival")+
-  ggtitle("Survival of large group")+
-  theme(plot.title=element_text(size=20,face='bold'))+
-  theme(axis.text.x=element_text(size=16,face='bold'))+
-  theme(axis.text.y=element_text(size=16,face='bold'))+
+survival%>%
+  filter(size=="large")%>%
+  rename(Ration=ration)%>%
+  ggplot()+
+  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration),size=1.5,se=FALSE)+
+  theme_bw(base_rect_size = 2)+
+  ylab("% Survival")+xlab("Day of experiment")+
+  theme(axis.text.x=element_text(size=20,face='bold'))+
+  theme(axis.text.y=element_text(size=20,face='bold'))+
   theme(legend.title=element_text(size=16,face='bold'))+
-  theme(axis.title=element_text(size=18,face='bold'))+
-  ylim(0,105)+
-  theme(legend.position=c(0.9,.19))+
-  theme(legend.key=element_blank())+
-  scale_x_continuous(breaks=NULL)+xlim(-.5,120)+
-  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))
-mortality_large
+  theme(axis.title=element_text(size=20))+
+  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
+  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
+  scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
+  scale_shape_manual(values=c(22:25))+
+  theme(panel.grid=element_blank())+
+  theme(legend.text = element_text(size=16))+
+  theme(plot.margin = unit(c(0.75,0.75,0.75,0.75),"cm"))+
+  theme(legend.position=c(0.85,0.26))+
+  ylim(0,102)
 
-summarise(tempdata,min=min(temperature),max=max(temperature))
+# --- Survival manuscript figures ----
+SA<-survival%>%
+  filter(size=="small")%>%
+  rename(Ration=ration)%>%
+  ggplot()+
+  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),size=1.5,se=FALSE)+
+  theme_bw()+
+  ylab("% Survival")+xlab("Day of experiment")+
+  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
+  scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
+  theme(panel.grid=element_blank())+
+  ylim(0,102)+xlim(0,125)+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
+
+SB<-survival%>%
+  filter(size=="large")%>%
+  rename(Ration=ration)%>%
+  ggplot()+
+  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),se=FALSE,size=1.5)+
+  theme_bw()+
+  ylab("% Survival")+xlab("Day of experiment")+
+  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
+  scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
+  theme(panel.grid=element_blank())+
+  ylim(0,102)+xlim(0,125)+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
+
+ggarrange(SA,SB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
+          common.legend=TRUE,legend='top')
+
+ggarrange(SA+theme(axis.title=element_text(size=22,face='bold'))+
+            theme(axis.text = element_text(size=22,face='bold'))+
+            theme(legend.title = element_text(size=20,face='bold'))+
+            theme(legend.text = element_text(size=20)),
+          SB+theme(axis.title.y=element_text(colour='white'))+
+            theme(axis.title = element_text(size=22,face='bold'))+
+            theme(axis.text = element_text(size=22,face='bold'))+
+            theme(legend.title = element_text(size=20,face='bold'))+
+            theme(legend.text = element_text(size=20)),
+          ncol=2,nrow=1,
+          common.legend=TRUE,legend='top')
 
 
+tank_survival$date<-ymd(paste(tank_survival$year,tank_survival$month,tank_survival$day,sep="-"))
+tank_survival$julian_date<-yday(tank_survival$date)
+survival2<-tank_survival%>%
+  group_by(julian_date,ration,size)%>%
+  summarise(alive=sum(number))%>%
+  mutate(start=NA)%>%
+  mutate(start=replace(start,size=="large",54))%>%
+  mutate(start=replace9(start,size=="small"))
+View(survival2)
 
 # ---- Growth ------
 sgrsum<-lw%>%
   filter(julian_date>0)%>%
-  group_by(tank,size,percent)%>%
+  group_by(tank,size,ration,percent)%>%
   summarise(sgr_length=mean(sgr_sl),sgr_sd_sl=sd(sgr_sl),sgr_se_sl=sgr_sd_sl/sqrt(n()),
             sgr_weight=mean(sgr_w),sgr_sd_w=sd(sgr_sl),sgr_se_w=sgr_sd_w/sqrt(n()))%>%
   data.frame()
 
+sgr_all<-lw%>%
+  filter(julian_date>0)
 
-sgrsum$size<-relevel(sgrsum$size,"small")
-levels(sgrsum$size)
+ggplot(data=sgr_all,aes(x=percent,y=sgr_w,colour=size))+geom_point()
 
-sgrlarge<-sgrsum%>%
-  filter(size=="large")%>%
-  mutate(percent_adj=percent+0.1)%>%
-  data.frame()
+#---- SGR Models -----
+# weight
+sgrw.m1<-lm(sgr_w~ration*size,data=sgr_all)
 
-sgrsmall<-sgrsum%>%
-  filter(size=="small")%>%
-  mutate(percent_adj=percent-0.1)%>%
-  data.frame()
+plot(sgrw.m1)
+hist(resid(sgrw.m1))
+qqnorm(resid(sgrw.m1))
+Anova(sgrw.m1,type="III")
 
-sgr_adjusted<-bind_rows(sgrlarge,sgrsmall)
+sgrw.m2<-lm(sgr_w~0+ration+size,data=sgr_all)
+plot(sgrw.m2)
+hist(resid(sgrw.m2))
+Anova(sgrw.m2,type="III")
+summary(sgrw.m2)
+
+sgrw.m3<-lm(sgr_w~0+ration,data=sgr_all)
+plot(sgrw.m3)
+hist(resid(sgrw.m3))
+Anova(sgrw.m3,type="III")
+summary(sgrw.m3)
+
+exp(logLik(sgrw.m1))
+exp(logLik(sgrw.m2))
+exp(logLik(sgrw.m3))
+
+dfsubset<-sgr_all%>%filter(ration!="0.0%")
+sgrw.m4<-lm(sgr_w~ration+size,data=dfsubset)
+plot(sgrw.m4)
+Anova(sgrw.m4,type="III")
+summary(sgrw.m4)
+
+# Length
+sgrl.m1<-lm(sgr_sl~ration*size,data=sgr_all)
+sgrl.m1
+summary(sgrl.m1)
+plot(sgrl.m1)
+Anova(sgrl.m1,type="III")
+
+# take out size
+sgrl.m2<-lm(sgr_sl~0+ration+size,data=sgr_all)
+
+plot(sgrl.m2)
+hist(resid(sgrl.m2))
+Anova(sgrl.m2,type="III")
+summary(sgrl.m2)
+
+
+
+
+# model 2 is better!
+
 
 #when size=large, add .1 to percent
 #when size=small, subtract .1 from percent
 
-Fig5<-ggplot(sgr_adjusted,aes(x=percent_adj,sgr_weight,fill=size))+
+ggplot(weight,aes(x=percent_adj,y=sgr_weight,fill=size))+
   geom_pointrange(aes(shape=size,ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),size=.75)+
   theme_classic()+
   ggtitle("SGR: Weight")+
-  ylab("SGR")+xlab("Ration (% body weight)")+
+  ylab("Specifci growth rate")+xlab("Ration (% body weight)")+
   theme(axis.title=element_text(size=20))+
   theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
   theme(legend.key=element_blank())+
@@ -629,45 +938,129 @@ Fig5<-ggplot(sgr_adjusted,aes(x=percent_adj,sgr_weight,fill=size))+
   theme(legend.position=c(0.9,0.15))+
   scale_fill_manual(values=c('grey0','grey64'))+
   scale_shape_manual(values=c(22:23))
-Fig5
 
-Fig6<-ggplot(sgr_adjusted,aes(x=percent_adj,sgr_length,fill=size))+
-  geom_pointrange(aes(shape=size,ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),size=.75)+
-  theme_classic()+
-  ggtitle("SGR: Length")+
-  ylab("SGR")+xlab("Ration (% body weight)")+
+
+sgrlarge<-sgrsum%>%
+  filter(size=="large")%>%
+  mutate(percent_adj=percent+0.05)%>%
+  data.frame()
+
+sgrsmall<-sgrsum%>%
+  filter(size=="small")%>%
+  mutate(percent_adj=percent-0.05)%>%
+  data.frame()
+
+sgr_adjusted<-bind_rows(sgrlarge,sgrsmall)
+write.csv(sgr_adjusted,'./data/data-working/sgr.csv',row.names=FALSE)
+sgr_adjusted2<-read.csv('./data/data-working/sgr2.csv')
+w<-sgr_adjusted2%>%
+  rename(Size=size)%>%
+  ggplot(aes(x=percent_adj,sgr_weight,fill=Size))+
+  geom_hline(yintercept=0,linetype='dashed',colour='red',size=1)+
+  geom_smooth(aes(x=percent,y=sgr_weight,linetype=Size),se=FALSE,colour='grey1')+
+  geom_pointrange(aes(shape=Size,ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),size=.5)+
+  theme_bw(base_rect_size = 2)+
+  xlab("Food ration (% body weight)")+ylab("Specific growth rate")+
   theme(axis.title=element_text(size=20))+
+  theme(legend.key=element_blank())+
   theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
   theme(axis.text.x=element_text(size=20,face='bold'))+
   theme(axis.text.y=element_text(size=20,face='bold'))+
-  theme(legend.title=element_text(size=18, face='bold'))+
-  theme(legend.position=c(0.9,0.15))+
+  theme(legend.title=element_text(size=18,face='bold'))+
+  theme(legend.position=c(0.85,0.23))+
   scale_fill_manual(values=c('grey0','grey64'))+
-  scale_shape_manual(values=c(22:23))
-Fig6
+  scale_shape_manual(values=c(22:23))+
+  theme(panel.grid = element_blank())+
+  theme(legend.text = element_text(size=14))+
+  theme(legend.key.size=unit(.8,"cm"))+
+  ggtitle('Weight')+
+  theme(plot.title = element_text(size=24,face='bold',hjust=0.5))+
+  theme(axis.title.y=element_text(margin=margin(r=5)))
 
-weight.m1<-lm(sgr_w~ration*size,data=lw)
-summary(weight.m1)
-par(mfrow=c(2,2))
-plot(weight.m1)
+l<-sgr_adjusted2%>%
+  rename(Size=size)%>%
+  ggplot(aes(x=percent_adj,sgr_length,fill=Size))+
+  geom_hline(yintercept=0,linetype='dashed',colour='red',size=1)+
+  geom_smooth(aes(x=percent,y=sgr_length,linetype=Size),se=FALSE,colour='grey1')+
+  geom_pointrange(aes(shape=Size,ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),size=.5)+
+  theme_bw(base_rect_size = 2)+
+  xlab("Food ration (% body weight)")+ylab("SGR")+
+  theme(axis.title=element_text(size=20,face='bold'))+
+  theme(legend.key=element_blank())+
+  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
+  theme(axis.text.x=element_text(size=20,face='bold'))+
+  theme(axis.text.y=element_text(size=20,face='bold'))+
+  theme(legend.title=element_text(size=18,face='bold'))+
+  theme(legend.position=c(0.8,0.23))+
+  scale_fill_manual(values=c('grey0','grey64'))+
+  scale_shape_manual(values=c(22:23))+
+  theme(panel.grid = element_blank())+
+  theme(legend.text = element_text(size=14))+
+  theme(legend.key.size=unit(.8,"cm"))+
+  ggtitle("Length")+
+  theme(plot.title = element_text(size=24,face='bold',hjust=0.5))+
+  theme(axis.title.x=element_text(margin=margin(t=20)))+
+  theme(axis.title.y=element_text(margin=margin(r=5)))
+ggarrange(w+theme(legend.position = 'none')+theme(axis.title.x = element_blank()),
+          l+theme(axis.title.y=element_text(colour='white'))+theme(axis.title.x=element_blank()),
+          ncol=2,nrow=1)
 
-weight.m2<-lm(sgr_w~ration+size,data=lw)
-summary(weight.m2)
-plot(weight.m2)
+W<-sgr_adjusted2%>%
+  rename(Size=size)%>%
+  ggplot(aes(x=percent_adj,y=sgr_weight,fill=Size))+
+  geom_errorbar(aes(ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),
+                width=0,
+                position=position_dodge(width=0.25))+
+  geom_point(aes(shape=Size,fill=Size),
+             position=position_dodge(width = 0.25))+
+  theme_bw(base_rect_size = 1)+
+  ylab("Specific growth rate (grams · "~day^-1*")")+xlab("Food ration (% body weight)")+
+  scale_fill_manual(values=c('grey0','grey64'))+
+  scale_shape_manual(values=c(22:25))+
+  theme(panel.grid=element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
+
+L<-sgr_adjusted2%>%
+  rename(Size=size)%>%
+  ggplot(aes(x=percent_adj,y=sgr_length,fill=Size))+
+  geom_errorbar(aes(ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),
+                width=0,
+                position=position_dodge(width=0.25))+
+  geom_point(aes(shape=Size,fill=Size),
+             position=position_dodge(width = 0.25))+
+  theme_bw(base_rect_size = 1)+
+  ylab("Specific growth rate (mm · "~day^-1*")")+xlab("Food ration (% body weight)")+
+  scale_fill_manual(values=c('grey0','grey64'))+
+  scale_shape_manual(values=c(22:25))+
+  theme(panel.grid=element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
+
+ggarrange(W,L, labels=c("A","B"),ncol=2,nrow=1,
+          common.legend=TRUE,legend='top')
 
 
+table4<-sgr_adjusted%>%
+  group_by(ration,size)%>%
+  summarise(mean(sgr_weight),se=sd(sgr_weight/sqrt(n())),
+            mean(sgr_length),se=sd(sgr_length/sqrt(n())))
+table4.2<-sgr_adjusted%>%
+  group_by(ration)%>%
+  summarise(mean(sgr_weight),sew=sd(sgr_weight/sqrt(n())),
+            mean(sgr_length),sel=sd(sgr_length/sqrt(n())))
 
-length.m1<-lm(sgr_sl~ration*size,data=lw)
-summary(length.m1)
-plot(length.m1)
-
-length.m2<-lm(sgr_sl~ration+size,data=lw)
-summary(length.m2)
-plot(length.m2)
-
-
-
-
+sgr_adjusted%>%
+  filter(ration!="0.0%")%>%
+  summarise(m.w=mean(sgr_weight),m.sl=mean(sgr_length),
+         se.w=sd(sgr_weight)/sqrt(n()),
+         se.sl=sd(sgr_length)/sqrt(n()))
 #Relative Rate of increase
 names(lw)
 lw2<-length_weight%>%
@@ -692,81 +1085,3 @@ plot(weight.m1)
 RRIlenght.m1<-lm(RRI_length~julian_date*ration+size,data=RRI)
 summary(RRIlenght.m1)
 plot(RRIlenght.m1)
-
-# ---- daily growth rate ----
-tank36<-filter(length_weight,tank==36)
-
-growth<-mutate(length_weight,julian_date=replace(julian_date,julian_date>364,0))
-
-
-length_weight$tank<-as.factor(length_weight$tank)
-ggplot(tank36,aes(x=julian_date,y=length_mm))+
-  stat_smooth_func(geom="text",method="lm",hjust=-0.5,vjust=-4,parse=TRUE)+
-  geom_smooth(method='lm')+
-  geom_point()
-
-# plot in loop
-
-growth.graph<-function(growth,na.rm=TRUE, ...){
-  
-  tank_list<-unique(growth$tank)
-  
-  for (i in seq_along(tank_list)) {
-    plot<-ggplot(subset(growth,growth$tank==tank_list[i]),
-                 aes(x=julian_date,y=length_mm,group=tank))+
-      stat_smooth_func(geom="text",method="lm",hjust=-0.5,vjust=-4,parse=TRUE)+
-      geom_smooth(method='lm')+
-      geom_point()+
-      theme_bw()+
-      ggtitle(paste('tank',tank_list[i]))
-    print(plot)
-  }
-}
-growth.graph(growth)
-
-# Tank averages
-growth2<-growth%>%
-  group_by(tank,julian_date,size,ration)%>%
-  summarise(sl=mean(length_mm),sd=sd(length_mm),se=sd/sqrt(n()))%>%
-  ungroup()%>%
-  data.frame()
-
-ggplot(growth2,aes(x=julian_date,y=sl,colour=ration,shape=size))+geom_point()
-growth2%>%
-  filter(tank==1)%>%
-  ggplot(aes(x=julian_date,y=sl,colour=ration,shape=size))+
-  geom_pointrange(aes(ymin=sl-se,ymax=sl+se),size=.75)
-
-growth2%>%
-  filter(ration=="1.0%")%>%
-  filter(size=="small")%>%
-  ggplot(aes(x=julian_date,y=sl,shape=size))+
-  geom_pointrange(aes(ymin=sl-se,ymax=sl+se),size=.75)
-
-# all plots grouped by tank
-growth2.graph<-function(growth2,na.rm=TRUE, ...){
-  
-  tank_list<-unique(growth$tank)
-  
-  for (i in seq_along(tank_list)) {
-    plot<-ggplot(subset(growth2,growth2$tank==tank_list[i]),
-                 aes(x=julian_date,y=sl,group=tank))+
-      geom_pointrange(aes(ymin=sl-se,ymax=sl+se),size=.75)+
-      stat_smooth_func(geom="text",method="lm",hjust=-0.5,vjust=-4,parse=TRUE)+
-      geom_smooth(method='lm')+
-      geom_point()+
-      theme_bw()+
-      ggtitle(paste('tank',tank_list[i]))
-    print(plot)
-  }
-}
-growth2.graph(growth2)
-
-
-### summary of daily growth rate
-exp_growth<-read.csv("experiment_growth.csv")
-sum_table<-exp_growth%>%
-  group_by(ration,size)%>%
-  summarise(avg=mean(rate),sd=sd(rate))%>%
-  ungroup()%>%
-  data.frame()
