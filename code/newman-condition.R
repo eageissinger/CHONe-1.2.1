@@ -18,6 +18,7 @@ library(car)
 library(corrplot)
 library(glmmTMB)
 library(lme4)
+library(mgcv)
 
 # ---- load data ----
 condition<-read.csv("./data/data-working/condition-newman.csv")
@@ -26,6 +27,7 @@ trips<-read.csv("./data/data-working/newman-trips.csv")
 winter<-read.csv("./data/data-working/newman-winter-summary.csv")
 catch_haul<-read.csv("./data/data-working/catch_haul.csv")
 pulse_range0<-read.csv("./data/data-working/pulse_range_age0_final.csv")
+count.data<-read.csv("./data/data-working/newman-catch.csv")
 
 # ----- abundance data -----
 abund<-catch_haul%>%
@@ -37,6 +39,16 @@ abund<-catch_haul%>%
   mutate(weight.count=count*weight)%>%
   mutate(count.adj=round(weight.count))%>%
   select(-pulse1)
+
+summary(count.data)
+count.data1<-count.data%>%
+  filter(age==1)%>%
+  mutate(cohort=year-1)
+count.data0<-count.data%>%
+  filter(age==0)%>%
+  mutate(cohort=year)
+count.data<-bind_rows(count.data0,count.data1)
+  
 
 # ----- condition data -----
 
@@ -163,6 +175,18 @@ cond_all<-left_join(cond_all,winter)
 names(cond_all)
 head(cond_all)
 str(cond_all)
+
+testpre<-cond_all%>%
+  filter(month==10 | month == 11)%>%
+  rename(preK=fulton,preCount=count.adj,preMonth=month)%>%
+  select(cohort,preMonth,pulse,num_hauls,count,days_below_1,mean_temp,preK,preCount)
+testpost<-cond_all%>%
+  filter(month == 5 | month == 7)%>%
+  rename(postK=fulton,postCount=count.adj,postMonth=month)%>%
+  select(cohort,postMonth,pulse,num_hauls,count,days_below_1,mean_temp,postK,postCount)
+
+cond.rev<-right_join(testpre,testpost,by=c('cohort','pulse'))
+  
 #cond_all<-cond_all%>%
  # filter(!is.na(pulse))
 # creat pre and post condition, and initial and final abundance
@@ -195,32 +219,46 @@ dim(postwinter)
 alldata<-left_join(prewinter,postwinter)
 alldata<-alldata%>%
   mutate(postCount=replace(postCount,is.na(postCount),0))
+  
 head(alldata)
 
 # ---- model ----
 # October and July model
 summary(alldata)
 str(alldata)
-alldata<-alldata%>%filter(pulse!=4)
 
-# raw count
-m0<-glm(postCount~factor(pulse)+preCount+preK+postK+mean_temp+cohort,
-        offset = num_hauls,data=alldata,family="poisson")
-m0
-hist(resid(m0))
-plot(m0)
-summary(m0)
+# GLM: Bionomial
 
-m1<-glm(cbind(postCount,preCount)~cohort+factor(pulse)+preK+postK+mean_temp,
-        offset=num_hauls,data=alldata,family="binomial")
-logLik(m1)
+m1<-glm(cbind(postCount,preCount)~factor(pulse)+preK+postK+mean_temp+cohort+offset(num_hauls),
+        data=alldata,family=binomial)
+plot(m1)
+hist(resid(m1))
 exp(logLik(m1))
 
-m1
-hist(resid(m1))
-plot(m1)
-summary(m1)
-Anova(m1,type="III")
+
+# GLM Poisson
+m2<-glm(postCount~preCount+factor(pulse)+preK+postK+mean_temp+cohort+offset(num_hauls),
+        data=alldata,family=poisson)
+
+plot(m2)
+hist(resid(m2))
+exp(logLik(m2))
+
+m3<-glm.nb(postCount~preCount+factor(pulse)+preK+postK+mean_temp+cohort+offset(num_hauls),
+           data=alldata)
+plot(m3)
+hist(resid(m3))
+exp(logLik(m3))
+
+#GLMM Poisson
+m4<-glmer(cbind(postCount,preCount)~factor(pulse)+preK+postK+mean_temp+(1|cohort)+offset(num_hauls),
+          data=alldata,family=binomial)
+
+m5<-glmer(postCount~preCount+factor(pulse)+preK+postK+mean_temp+(1|cohort)+offset(num_hauls),
+          data=alldata,family=poisson)
+
+m6<-glmer.nb(postCount~preCount+factor(pulse)+preK+postK+mean_temp+(1|cohort)+offset(num_hauls),
+          data=alldata)
 
 # Liklihood is zero. back to drawing board
 # deal with temporal autocorrelation?
@@ -229,22 +267,28 @@ Anova(m1,type="III")
 
 
 
+str(alldata)
 #---- collinearity check ----
-mydata$cohort<-as.numeric(mydata$cohort)
-mydata$pulse<-as.numeric(mydata$pulse)
-mydata<-mydata%>%select(-ratio)
-mat1<-as.matrix(mydata)
-cor1<-cor.mtest(mydata)
-corrplot(cor(mydata),method="shade",shade.col=NA,tl.col="black", tl.srt=45)
+df<-alldata%>%
+  select(cohort,postCount,preCount,pulse)
+mat1<-as.matrix(df)
+cor1<-cor.mtest(df)
+corrplot(cor(df),method="shade",shade.col=NA,tl.col="black", tl.srt=45)
 
-# ---- mixed effect model -----
-mix1<-lmer(postCount~preCount+preK+factor(pulse)+days_below_1+(1|cohort),data = mydata)
-plot(mix1)
+plot(alldata$cohort,alldata$preCount)
 
-#GLMM
-mix2<-glmer(postCount~preK+factor(pulse)+days_below_1+(1|cohort),
-            data=mydata,family = poisson(link = "logit"))
 
-mix3<-glmer.nb(postCount~preCount+preK+factor(pulse)+days_below_1+(1|cohort),
-               data=mydata,family=binomial(link = "log"))
+# GAM
 
+gam1<-gam(cbind(postCount,preCount)~factor(pulse)+s(mean_temp)+(cbind(postK,preK))+(cohort)+
+            offset(num_hauls),data=alldata,family=binomial)
+
+plot(gam1)
+hist(resid(gam1))
+exp(logLik(gam1))
+summary(gam1)
+plot(gam1,pages=1,residuals=TRUE)
+plot(gam1,pages=1,seWithMean=TRUE)
+gam.check(gam1)
+gam2<-gamm(cbind(postCount,preCount)~factor(pulse)+s(mean_temp)+postK+preK+s(cohort)+offset(num_hauls),
+           random = cohort, family=binomial,data=alldata)
