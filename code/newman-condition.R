@@ -160,18 +160,38 @@ abund2<-abund%>%filter(age>1)
 abund<-bind_rows(abund0,abund1,abundNA,abund2)
 
 abundance<-abund%>%
-  filter(cohort>1998 & cohort<2017)
+  filter(cohort>1998 & cohort<2017)%>%
+  select(year,trip,age,num_hauls,pulse,count.adj,cohort)
 nrow(cond)
 nrow(winter)
 nrow(abund)
 summary(abund)
 
 str(cond)
+cond<-cond%>%
+  mutate(ID=1:3524)
 str(abundance)
 abundance$pulse<-as.integer(abundance$pulse)
-abundance<-abundance%>%rename(weighting=weight)
-cond_all<-left_join(cond,abundance)
-cond_all<-left_join(cond_all,winter)
+abundance<-abundance%>%rename(weighting=weight)%>%
+  select()
+cond_all<-right_join(cond,abundance,by=c('year','trip','age','pulse','cohort'))
+
+
+test<-cond_all%>%
+  distinct()%>%
+  filter(!is.na(ID))
+
+
+# compare old condition with new condition
+head(test)
+head(cond)
+
+test2<-test%>%
+  select(year,month,day,site,species,age,mmSL,weight, notes, date, trip, fulton, pulse,cohort,ID)
+compare_df(cond,test2,group_col = c("year","pulse","ID"))
+
+# use test for now
+cond_all<-left_join(test,winter)
 names(cond_all)
 head(cond_all)
 str(cond_all)
@@ -179,13 +199,19 @@ str(cond_all)
 testpre<-cond_all%>%
   filter(month==10 | month == 11)%>%
   rename(preK=fulton,preCount=count.adj,preMonth=month)%>%
-  select(cohort,preMonth,pulse,num_hauls,count,days_below_1,mean_temp,preK,preCount)
+  select(cohort,preMonth,pulse,num_hauls,days_below_1,mean_temp,preK,preCount)
+
 testpost<-cond_all%>%
   filter(month == 5 | month == 7)%>%
   rename(postK=fulton,postCount=count.adj,postMonth=month)%>%
-  select(cohort,postMonth,pulse,num_hauls,count,days_below_1,mean_temp,postK,postCount)
+  select(cohort,postMonth,pulse,num_hauls,days_below_1,mean_temp,postK,postCount)
+post.count<-testpost%>%
+  select(cohort,pulse,postCount)
+pre.count<-testpre%>%
+  select(cohort,pulse,preCount)
+preWinter<-right_join(testpre,post.count)%>%distinct()
+postWinter<-right_join(testpost,pre.count)%>%distinct()
 
-cond.rev<-right_join(testpre,testpost,by=c('cohort','pulse'))
   
 #cond_all<-cond_all%>%
  # filter(!is.na(pulse))
@@ -228,37 +254,66 @@ summary(alldata)
 str(alldata)
 
 # GLM: Bionomial
+m0<-glm(cbind(postCount,preCount)~factor(pulse)+preK+postK+days_below_1+offset(num_hauls),
+        data=alldata,family=binomial)
+plot(m0)
+hist(resid(m0))
+fit<-fitted(m0)
+res=resid(m0)
+plot(x=fit,y=res)
+exp(logLik(m0))
+summary(m0)
+Anova(m0,type="III")
 
-m1<-glm(cbind(postCount,preCount)~factor(pulse)+preK+postK+mean_temp+cohort+offset(num_hauls),
+
+m1<-glm(cbind(postCount,preCount)~factor(pulse)+preK+postK+days_below_1+cohort+offset(num_hauls),
         data=alldata,family=binomial)
 plot(m1)
 hist(resid(m1))
 exp(logLik(m1))
-
+fit<-fitted(m1)
+res=resid(m1)
+plot(x=fit,y=res)
+Anova(m1,type="III")
+summary(m1)
 
 # GLM Poisson
-m2<-glm(postCount~preCount+factor(pulse)+preK+postK+mean_temp+cohort+offset(num_hauls),
+m2<-glm(postCount~preCount+factor(pulse)+preK+postK+days_below_1+offset(num_hauls),
         data=alldata,family=poisson)
-
 plot(m2)
 hist(resid(m2))
 exp(logLik(m2))
+summary(m2)
+Anova(m2,type="III")
 
-m3<-glm.nb(postCount~preCount+factor(pulse)+preK+postK+mean_temp+cohort+offset(num_hauls),
+
+m3<-glm.nb(postCount~preCount+factor(pulse)+preK+postK+days_below_1+offset(num_hauls),
            data=alldata)
 plot(m3)
 hist(resid(m3))
 exp(logLik(m3))
+summary(m3)
+Anova(m3,type="III")
 
-#GLMM Poisson
-m4<-glmer(cbind(postCount,preCount)~factor(pulse)+preK+postK+mean_temp+(1|cohort)+offset(num_hauls),
+
+#GLMM binomial
+m4<-glmer(cbind(postCount,preCount)~factor(pulse)+preK+mean_temp+(1|cohort)+offset(num_hauls),
           data=alldata,family=binomial)
 
-m5<-glmer(postCount~preCount+factor(pulse)+preK+postK+mean_temp+(1|cohort)+offset(num_hauls),
+m5<-glmer(postCount~preCount+factor(pulse)+preK+mean_temp+(1|cohort)+offset(num_hauls),
           data=alldata,family=poisson)
 
-m6<-glmer.nb(postCount~preCount+factor(pulse)+preK+postK+mean_temp+(1|cohort)+offset(num_hauls),
+m6<-glmer.nb(postCount~preCount+factor(pulse)+preK+mean_temp+(1|cohort)+offset(num_hauls),
           data=alldata)
+plot(m6)
+hist(resid(m6))
+exp(logLik(m6))
+
+
+
+#GLS
+m7<-gls(postCount~factor(pulse)+preCount+preK+mean_temp,
+        correlation = corAR1(form=~cohort|factor(pulse)),na.action = na.omit,data=alldata)
 
 # Liklihood is zero. back to drawing board
 # deal with temporal autocorrelation?
@@ -266,6 +321,27 @@ m6<-glmer.nb(postCount~preCount+factor(pulse)+preK+postK+mean_temp+(1|cohort)+of
 # generalized additive model...
 
 
+
+# ---- reduced models ----
+
+m8<-glm(cbind(postCount,preCount)~factor(pulse)+preK+mean_temp+offset(num_hauls),
+        data=alldata,family=binomial)
+
+plot(m8)
+hist(resid(m8))
+
+#---- survival as response ----
+surv<-alldata%>%
+  mutate(survival=postCount/preCount)
+m.0<-lm(survival~factor(pulse)+preK+postK+mean_temp+offset(num_hauls),
+        data=surv)
+plot(m.0)
+hist(resid(m.0))
+summary(m.0)
+
+
+m.1<-glm(survival~factor(pulse)+preK+postK+mean_temp+offset(num_hauls),
+         data=surv,family=Gamma)
 
 str(alldata)
 #---- collinearity check ----
@@ -278,17 +354,67 @@ corrplot(cor(df),method="shade",shade.col=NA,tl.col="black", tl.srt=45)
 plot(alldata$cohort,alldata$preCount)
 
 
-# GAM
+# further exploration
 
-gam1<-gam(cbind(postCount,preCount)~factor(pulse)+s(mean_temp)+(cbind(postK,preK))+(cohort)+
-            offset(num_hauls),data=alldata,family=binomial)
+m0<-glm(cbind(postCount,preCount)~factor(pulse)+preK+postK+days_below_1+offset(num_hauls),
+        data=alldata,family=binomial)
+plot(m0)
+hist(resid(m0))
+fit<-fitted(m0)
+res=resid(m0)
+plot(x=fit,y=res)
+exp(logLik(m0))
+summary(m0)
+Anova(m0,type="III")
 
-plot(gam1)
-hist(resid(gam1))
-exp(logLik(gam1))
-summary(gam1)
-plot(gam1,pages=1,residuals=TRUE)
-plot(gam1,pages=1,seWithMean=TRUE)
-gam.check(gam1)
-gam2<-gamm(cbind(postCount,preCount)~factor(pulse)+s(mean_temp)+postK+preK+s(cohort)+offset(num_hauls),
-           random = cohort, family=binomial,data=alldata)
+m2<-glm(postCount~preCount+factor(pulse)+preK+postK+days_below_1+offset(num_hauls),
+        data=alldata,family=poisson)
+plot(m2)
+hist(resid(m2))
+fit<-fitted(m2)
+res=resid(m2)
+plot(x=fit,y=res)
+exp(logLik(m2))
+summary(m2)
+Anova(m2,type="III")
+
+# ---- preK only ----
+m.0<-glm(cbind(postCount,preCount)~factor(pulse)+preK+days_below_1+factor(preMonth)+offset(num_hauls),
+        data=preWinter,family=binomial)
+plot(m.0)
+hist(resid(m.0))
+fit<-fitted(m.0)
+res=resid(m.0)
+plot(x=fit,y=res)
+exp(logLik(m.0))
+summary(m.0)
+Anova(m.0,type="III")
+
+#postK
+
+m.1<-glm(cbind(postCount,preCount)~factor(pulse)+postK+days_below_1+factor(postMonth)+cohort+offset(num_hauls),
+           data=postWinter,family = binomial)
+plot(m.1)
+hist(resid(m.1))
+fit=(fitted(m.1))
+res<-resid(m.1)
+plot(x=fit,y=res)
+exp(logLik(m.1))
+summary(m.1)
+Anova(m.1,type="III")
+
+
+
+# explore figures
+ggplot(preWinter,aes(x=pulse,y=postCount,colour=preCount))+geom_jitter()
+
+ggplot(preWinter,aes(x=preCount,y=postCount,size=preK,colour=mean_temp,shape=factor(pulse)))+geom_jitter()
+
+ggplot(postWinter,aes(x=preCount,y=postCount,size=postK,colour=mean_temp,shape=factor(pulse)))+geom_jitter()
+
+ggplot(postWinter,aes(x=cohort,y=postCount,shape=factor(pulse),colour=mean_temp,size=postK))+geom_point()
+
+ggplot(preWinter,aes(x=cohort,y=postCount,shape=factor(pulse),colour=mean_temp,size=preK))+geom_point()
+
+
+ggplot(alldata,aes(y=postCount/preCount,x=cohort,size=mean_temp,colour=factor(pulse)))+geom_point()
