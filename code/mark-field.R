@@ -8,11 +8,14 @@ library(tidyverse)
 library(lubridate)
 library(RMark)
 library(mixdist)
+library(marked)
+
 
 source("./code/pulse_range_fct.R")
 
 # ---- load data ----
-data<-read.csv("./data/data-working/CMR-field-adj.csv")
+data<-read.csv("./data/data-working/CMR-field-MAY-captures.csv")
+fallcatch<-read.csv("./data/data-working/CMR-field-adj.csv")
 subsample<-read.csv("./data/data-working/subsample_wk1-2-field.csv")
 pulse0<-read.csv("./data/data-working/CMR-0pulses.csv")
 pulse1<-read.csv("./data/data-working/pulse_range_age1_final.csv")
@@ -35,6 +38,8 @@ data$date<-ymd(paste(data$year,data$month,data$day,sep="-"))
 subsample$date<-ymd(paste(subsample$Year,subsample$Month,subsample$Day,sep="-"))
 
 trips$date<-ymd(paste(trips$year,trips$month,trips$day,sep="-"))
+fallcatch$date<-ymd(paste(fallcatch$year,fallcatch$month,fallcatch$day,sep="-"))
+fallcatch<-fallcatch%>%filter(day==19 & status==1)
 
 data<-left_join(data,trips)
                 
@@ -43,9 +48,11 @@ data<-left_join(data,trips)
 
 # set up age 1 pulses
 glimpse(pulse1)
+summary(pulse1)
 pulse1<-pulse1%>%
   mutate(pulse=replace(pulse,pulse==3,2),
-         pulse=replace(pulse,pulse==5,3))
+         pulse=replace(pulse,pulse==5,3))%>%
+  filter(!is.na(min))
 pulse.assign1<-data.frame(trip=rep(pulse1$trip,pulse1$max-pulse1$min+1),
                          year=rep(pulse1$year,pulse1$max-pulse1$min+1),
                          pulse=rep(pulse1$pulse,pulse1$max-pulse1$min+1),
@@ -60,42 +67,43 @@ pulse0<-pulse0%>%
   select(-cohort)
 
 pulses<-bind_rows(pulse0,pulse.assign1)%>%
-  rename(sl=mmSL)
+  rename(sl=mmSL)%>%
+  filter(year>=2016)
 
 # ----- pulse assign ----
 data$site<-str_sub(data$animal_id,start = 1,end = 2)
 data$id<-as.numeric(str_sub(data$animal_id,start=4))
 head(data)
 
-# assign pulse to all individual fish
-df1<-data%>%
-  filter(id<1)
-duplicated(df1)
 
-df2<-data%>%
-  filter(status==1 & day == 19)
-duplicated(df2)
+# assign fall fish
+october.pulses<-pulses%>%
+  filter(year==2016 & age==0)
+fall.fish<-data%>%
+  filter(id<2)
 
-df3<-data%>%
-  filter(status==1 & day == 28)
-duplicated(df3)
+fall.pulses<-left_join(fall.fish,october.pulses)
 
-df4<-data%>%
-  filter(status==1 & month ==5)
-duplicated(df4)
+may.pulses<-pulses%>%
+  filter(year==2017 & age==1 & trip ==10)%>%
+  select(-trip,-year)
+spring.fish<-data%>%
+  filter(id>1)
 
-data2<-bind_rows(df1,df2,df3,df4) # individual fish
-pulse.size<-left_join(data2,pulses)
+spring.pulses<-left_join(spring.fish,may.pulses)
+
+pulse.size<-bind_rows(fall.pulses,spring.pulses)
 
 # fill in missing pulses
-pulse.size%>%
-  filter(month==10)%>%
+fall.pulses%>%
   ggplot(aes(x=date,y=sl,colour=factor(pulse)))+geom_point()
 ggplot(pulse.size,aes(x=date,y=sl,colour=factor(pulse)))+geom_point()
 
 
-oct<-pulse.size%>%filter(id<2 & day == 19)%>%
+oct.notrip<-pulse.size%>%filter(id<2 & day == 19)%>%
   filter(!is.na(sl))
+oct<-bind_rows(oct.notrip,fallcatch)%>%# include captured fish
+  select(-pulse,-status)
 
 qplot(sl,data=oct,binwidth=5)
 SL<-select(oct,sl)
@@ -116,8 +124,17 @@ summary(fit1)
 plot(fit1)
 plot(fit1,root=T)
 
+par2<-mixparam(c(52,62,80),c(5),pi=NULL)
+plot(group.oct,par2,"gamma")
+
+fit2<-mix(group.oct,par2,dist="gamma",mixconstr(consigma = "CCV"),
+          emsteps = 15, usecondit = FALSE)
+summary(fit2)
+plot(fit2)
+plot(fit2,root=T)
+
 head(oct)
-notrip<-bind_cols(fit1$parameters, fit1$se)%>%
+notrip<-bind_cols(fit2$parameters, fit2$se)%>%
   mutate(trip=1,year=2016,month=10,day=19,cohort=2016)
 notrip<-mutate(notrip,dummy_pulse=rev(seq(1:nrow(notrip))))
 
@@ -127,33 +144,26 @@ pulse.range<-pulse_range(notrip)
 pulse.assign<-data.frame(trip=rep(pulse.range$trip,pulse.range$max-pulse.range$min+1),
                          cohort=rep(pulse.range$cohort,pulse.range$max-pulse.range$min+1),
                          pulse=rep(pulse.range$dummy_pulse,pulse.range$max-pulse.range$min+1),
-                         mmSL=unlist(mapply(seq,pulse.range$min,pulse.range$max)))
-#View(pulse.assign)
+                         sl=unlist(mapply(seq,pulse.range$min,pulse.range$max)))
 
-# add new pulse assignments to missing data
-# assign 1 to NA trip
 pulse.assign<-pulse.assign%>%
   mutate(year=cohort)%>%
-  select(-cohort)%>%
-  rename(sl=mmSL)%>%
-  mutate(age=0)
-pulses2<-bind_rows(pulses,pulse.assign)
+  select(-cohort,-trip,-year)
 
-data2<-data2%>%
-  mutate(trip=replace(trip,is.na(trip),1))
+oct.notrip<-oct.notrip%>%
+  select(-pulse)
 
-pulse.size2<-left_join(data2,pulses2)
+pulses.notrip<-left_join(oct.notrip,pulse.assign)
 
-# need to combine individual fish pulse assignments to full data
-# without losing anything. 
-# Assign pulse based on animal_id
-data3<-data%>%
-  select(-id)
-pulse.size3<-pulse.size2%>%
-  select(animal_id,pulse)
-head(pulse.size3)
+# combine
+# pulse.size and pulses.notrip
+# take out october no trip from pulse.size, then re-add pulses.notrip
 
-final<-left_join(data3,pulse.size3)
+final1<-pulse.size[1:140,]
+final2<-pulse.size[170:1200,]
+
+final<-bind_rows(final1,pulses.notrip,final2)
+
 
 final%>%
   filter(month!=5)%>%
@@ -167,7 +177,7 @@ final%>%
 
 mrkdata<-final%>%
   filter(age<2)%>%
-  select(date,year,month,animal_id,sl,mark,status,pulse)%>%
+  select(date,year,month,animal_id,sl,mark,pulse)%>%
   data.frame()
 
 # Determine time-steps
@@ -188,16 +198,8 @@ collection.dates
 
 # ---- format for RMark ----
 
-# exclude fish that were culled mid study
-unique(mrkdata$date)
-mrkdata1.1<-mrkdata%>%
-  filter(date=="2016-10-14" & status == 0)
-mrkdata1.2<-mrkdata%>%
-  filter(date=="2016-10-19" & status == 0)
-mrkdata1.3<-mrkdata%>%
-  filter(date=="2017-05-24")
-
-mrkdata1<-bind_rows(mrkdata1.1,mrkdata1.2,mrkdata1.3)
+mrkdata1<-mrkdata%>%
+  select(-year,-month,-day)
 
 # melt then cast, equivalent to gather then spread
 
@@ -207,16 +209,13 @@ mrkdata3<-unite(mrkdata2,ch,c("2016-10-14","2016-10-19","2017-05-24"),
            sep="",remove=TRUE)
 View(mrkdata3)
 unique(mrkdata3$ch)
-mrkdata3%>%filter(ch=="000")
-mrkdata3<-mrkdata3%>%
-  filter(ch!="000")
 str(mrkdata3)
-
+duplicated(mrkdata3$animal_id)
 cod<-mrkdata3
 
 View(cod)
 
-# ---- CJS Test Run ----
+# ---- CJS Run ----
 # Newbridge only
 # time and dependent - no length yet
 nb<-cod[str_detect(cod$animal_id,"NB"),]
@@ -224,7 +223,7 @@ nb$sl<-as.numeric(nb$sl)
 nb.all<-nb%>%
   select(ch)%>%
   data.frame()
-
+nb.processed<-process.data(nb.all,time.intervals = c(5,217))
 nb.model<-function()
 {
   # process data for CJS model and make default design data
@@ -240,95 +239,22 @@ nb.model<-function()
   cml<-create.model.list("CJS")
   # run and return models
   return(mark.wrapper(cml,data=nb.processed,ddl=nb.ddl))
+
 }
 nb.results<-nb.model()
 nb.results
-
-summary(nb.results[[1]])
-nb.results[[1]]# deviance of 0, poor model fit
+#export.MARK(nb.processed,"overwinter",nb.results,replace=TRUE)
+summary(nb.results[[2]])
+nb.results[[2]]# deviance of 0, poor model fit, but c-hat =1 which is good model fit??
 PIMS(nb.results[[1]],"Phi")
 PIMS(nb.results[[1]],"p")
 nb.results$model.table
-nb.results[[1]]$output
+nb.results[[2]]
+# all four could biologically be a possibility
+# may want to run bootstrap GOF analysis on each model to see
+# what one to go with
+release.gof(nb.processed,invisible = TRUE,title = "Release-gof",view=TRUE)
 
-nb2.model<-function() # change time frames
-{
-  # process data for CJS model and make default design data
-  nb.processed<-process.data(nb.all,time.intervals = c(5,21))
-  nb.ddl<-make.design.data(nb.processed)
-  # define models for Phi
-  Phi.dot<-list(formula=~1)
-  Phi.time<-list(formula=~time)
-  # define models for p
-  p.dot<-list(formula=~1)
-  p.time<-list(formula=~time)
-  # create model list
-  cml<-create.model.list("CJS")
-  # run and return models
-  return(mark.wrapper(cml,data=nb.processed,ddl=nb.ddl))
-}
-nb2.results<-nb2.model()
-nb2.results
-nb2.results[[1]] # still terrible fit
-summary(nb2.results[[1]])
-
-# ---- October only ----
-# Add individual covariates
-# exclude fish that were culled mid study
-unique(mrkdata$date)
-mrkdata$id<-as.numeric(str_sub(mrkdata$animal_id,start=4))
-mrkoct<-mrkdata%>%
-  filter(id<2)%>%
-  filter(date=="2016-10-14" & status == 0 | 
-           date == "2016-10-19" & status ==0 |
-           date == "2016-10-28")
-
-
-# melt then cast, equivalent to gather then spread
-
-mrkoct2<-spread(mrkoct,date,mark,fill=0)
-# adjust data frame to account for fish taken out of the population
-# -1 means taken out of population
-
-mrkoct3<-unite(mrkoct2,ch,c("2016-10-14","2016-10-19","2016-10-28"),
-                sep="",remove=TRUE)
-# ---- CJS October Run ----
-# Newbridge and October only
-# time and dependent - no length yet
-oct<-mrkoct3
-duplicated(oct)
-oct$sl<-as.numeric(oct$sl)
-oct.all<-oct%>%
-  select(ch)%>%
-  data.frame()
-
-oct.all<-oct.all%>%
-  filter(ch!="000")
-
-oct.model<-function()
-{
-  # process data for CJS model and make default design data
-  oct.processed<-process.data(oct.all,time.intervals = c(5,9))
-  oct.ddl<-make.design.data(oct.processed)
-  # define models for Phi
-  Phi.dot<-list(formula=~1)
-  Phi.time<-list(formula=~time)
-  # define models for p
-  p.dot<-list(formula=~1)
-  p.time<-list(formula=~time)
-  # create model list
-  cml<-create.model.list("CJS")
-  # run and return models
-  return(mark.wrapper(cml,data=oct.processed,ddl=oct.ddl))
-}
-oct.results<-oct.model()
-oct.results
-
-summary(oct.results[[1]])
-PIMS(nb.results[[1]],"Phi")
-PIMS(nb.results[[1]],"p")
-
-oct.results[[1]]$output
 
 # ---- CJS survival by pulse ----
 # Newbridge only
@@ -339,7 +265,6 @@ nb.pulse<-nb%>%
 unique(nb.pulse$pulse)
 nb.pulse$pulse<-as.factor(nb.pulse$pulse)
 str(nb.pulse)
-
 
 pulse.model<-function()
 {
@@ -364,104 +289,93 @@ pulse.model<-function()
   return(mark.wrapper(cml,data=nb.processed,ddl=nb.ddl))
 }
 pulse.results<-pulse.model()
-
+nb.processed<-process.data(nb.pulse,time.intervals = c(5,217),
+                           groups="pulse")
+export.MARK(nb.processed,"overwinterpulse",model=NULL,replace=TRUE,ind.covariates = "all")
 pulse.results
+summary(pulse.results[[15]])
+c.hat<-pulse.results[[15]]$results$deviance/pulse.results[[15]]$results$deviance.df
+c.hat
+tail(nb.pulse)
 
-summary(pulse.results[[1]])
-pulse.results[[1]] # no pulse effect
+PIMS(pulse.results[[15]],"p")
+
+release.gof(nb.processed,invisible = TRUE,title="release-gof",view=TRUE)
+summary(pulse.results[[15]])
+pulse.results[[15]]
+pulse.results[[15]]$design.data
+names(pulse.results)
+round(pulse.results$Phi.timepluspulse.p.time$results$real[,1:4],3)
 
 
-# --- JS ----
+# ---- pulses 1:3 ----
+# Take out late pulses (the ones that were not marked)
+nb13<-nb.pulse%>%
+  filter(pulse!=4)%>%
+  as.data.frame()
 
-pop.model<-function()
+early.pulse.model<-function()
 {
   # process data for CJS model and make default design data
-  pop.processed<-process.data(nb.all,model="POPAN",time.intervals = c(5,217))
-  pop.ddl<-make.design.data(pop.processed)
+  nb.processed<-process.data(nb13,time.intervals = c(5,217),
+                             groups="pulse")
+  nb.ddl<-make.design.data(nb.processed)
   # define models for Phi
   Phi.dot<-list(formula=~1)
   Phi.time<-list(formula=~time)
-  # define models for p
-  p.dot<-list(formula=~1)
-  p.time<-list(formula=~time)
-  # probability of entry
-  pent.dot<-list(formula=~1)
-  pent.time<-list(formula=~time)
-  # create model list
-  cml<-create.model.list(model="POPAN")
-  # run and return models
-  return(mark.wrapper(cml,data=pop.processed,ddl=pop.ddl,options="SIMANNEAL"))
-}
-pop.results<-pop.model()
-pop.results
-
-summary(pop.results[[2]])
-summary(pop.results[[6]])
-pop.results[[2]]$output
-pop.results[[2]]
-summary(pop.results[[2]]$profile.int)
-
-# export
-#pop.processed<-process.data(nb.all,model="POPAN",time.intervals = c(5,217))
-#export.MARK(pop.processed, "codwinter",pop.results)
-# --- October JS ----
-oct.pop.model<-function()
-{
-  # process data for CJS model and make default design data
-  pop.processed<-process.data(oct.all,model="POPAN",time.intervals = c(5,9))
-  pop.ddl<-make.design.data(pop.processed)
-  # define models for Phi
-  Phi.dot<-list(formula=~1)
-  Phi.time<-list(formula=~time)
-  # define models for p
-  p.dot<-list(formula=~1)
-  p.time<-list(formula=~time)
-  # probability of entry
-  pent.dot<-list(formula=~1)
-  pent.time<-list(formula=~time)
-  # create model list
-  cml<-create.model.list(model="POPAN")
-  # run and return models
-  return(mark.wrapper(cml,data=pop.processed,ddl=pop.ddl))
-}
-oct.pop.results<-oct.pop.model()
-oct.pop.results
-
-summary(oct.pop.results[[6]])
-oct.pop.results[[6]]
-oct.pop.results[[2]]
-oct.pop.results[[6]]
-# stick with constant phi
-summary(oct.pop.results[[2]])
-
-#  --- add pulse -----
-pop.pulse.model<-function()
-{
-  # process data for CJS model and make default design data
-  pop.processed<-process.data(nb.pulse,model="POPAN",time.intervals = c(5,217),groups="pulse")
-  pop.ddl<-make.design.data(pop.processed)
-  # define models for Phi
-  Phi.dot<-list(formula=~1)
-  Phi.time<-list(formula=~time)
-  Phi.pulse<-list(forumula=~pulse)
+  Phi.pulse<-list(formula=~pulse)
+  Phi.timepluspulse<-list(formula=~time+pulse)
+  
   # define models for p
   p.dot<-list(formula=~1)
   p.time<-list(formula=~time)
   p.pulse<-list(formula=~pulse)
-  # probability of entry
-  pent.dot<-list(formula=~1)
-  pent.time<-list(formula=~time)
-  pent.pulse<-list(formula=~pulse)
+  p.timepluspulse<-list(formula=~time+pulse)
   # create model list
-  cml<-create.model.list(model="POPAN")
+  cml<-create.model.list("CJS")
   # run and return models
-  return(mark.wrapper(cml,data=pop.processed,ddl=pop.ddl))
+  return(mark.wrapper(cml,data=nb.processed,ddl=nb.ddl))
 }
-pop.pulse.results<-pop.pulse.model()
-pop.pulse.results
-summary(pop.pulse.results[[3]])
-pop.pulse.results[[3]]
-#pulse no effect
+early.pulse.results<-early.pulse.model()
+early.pulse.results
+adjust.chat(3.32,early.pulse.results)
+adjust.chat(0.80,early.pulse.results)
+adjust.chat(1,early.pulse.results)
+nb.processed<-process.data(nb13,time.intervals = c(5,217),
+                           groups="pulse")
+summary(early.pulse.results[[15]])
+c.hat<-early.pulse.results[[15]]$results$deviance/early.pulse.results[[15]]$results$deviance.df
+c.hat
+tail(nb.pulse)
 
- # covariates not appropriate with POPAN
+PIMS(early.pulse.results[[15]],"p")
 
+release.gof(nb.processed,invisible = TRUE,title="release-gof",view=TRUE)
+summary(pulse.results[[15]])
+pulse.results[[15]]
+pulse.results[[15]]$design.data
+names(early.pulse.results)
+round(early.pulse.results$Phi.timepluspulse.p.time$results$real[,1:4],4)
+
+simdata<-simHMM(nb.processed,ddl = NULL, )
+
+
+results<-round(early.pulse.results$Phi.timepluspulse.p.time$results$real[,1:4],3)
+
+write.csv(results,"./data/data-working/CMR-results15.csv")
+
+
+# ---- visualization ----
+CMR.results<-read.csv("./data/data-working/CMR-results15.csv")
+
+head(CMR.results)
+
+CMR.results%>%
+  filter(Parameter=="Phi")%>%
+  mutate(time=replace(time,Parameter=="Phi" & time == 6,223),
+         time=replace(time,Parameter=="Phi" & time == 1,6))%>%
+  ggplot()+geom_point(aes(x=time,y=estimate,shape=factor(group),colour=factor(group)))+
+  geom_line(aes(x=time,y=estimate,linetype=factor(group)))+
+  geom_errorbar(aes(ymin=lcl,ymax=ucl,x=time),width=0)
+
+cleanup(ask=FALSE)
