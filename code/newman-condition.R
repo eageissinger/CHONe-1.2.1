@@ -288,10 +288,11 @@ Anova(m3,type="III")
 
 
 #GLMM binomial
+alldata<-alldata%>%filter(pulse<5)
 alldata$pulse<-as.factor(alldata$pulse)
 m4<-glmer(cbind(postCount,preCount)~pulse+postK+preK+scale(days_below_1)+
             (1|cohort),data=alldata,family=binomial)
-par(mfrow=c(2,2))
+
 plot(m4)
 fit<-fitted(m4)
 res<-resid(m4)
@@ -303,8 +304,8 @@ logLik(m4)
 exp(logLik(m4))
 summary(m4)
 Anova(m4,type="III")
-par(mfrow=c(1,1))
 plot(allEffects(m4))
+
 
 null<-glmer(cbind(postCount,preCount)~1+(1|cohort),data=alldata,family=binomial)
 plot(null)
@@ -327,17 +328,80 @@ AIC(var3)
 AIC(m4)
 # better than the null - doesn't explain all variation but is explaining some variation
 
-# ---- first and last pulse ----
-write.csv(alldata,"./data/data-working/condition-data-prepped.csv",row.names = FALSE)
+#simulations
+S1<-arm::sim(m4)
+S0<-arm::sim(null)
+fvec1<-fvec2<-numeric(100)
+for(i in 1:100) {
+  ss1<-simulate(null,newparams=list(beta=S0@fixef[i]))[[1]]
+  ss2 <- simulate(null)[[1]]
+  fvec1[i] <- getME(refit(m4, ss1), "beta")[2]
+  fvec2[i] <- getME(refit(m4, ss2), "beta")[2]
+}
+plot(density(fvec1))
+lines(density(fvec2))
 
-settle<-read.csv("./data/data-working/condition-settlement.csv")
+fdat <- rbind(data.frame(slope = fvec1, type = "sim+pb"), 
+              data.frame(slope = fvec2, 
+                         type = "pb only"), data.frame(slope = S1@fixef[, 2], type = "sim only"))
+ggplot(fdat, aes(x = slope, fill = type)) + geom_density(alpha = 0.1)
 
-m5<-glmer(cbind(postCount,preCount)~settlement+preK+postK+
-            (1|cohort),data=settle,family=binomial)
+
+
+# --- Further investegation ----
+alldata%>%
+  mutate(survival=postCount/preCount)%>%
+  ggplot(aes(x=factor(pulse),y=survival))+geom_boxplot(outlier.shape = NA)+
+  ylim(0,3)
+
+alldata%>%
+  mutate(survival=postCount/preCount)%>%
+  ggplot(aes(x=postK,y=survival,colour=factor(pulse)))+geom_point()
+
+alldata%>%
+  mutate(survival=postCount/preCount)%>%
+  ggplot(aes(x=preK,y=survival,colour=factor(pulse)))+geom_point()
+
+alldata%>%
+  mutate(survival=postCount/preCount)%>%
+  ggplot(aes(x=days_below_1,y=survival,linetype=factor(pulse)))+geom_line()
+
+
+# pulse 1-3
+alldata%>%
+  mutate(survival=postCount/preCount)%>%
+  filter(pulse==1 | pulse ==2 | pulse ==3)%>%
+  ggplot(aes(x=postK,y=survival,colour=pulse))+geom_point()
+alldata%>%
+  mutate(survival=postCount/preCount)%>%
+  filter(pulse==1 | pulse ==2 | pulse ==3)%>%
+  ggplot(aes(x=preK,y=survival,colour=pulse))+geom_point()
+alldata%>%
+  mutate(survival=postCount/preCount)%>%
+  filter(pulse==1 | pulse ==2 | pulse ==3)%>%
+  ggplot(aes(x=days_below_1,y=survival,colour=pulse))+geom_point()
+
+pulse123<-alldata%>%
+  filter(pulse==1 | pulse ==2 | pulse ==3)
+
+m5<-glmer(cbind(postCount,preCount)~pulse+postK+preK+scale(days_below_1)+
+        (1|cohort),data=pulse123,family=binomial)
 plot(m5)
 hist(resid(m5))
+qqnorm(resid(m5))
+qqline(resid(m5),col='red')
 exp(logLik(m5))
-Anova(m5,type="III")
 summary(m5)
+Anova(m5,type="III")
 plot(allEffects(m5))
 
+m6<-glmer(cbind(postCount,preCount)~postK+preK+scale(days_below_1)+
+            (1|cohort),data=alldata,family=binomial)
+plot(m6)
+hist(resid(m6))
+qqnorm(resid(m6))
+qqline(resid(m6))
+exp(logLik(m6))
+summary(m6)
+Anova(m6,type="III")
+plot(allEffects(m6))
