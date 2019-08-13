@@ -25,7 +25,7 @@ library(strucchange)
 library(tidyverse)
 library(reshape2)
 library(ggpubr)
-
+library(Hmisc)
 # --- check data -----
 #length-weight
 str(length_weight)
@@ -473,6 +473,11 @@ hist(resid(d.m3))
 summary(d.m3)
 Anova(d.m3,type="III")
 
+aov.m3<-aov(delta.dry~1+ration+size,data=finalK)
+summary(aov.m3)
+TukeyHSD(aov.m3)
+
+
 ggplot(finalK,aes(x=ration,y=delta.dry,colour=size))+geom_boxplot()
 ggplot(finalK,aes(x=ration,y=delta.dry,colour=size))+geom_point()
 
@@ -481,6 +486,22 @@ finalK%>%
   summarise(K=mean(delta.dry),se=sd(delta.dry/sqrt(n())))
 
 # USE model3!!! 
+
+# test if .5, 1 and 2 differ from 0
+food<-finalK%>%
+  filter(ration!="0.0%")
+
+m.food<-lm(delta.dry~0+ration,data=food)
+plot(m.food)
+hist(resid(m.food))
+summary(m.food)
+Anova(m.food,type="III")
+m.null<-lm(delta.dry~0,data=food)
+plot(m.null)
+hist(resid(m.null))
+lrtest(m.food,m.null)
+
+
 K_adj0<-finalK%>%
   filter(size=='small')%>%
   mutate(percent_adj=percent-0.05)
@@ -796,6 +817,61 @@ survival%>%
   theme(plot.margin = unit(c(0.75,0.75,0.75,0.75),"cm"))+
   theme(legend.position=c(0.85,0.26))+
   ylim(0,102)
+
+# correlation between size and survival
+head(condition)
+size.surv.small<-left_join(condition,tanks)%>%
+  filter(date!="2017-03-21")%>%
+  filter(date!="2017-03-25")%>%
+  filter(date!="2017-04-24")%>%
+  filter(size=='small')%>%
+  select(julian_date,tank,sl_mm,wet_total_weight_g)%>%
+  filter(!is.na(tank))
+
+size.surv.large<-left_join(condition,tanks)%>%
+  filter(date!="2017-03-21")%>%
+  filter(date!="2017-03-25")%>%
+  filter(date!="2017-04-24")%>%
+  filter(size=='large')%>%
+  select(julian_date,tank,sl_mm,wet_total_weight_g)%>%
+  filter(!is.na(tank))
+
+
+cor(x=size.surv$julian_date,y=size.surv$sl_mm)
+cor(size.surv.small,use="complete.obs")
+cor(size.surv.large,use='complete.obs')
+cor(size.surv,use='complete.obs')
+corrplot(size.surv, type="upper", order="hclust", 
+         p.mat = res2$P, sig.level = 0.01, insig = "blank")
+
+str(size.surv)
+summary(size.surv)
+summary(condition)
+
+ggplot(size.surv.small,aes(x=julian_date,y=sl_mm,colour=wet_total_weight_g))+geom_point()
+ggplot(size.surv.large,aes(x=julian_date,y=sl_mm,colour=wet_total_weight_g))+geom_point()
+
+# size-selective mortality
+size.surv<-left_join(condition,tanks)%>%
+  filter(date!="2017-03-21")%>%
+  filter(date!="2017-03-25")%>%
+  filter(date!="2017-04-24")%>%
+  filter(size=='small')%>%
+  select(julian_date,tank,sl_mm,wet_total_weight_g,size,ration)%>%
+  filter(!is.na(tank))
+ggplot(size.surv,aes(x=tank,y=sl_mm,colour=julian_date))+geom_point()
+
+wireframe(julian_date~tank*sl_mm,data=size.surv,
+drape=TRUE,colorkey=TRUE)
+library(rgl)
+plot3d(size.surv$julian_date,size.surv$sl_mm,size.surv$tank,
+       "Julian Date","SL","Tank",col=rainbow(1000))
+
+# create a table
+table1<-size.surv%>%
+  filter(ration=="0.0%" & size=="small")%>%
+  group_by(tank,julian_date)%>%
+  summarise(mean=mean(sl_mm))
 
 # --- Survival manuscript figures ----
 SA<-survival%>%
