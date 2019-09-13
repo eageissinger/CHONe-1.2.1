@@ -873,6 +873,15 @@ table1<-size.surv%>%
   group_by(tank,julian_date)%>%
   summarise(mean=mean(sl_mm))
 
+mortrate<-tank_survival%>%
+  group_by(tank)%>%
+  mutate(rate=((lag(number)-number)/lag(number))*100)%>%
+  ungroup()%>%
+  filter(!is.na(rate))%>%
+  filter(rate!=1)%>%
+  group_by(size,ration)%>%
+  summarise(mean(rate))
+summary(mortrate)
 # --- Survival manuscript figures ----
 SA<-survival%>%
   filter(size=="small")%>%
@@ -1161,3 +1170,33 @@ plot(weight.m1)
 RRIlenght.m1<-lm(RRI_length~julian_date*ration+size,data=RRI)
 summary(RRIlenght.m1)
 plot(RRIlenght.m1)
+
+# ---- Size selective mortality ----
+# sample dates
+# 2016-12-30; 2016-12-31
+# 2017-01-30; 2017-01-31
+# 2017-02-27; 2017-02-28
+# 2017-03-27; 2017-03-28
+
+jan<-left_join(condition,tanks)%>%
+  filter(date<"2017-01-30" & date>"2016-12-31")
+
+mortsum<-left_join(condition,tanks)%>%
+  filter(!is.na(tank))%>%
+  filter(date!=2017-03-21 | date!=2017-03-25)%>%
+  group_by(month,size,ration)%>%
+  summarise(meanSL=mean(sl_mm),meanWeight=mean(wet_total_weight_g),
+            seSL=sd(sl_mm)/sqrt(n()),seWeight=sd(wet_total_weight_g)/sqrt(n()),
+            n=n())
+zeroterm<-left_join(condition,tanks)%>%
+  filter(!is.na(tank))%>%
+  filter(date=="2017-03-21" | date=="2017-03-25")%>%
+  group_by(month,size,ration)%>%
+  summarise(meanSL=mean(sl_mm),meanWeight=mean(wet_total_weight_g),
+            seSL=sd(sl_mm)/sqrt(n()),seWeight=sd(wet_total_weight_g)/sqrt(n()),
+            n=n())
+alivesum<-length_weight%>%
+  group_by(month,size,ration)%>%
+  summarise(meanSL=mean(length_mm),meanWeight=mean(weight_g),
+            seSL=sd(length_mm)/sqrt(n()),seWeight=sd(weight_g)/sqrt(n()),
+            n=n())
