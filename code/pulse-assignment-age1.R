@@ -138,8 +138,8 @@ mydata<-pulserange%>%
   mutate(pulse=replace(pulse,cohort==2017 & trip == 15 & pulse == 2,1))%>%
   mutate(pulse=replace(pulse,cohort==2017 & trip == 15 & pulse == 3,2))%>%
   mutate(pulse=replace(pulse,cohort==2017 & trip == 17 & pulse == 1,NA))%>%
-  mutate(pulse,replace(pulse,cohort==2017 & trip == 17 & pulse == 2,1))%>%
-  mutate(pulse,replace(pulse,cohort==2017 & trip == 17 & pulse == 3,2))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 17 & pulse == 2,1))%>%
+  mutate(pulse=replace(pulse,cohort==2017 & trip == 17 & pulse == 3,2))%>%
   mutate(pulse=replace(pulse,cohort==2017 & trip == 18 & pulse == 3,2))%>%
   mutate(pulse=replace(pulse,cohort==2017 & trip == 19 & pulse == 1,2))%>%
   mutate(pulse=replace(pulse,cohort==2017 & trip == 20 & pulse == 3,4))
