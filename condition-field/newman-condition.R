@@ -328,26 +328,6 @@ AIC(var3)
 AIC(m4)
 # better than the null - doesn't explain all variation but is explaining some variation
 
-#simulations
-S1<-arm::sim(m4)
-S0<-arm::sim(null)
-fvec1<-fvec2<-numeric(100)
-for(i in 1:100) {
-  ss1<-simulate(null,newparams=list(beta=S0@fixef[i]))[[1]]
-  ss2 <- simulate(null)[[1]]
-  fvec1[i] <- getME(refit(m4, ss1), "beta")[2]
-  fvec2[i] <- getME(refit(m4, ss2), "beta")[2]
-}
-plot(density(fvec1))
-lines(density(fvec2))
-
-fdat <- rbind(data.frame(slope = fvec1, type = "sim+pb"), 
-              data.frame(slope = fvec2, 
-                         type = "pb only"), data.frame(slope = S1@fixef[, 2], type = "sim only"))
-ggplot(fdat, aes(x = slope, fill = type)) + geom_density(alpha = 0.1)
-
-
-
 # --- Further investegation ----
 alldata%>%
   mutate(survival=postCount/preCount)%>%
@@ -356,15 +336,36 @@ alldata%>%
 
 alldata%>%
   mutate(survival=postCount/preCount)%>%
-  ggplot(aes(x=postK,y=survival,colour=factor(pulse)))+geom_point()
+  ggplot(aes(x=postK,y=survival))+geom_smooth()
 
 alldata%>%
   mutate(survival=postCount/preCount)%>%
-  ggplot(aes(x=preK,y=survival,colour=factor(pulse)))+geom_point()
+  ggplot(aes(x=preK,y=survival))+geom_smooth()
 
 alldata%>%
   mutate(survival=postCount/preCount)%>%
-  ggplot(aes(x=days_below_1,y=survival,linetype=factor(pulse)))+geom_line()
+  ggplot(aes(x=days_below_1,y=survival))+geom_smooth()
+
+ggplot(alldata,aes(x=cohort,y=postK))+geom_smooth()
+ggplot(alldata,aes(x=cohort,y=preK))+geom_smooth()
+ggplot(alldata,aes(x=cohort,y=days_below_1))+geom_smooth()
+
+alldata%>%
+  filter(pulse==1)%>%
+  mutate(survival=postCount/preCount)%>%
+  ggplot(aes(x=cohort,y=survival))+geom_smooth()
+alldata%>%
+  filter(pulse==2)%>%
+  mutate(survival=postCount/preCount)%>%
+  ggplot(aes(x=cohort,y=survival))+geom_smooth()
+alldata%>%
+  filter(pulse==3)%>%
+  mutate(survival=postCount/preCount)%>%
+  ggplot(aes(x=cohort,y=survival))+geom_smooth()
+alldata%>%
+  filter(pulse==4)%>%
+  mutate(survival=postCount)%>%
+  ggplot(aes(x=cohort,y=survival))+geom_smooth()
 
 
 # pulse 1-3
@@ -405,3 +406,72 @@ exp(logLik(m6))
 summary(m6)
 Anova(m6,type="III")
 plot(allEffects(m6))
+
+m7<-glmer(cbind(postCount,preCount)~pulse+preK+scale(days_below_1)+
+            (1|cohort),data=alldata,family=binomial)
+
+plot(m7)
+fit<-fitted(m7)
+res<-resid(m7)
+plot(x=fit,y=res)
+hist(resid(m7))
+qqnorm(resid(m7))
+qqline(resid(m7),col='red')
+logLik(m7)
+exp(logLik(m7))
+summary(m7)
+Anova(m7,type="III")
+plot(allEffects(m7))
+
+
+# ---- pulse 1 only -----
+p1<-alldata%>%
+  filter(pulse==1)
+
+pm1<-glmer(cbind(postCount,preCount)~preK+scale(days_below_1)+(1|cohort),data=p1,family = binomial(link="logit"))
+plot(pm1)
+hist(resid(pm1))
+qqnorm(resid(pm1))
+qqline(resid(pm1))
+logLik(pm1)
+Anova(pm1,type="III")
+plot(allEffects(pm1))
+
+# ---- pulse 2 only -----
+p2<-alldata%>%
+  filter(pulse==2)
+
+pm2<-glmer(cbind(postCount,preCount)~preK+postK+scale(days_below_1)+(1|cohort),data=p2,family = binomial(link="logit"))
+plot(pm2)
+hist(resid(pm2))
+qqnorm(resid(pm2))
+qqline(resid(pm2))
+logLik(pm2)
+Anova(pm2,type="III")
+plot(allEffects(pm2))
+
+# ---- pulse 3 only -----
+p3<-alldata%>%
+  filter(pulse==3)
+
+pm3<-glmer(cbind(postCount,preCount)~preK+postK+scale(days_below_1)+(1|cohort),data=p3,family = binomial(link="logit"))
+plot(pm3)
+hist(resid(pm3))
+qqnorm(resid(pm3))
+qqline(resid(pm3))
+logLik(pm3)
+Anova(pm3,type="III")
+plot(allEffects(pm3))
+
+# ---- pulse 4 only -----
+p4<-alldata%>%
+  filter(pulse==4)
+
+pm4<-glmer(preCount~postK+scale(days_below_1)+(1|cohort),data=p4,family = poisson(link="log"))
+plot(pm4)
+hist(resid(pm4))
+qqnorm(resid(pm4))
+qqline(resid(pm4))
+logLik(pm4)
+Anova(pm4,type="III")
+plot(allEffects(pm4))
