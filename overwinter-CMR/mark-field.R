@@ -4,13 +4,13 @@
 setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # ---- load required packages ----
-library(tidyverse)
+
 library(lubridate)
-library(RMark)
+
 library(mixdist)
-library(marked)
-
-
+#library(marked)
+library(tidyverse)
+library(RMark)
 source("./code/pulse_range_fct.R")
 
 # ---- load data ----
@@ -340,7 +340,6 @@ early.pulse.results<-early.pulse.model()
 early.pulse.results
 adjust.chat(3.32,early.pulse.results)
 adjust.chat(0.80,early.pulse.results)
-adjust.chat(1,early.pulse.results)
 nb.processed<-process.data(nb13,time.intervals = c(5,217),
                            groups="pulse")
 summary(early.pulse.results[[15]])
@@ -357,25 +356,73 @@ pulse.results[[15]]$design.data
 names(early.pulse.results)
 round(early.pulse.results$Phi.timepluspulse.p.time$results$real[,1:4],4)
 
-simdata<-simHMM(nb.processed,ddl = NULL, )
-
-
-results<-round(early.pulse.results$Phi.timepluspulse.p.time$results$real[,1:4],3)
-
-write.csv(results,"./data/data-working/CMR-results15.csv")
-
-
-# ---- visualization ----
-CMR.results<-read.csv("./data/data-working/CMR-results15.csv")
-
-head(CMR.results)
-
-CMR.results%>%
-  filter(Parameter=="Phi")%>%
-  mutate(time=replace(time,Parameter=="Phi" & time == 6,223),
-         time=replace(time,Parameter=="Phi" & time == 1,6))%>%
-  ggplot()+geom_point(aes(x=time,y=estimate,shape=factor(group),colour=factor(group)))+
-  geom_line(aes(x=time,y=estimate,linetype=factor(group)))+
-  geom_errorbar(aes(ymin=lcl,ymax=ucl,x=time),width=0)
-
 cleanup(ask=FALSE)
+
+# ---- simulation ----
+# start with basic model first (one group)
+n.occasions<-3
+marked<-rep(500,n.occasions-1)
+phi<-rep(0.99,n.occasions-1)
+p<-runif(n.occasions-1,0.007,1)
+
+
+simul.cjs<-function(phi,p,marked)
+{
+  n.occasions<-length(p)+1
+  Phi<-matrix(phi,n.occasions-1,nrow=sum(marked),byrow=T)
+  P<-matrix(p,n.occasions-1,nrow=sum(marked),byrow=T)
+  
+  #n.occasions<-dim(Phi)[2]+1
+  CH<-matrix(0,ncol=n.occasions,nrow=sum(marked))
+  #define a vector with marking occasion
+  mark.occ<-rep(1:length(marked),marked[1:length(marked)])
+  #fill in CH
+  for (i in 1:sum(marked))
+  {
+    CH[i,mark.occ[i]]<-1
+    if (mark.occ[i]==n.occasions) next
+    for(t in (mark.occ[i]+1):n.occasions)
+    {
+      #survive?
+      sur<-rbinom(1,1,Phi[i,t-1])
+      if(sur==0) break #move to next
+      #recaptured?
+      rp<-rbinom(1,1,P[i,t-1])
+      if(rp==1) CH[i,t]<-1
+    } #t
+  } #i
+  return(CH)
+}
+
+sim<-simul.cjs(phi,p,marked)
+
+pasty<-function(x) 
+{
+  k<-ncol(x)
+  n<-nrow(x)
+  out<-array(dim=n)
+  for (i in 1:n)
+  {
+    out[i]<-paste(x[i,],collapse="")
+  }
+  return(out)
+}
+sim.data<-data.frame(ch=pasty(sim))
+
+sim.processed=process.data(sim.data,model="CJS")
+sim.ddl=make.design.data(sim.processed)
+
+#time only
+Phi=list(formula=~1)
+p.t=list(formula=~time)
+#global.est<-mark(sim.processed,sim.ddl,model.parameters=list(Phi=Phi.sex.T,p=p.sex.T),output=F,silent=T)
+time.est<-mark(sim.processed,sim.ddl,model.parameters=list(Phi=Phi,p=p.t),output=F,silent=T)
+null.est<-mark(sim.processed,sim.ddl,output=F,silent=T)
+
+
+summary(global.est)
+summary(time.est)
+summary(null.est)
+
+results<-collect.models()
+results
