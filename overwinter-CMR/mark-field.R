@@ -11,7 +11,7 @@ library(mixdist)
 #library(marked)
 library(tidyverse)
 library(RMark)
-source("./code/pulse_range_fct.R")
+source("./misc/pulse_range_fct.R")
 
 # ---- load data ----
 data<-read.csv("./data/data-working/CMR-field-MAY-captures.csv")
@@ -291,7 +291,6 @@ pulse.model<-function()
 pulse.results<-pulse.model()
 nb.processed<-process.data(nb.pulse,time.intervals = c(5,217),
                            groups="pulse")
-export.MARK(nb.processed,"overwinterpulse",model=NULL,replace=TRUE,ind.covariates = "all")
 pulse.results
 summary(pulse.results[[15]])
 c.hat<-pulse.results[[15]]$results$deviance/pulse.results[[15]]$results$deviance.df
@@ -356,73 +355,104 @@ pulse.results[[15]]$design.data
 names(early.pulse.results)
 round(early.pulse.results$Phi.timepluspulse.p.time$results$real[,1:4],4)
 
+# ---- format for Mstrata ----
+
+mstrata1<-mrkdata%>%
+  select(-year,-month,-day)%>%
+  mutate(site=str_sub(animal_id,start=1,end=2))%>%
+  mutate(state="A")%>%
+  mutate(state=replace(state,site=="MI","B"))%>%
+  mutate(state=replace(state,site=="CC","C"))%>%
+  mutate(mark=replace(mark,date!="2017-05-24" & mark==1,"A"))%>%
+  mutate(mark=replace(mark,date=="2017-05-24" & mark ==1 & state=="A","A"))%>%
+  mutate(mark=replace(mark,date=="2017-05-24" & mark == 1 & state=="B","B"))%>%
+  mutate(mark=replace(mark,date=="2017-05-24" & mark == 1 & state=="C","C"))
+# melt then cast, equivalent to gather then spread
+
+mstrata2<-spread(mstrata1,date,mark,fill=0)
+
+mstrata3<-unite(mstrata2,ch,c("2016-10-14","2016-10-19","2017-05-24"),
+                sep="",remove=TRUE)
+View(mstrata3)
+unique(mstrata3$ch)
+str(mstrata3)
+duplicated(mstrata3$animal_id)
+mcod<-mstrata3%>%
+  select(-animal_id,-state,-site)
+
+View(mcod)
+
+# ---- Multi-state ----
+head(mcod)
+
+
+data("mstrata")
+head(mstrata)
+head(mcod)
+
+mstrata.processed<-process.data(mcod,model="Multistrata")
+mstrata.ddl<-make.design.data(mstrata.processed)
+summary(mstrata.ddl$Psi)
+summary(mstrata.ddl$p)
+
+
+run.mstrata=function()
+{
+  # Process data
+  mstrata.processed=process.data(mcod,model="Multistrata",time.intervals = c(5,217))
+  # Create default design data
+  mstrata.ddl=make.design.data(mstrata.processed) # Add distance covariate
+  mstrata.ddl$Psi$distance=0
+  mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="A"&mstrata.ddl$Psi$tostratum=="B"]=4
+  mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="A"&mstrata.ddl$Psi$tostratum=="C"]=1.23
+  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="B"&mstrata.ddl$Psi$tostratum=="C"]=2
+  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="B"&mstrata.ddl$Psi$tostratum=="A"]=4
+  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="C"&mstrata.ddl$Psi$tostratum=="A"]=1.23
+  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="C"&mstrata.ddl$Psi$tostratum=="B"]=2
+  # Create formula
+  Psi.distance=list(formula=~distance)
+  Psi.distance.time=list(formula=~distance+time)
+  p.stratum=list(formula=~stratum)
+  S.stratum=list(formula=~stratum)
+  model.list=create.model.list("Multistrata")
+  mstrata.results=mark.wrapper(model.list,data=mstrata.processed,ddl=mstrata.ddl)
+  return(mstrata.results)
+}
+mstrata.results=run.mstrata()
+mstrata.results
+summary(mstrata.results[[2]])
+
+# add pulse structure
+run.mstrata=function()
+{
+  # Process data
+  mstrata.processed=process.data(mcod,model="Multistrata",time.intervals = c(5,217),
+                                 groups="pulse")
+  # Create default design data
+  mstrata.ddl=make.design.data(mstrata.processed) # Add distance covariate
+  mstrata.ddl$Psi$distance=0
+  mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="A"&mstrata.ddl$Psi$tostratum=="B"]=4
+  mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="A"&mstrata.ddl$Psi$tostratum=="C"]=1.23
+  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="B"&mstrata.ddl$Psi$tostratum=="C"]=2
+  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="B"&mstrata.ddl$Psi$tostratum=="A"]=4
+  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="C"&mstrata.ddl$Psi$tostratum=="A"]=1.23
+  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="C"&mstrata.ddl$Psi$tostratum=="B"]=2
+  # Create formula
+  Psi.distance=list(formula=~distance)
+  Psi.distance.time=list(formula=~distance+time)
+  Psi.pulse=list(formula=~pulse)
+  Psi.pulse.distance=list(formula=~distance+pulse)
+  Psi.pulse.distance.time=list(formula=~distance+pulse+time)
+  p.stratum=list(formula=~stratum)
+  S.stratum=list(formula=~stratum)
+  S.pulse=list(formula=~pulse)
+  S.stratum.pulse=list(formula=~stratum+pulse)
+  model.list=create.model.list("Multistrata")
+  mstrata.results=mark.wrapper(model.list,data=mstrata.processed,ddl=mstrata.ddl)
+  return(mstrata.results)
+}
+mstrata.results=run.mstrata()
+mstrata.results
+summary(mstrata.results[[8]])
 cleanup(ask=FALSE)
 
-# ---- simulation ----
-# start with basic model first (one group)
-n.occasions<-3
-marked<-rep(500,n.occasions-1)
-phi<-rep(0.99,n.occasions-1)
-p<-runif(n.occasions-1,0.007,1)
-
-
-simul.cjs<-function(phi,p,marked)
-{
-  n.occasions<-length(p)+1
-  Phi<-matrix(phi,n.occasions-1,nrow=sum(marked),byrow=T)
-  P<-matrix(p,n.occasions-1,nrow=sum(marked),byrow=T)
-  
-  #n.occasions<-dim(Phi)[2]+1
-  CH<-matrix(0,ncol=n.occasions,nrow=sum(marked))
-  #define a vector with marking occasion
-  mark.occ<-rep(1:length(marked),marked[1:length(marked)])
-  #fill in CH
-  for (i in 1:sum(marked))
-  {
-    CH[i,mark.occ[i]]<-1
-    if (mark.occ[i]==n.occasions) next
-    for(t in (mark.occ[i]+1):n.occasions)
-    {
-      #survive?
-      sur<-rbinom(1,1,Phi[i,t-1])
-      if(sur==0) break #move to next
-      #recaptured?
-      rp<-rbinom(1,1,P[i,t-1])
-      if(rp==1) CH[i,t]<-1
-    } #t
-  } #i
-  return(CH)
-}
-
-sim<-simul.cjs(phi,p,marked)
-
-pasty<-function(x) 
-{
-  k<-ncol(x)
-  n<-nrow(x)
-  out<-array(dim=n)
-  for (i in 1:n)
-  {
-    out[i]<-paste(x[i,],collapse="")
-  }
-  return(out)
-}
-sim.data<-data.frame(ch=pasty(sim))
-
-sim.processed=process.data(sim.data,model="CJS")
-sim.ddl=make.design.data(sim.processed)
-
-#time only
-Phi=list(formula=~1)
-p.t=list(formula=~time)
-#global.est<-mark(sim.processed,sim.ddl,model.parameters=list(Phi=Phi.sex.T,p=p.sex.T),output=F,silent=T)
-time.est<-mark(sim.processed,sim.ddl,model.parameters=list(Phi=Phi,p=p.t),output=F,silent=T)
-null.est<-mark(sim.processed,sim.ddl,output=F,silent=T)
-
-
-summary(global.est)
-summary(time.est)
-summary(null.est)
-
-results<-collect.models()
-results
