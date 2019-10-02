@@ -839,7 +839,7 @@ winter_data<-left_join(winterdays,meantemp)
 winter_data<-left_join(duration,winter_data)
 
 #save summary file
-write.csv(winter_data,file="winter_summary.csv")
+write.csv(winter_data,file="./data/data-working/winter_summary.csv")
 
 # ----- Organize graphs onto one page ------
 #use gridExtra
