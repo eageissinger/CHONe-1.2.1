@@ -10,6 +10,7 @@ library(gridExtra)
 
 # --- load data -----
 temp<-read.csv("./data/data-working/daily-temp-corrected-newman.csv")
+temp17<-read.csv("./data/data-working/temperature-2017.csv")
 
 # ---data check -----
 summary(temp)
@@ -19,13 +20,36 @@ str(temp)
 head(temp)
 tail(temp)
 
+summary(temp17)
+names(temp17)
+dim(temp17)
+str(temp17)
+head(temp17)
+tail(temp17)
+
 #----Fix dates -----
 temp<-temp%>%
   select(year,month,day,daily_temp_C)
 temp$date<-ymd(paste(temp$year,temp$month,temp$day,sep="-"))
 
+temp17<-temp17%>%
+  rename(date=ï..Date)%>%
+  mutate(year=as.numeric(str_sub(date,start=1,end = 4)),
+         month=as.numeric(str_sub(date,start=5,end=6)),
+         day=as.numeric(str_sub(date,start=7,end=8)))
+temp17$date<-ymd(paste(temp17$year,temp17$month,temp17$day,sep="-"))
+
+#---- combine 2017 with all data -----
+
+names(temp)
+names(temp17)
+temp17<-temp17%>%
+  rename(daily_temp_C=MeanTemp..C.)%>%
+  select(year, month, day, daily_temp_C, date)
+temp<-bind_rows(temp,temp17)
+
 #----Visualize data -----
-plot1<-ggplot(temp,aes(x=date,y=daily_temp_C))+
+ggplot(temp,aes(x=date,y=daily_temp_C))+
   geom_line()
 
 #Average monthly temperatures
@@ -744,18 +768,49 @@ avg16<-yr16%>%
   summarise(cohort=2015,mean_temp=mean(daily_temp_C))%>%
   data.frame()
 
+# ----- 2017 ------
+yr17<-temp%>%
+  filter(date>="2016-10-1")%>%
+  filter(date<="2017-9-30")%>%
+  data.frame()
+
+plot17<-ggplot(yr17,aes(x=date,y=daily_temp_C))+
+  geom_point()+
+  geom_hline(yintercept=1,linetype='dashed',col='red')+
+  ggtitle("2017")+
+  theme_classic()
+plot17
+
+filter(yr17,daily_temp_C<1)
+# winter start = 3 January 2017
+# winter end = 6 May 2017
+
+days17<-yr17%>%
+  filter(date>="2017-01-03")%>%
+  filter(date<"2017-05-06")%>%
+  filter(daily_temp_C<1)%>%
+  summarise(cohort=2016,days_below_1=n())%>%
+  data.frame()
+
+avg17<-yr17%>%
+  filter(date>="2017-01-03")%>%
+  filter(date<"2017-05-06")%>%
+  summarise(cohort=2016,mean_temp=mean(daily_temp_C))%>%
+  data.frame()
+
+
 # ----- create winter summary tables------
 winterdays<-bind_rows(days95,days96,days97,days99,days00,days01,days02,
                       days03,days04,days05,days06,days07,days08,days09,
-                      days10,days11,days12,days13,days14,days15,days16)
+                      days10,days11,days12,days13,days14,days15,days16,days17)
 
 meantemp<-bind_rows(avg95,avg96,avg97,avg99,avg00,avg01,avg02,avg03,
                     avg04,avg05,avg06,avg07,avg08,avg09,avg10,avg11,avg12,
-                    avg13,avg14,avg15,avg16)
+                    avg13,avg14,avg15,avg16,avg17)
 
 
 # ----- load winter duration data ------
-winterlength<-read.csv("Winter_duration.csv",header=TRUE,sep=",")
+winterlength<-read.csv("./data/data-working/newman-winter-duration.csv",header=TRUE,sep=",")
 
 #check data
 summary(winterlength)
@@ -770,13 +825,13 @@ winterlength$date<-ymd(paste(winterlength$year,winterlength$month,winterlength$d
 
 # ---- num. days in winter ------
 duration<-winterlength%>%
-  group_by(winter)%>%
+  group_by(cohort)%>%
   mutate(total_days=date-lag(date))%>%
   ungroup()%>%
   data.frame()
 duration<-na.omit(duration)
 duration<-duration%>%
-  select(winter,total_days)
+  select(cohort,total_days)
 
 
 #merge winterdays, meantemp, duration 
@@ -791,5 +846,5 @@ write.csv(winter_data,file="winter_summary.csv")
 
 page1<-grid.arrange(plot95,plot96,plot97,plot98,plot99,plot00)
 page2<-grid.arrange(plot01,plot02,plot03,plot04,plot05,plot06)
-page3<-grid.arrange(plot07,plot08,plot09,plot10,plot11)
-page4<-grid.arrange(plot12,plot13,plot14,plot15,plot16)
+page3<-grid.arrange(plot07,plot08,plot09,plot10,plot11, plot12)
+page4<-grid.arrange(plot13,plot14,plot15,plot16,plot17)
