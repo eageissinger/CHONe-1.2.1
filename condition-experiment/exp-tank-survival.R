@@ -16,7 +16,6 @@ library(mgcv)
 # data manimpulation
 glimpse(tank_survival)
 tank_survival<- tank_survival%>%
-  filter(ration=="0.0%" | ration == "0.5%")%>%
   rename(year=ï..year)
 glimpse(temp)
 temp<-temp%>%
@@ -64,7 +63,6 @@ autoplot(s_trt)
 s_size<-survfit(Surv(time,status)~size,data=mydata)
 summary(s_size,times=c(1,20,40,60,80,100,120))
 autoplot(s_size)
-
 
 
 # Large cod

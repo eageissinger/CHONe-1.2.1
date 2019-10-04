@@ -277,17 +277,20 @@ lc<-lc%>%
            julian_date == 86 | julian_date==114)
 
 # ---- LC Models ----
-lc.revised<-lc%>%
-  filter(ration=="0.0%" | ration == "0.5%")
-
-lc.m1<-lm(kavg~0+ration*size*julian_date,data=lc.revised)
+lc.m1<-lm(kavg~ration*size*julian_date,data=lc)
 lc.m1
 plot(lc.m1)
 summary(lc.m1)
 Anova(lc.m1,type="III")
 
+lc.m11<-lm(kavg~0+ration*size*julian_date,data=lc)
+lc.m11
+plot(lc.m11)
+summary(lc.m11)
+Anova(lc.m11,type="III")
+anova(lc.m1,lc.m11)
 # get rid of three way interaction
-lc.m2<-lm(kavg~(ration+size+julian_date)^2,data=lc.revised)
+lc.m2<-lm(kavg~(ration+size+julian_date)^2,data=lc)
 lc.m2
 plot(lc.m2)
 summary(lc.m2)
@@ -295,18 +298,17 @@ Anova(lc.m2,type="III")
 
 hist(resid(lc.m2))
 
-lc.m3<-lm(kavg~0+ration+size+julian_date+ration*julian_date+size*julian_date,
-          data=lc.revised)
+lc.m3<-lm(kavg~ration+size+julian_date+ration*julian_date+size*julian_date,
+          data=lc)
 
 lc.m3
 plot(lc.m3)
 hist(resid(lc.m3))
 summary(lc.m3)
 Anova(lc.m3,type="III")
-levels(lc.revised$ration)
+levels(lc$ration)
 
-lc.m4<-lmer(kavg~0+ration+size+ration*julian_date+size*julian_date+(1|tank),
-            data=lc.revised)
+lc.m4<-lmer(kavg~0+ration+size+ration*julian_date+size*julian_date+(1|tank),data=lc)
 lc.m4
 plot(lc.m4)
 hist(resid(lc.m4))
@@ -324,10 +326,9 @@ lc%>%
   filter(julian_date==0 |julian_date==80 | julian_date==84 | julian_date==114)%>%
   group_by(julian_date,size)%>%
   summarise(mean=mean(kavg),se=sd(kavg)/sqrt(n()))
-
-# ---- Live condition figures -----
+ # ---- Live condition figures -----
 limitse<-aes(ymin=kavg-sek,ymax=kavg+sek)
-LCA<-lc.revised%>%
+LCA<-lc%>%
   rename(Ration=ration)%>%
   filter(size=='small')%>%
   ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
@@ -349,8 +350,8 @@ LCA<-lc.revised%>%
   theme(axis.text = element_text(size=10))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
-
-LCB<-lc.revised%>%
+  
+LCB<-lc%>%
   rename(Ration=ration)%>%
   filter(size=='large')%>%
   ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
@@ -397,7 +398,7 @@ View(fishcond)
 # take out day 0 condition
 finalcond<-fishcond%>%
   filter(notes!="day 0")
-
+   
 summary(finalcond)
 View(finalcond)
 
@@ -427,9 +428,7 @@ View(finalK)
 # Dry condition model analysis
 
 #model dry condition
-finalK.revised<-finalK%>%
-  filter(ration=="0.0%" | ration == "0.5%")
-d.m0<-lm(dry~percent*size,data=finalK.revised)
+d.m0<-lm(dry~percent*size,data=finalK)
 plot(d.m0)
 hist(resid(d.m0))
 qqnorm(resid(d.m0))
@@ -439,8 +438,8 @@ exp(logLik(d.m0))
 
 # GLMM
 
-d.m1<-glm(dry~percent*size,data=finalK.revised,
-          family=Gamma(link = "log"))
+d.m1<-glm(dry~percent*size,data=finalK,
+            family=Gamma(link = "log"))
 d.m1
 summary(d.m1)
 plot(d.m1)
@@ -449,8 +448,8 @@ qqnorm(resid(d.m1))
 Anova(d.m1,type = "III")
 exp(logLik(d.m1))
 
-d.m2<-glm(dry~ration+size,data=finalK.revised,
-          family=Gamma(link = "log"))
+d.m2<-glm(dry~ration+size,data=finalK,
+            family=Gamma(link = "log"))
 
 d.m2
 summary(d.m2)
@@ -468,7 +467,7 @@ table2<-finalK%>%
 # model d.m2, glm with gamma distribution and loglink
 
 
-d.m3<-lm(delta.dry~0+ration+size,data=finalK.revised)
+d.m3<-lm(delta.dry~0+ration+size,data=finalK)
 plot(d.m3)
 hist(resid(d.m3))
 summary(d.m3)
@@ -479,10 +478,10 @@ summary(aov.m3)
 TukeyHSD(aov.m3)
 
 
-ggplot(finalK.revised,aes(x=ration,y=delta.dry,colour=size))+geom_boxplot()+geom_jitter()
-ggplot(finalK.revised,aes(x=ration,y=delta.dry,colour=size))+geom_point()
+ggplot(finalK,aes(x=ration,y=delta.dry,colour=size))+geom_boxplot()
+ggplot(finalK,aes(x=ration,y=delta.dry,colour=size))+geom_point()
 
-finalK.revised%>%
+finalK%>%
   group_by(size,ration)%>%
   summarise(K=mean(delta.dry),se=sd(delta.dry/sqrt(n())))
 
@@ -503,10 +502,10 @@ hist(resid(m.null))
 lrtest(m.food,m.null)
 
 
-K_adj0<-finalK.revised%>%
+K_adj0<-finalK%>%
   filter(size=='small')%>%
   mutate(percent_adj=percent-0.05)
-Kadj1<-finalK.revised%>%
+Kadj1<-finalK%>%
   filter(size=='large')%>%
   mutate(percent_adj=percent+0.05)
 K2<-bind_rows(K_adj0,Kadj1)
@@ -537,9 +536,9 @@ K2.2%>%
 
 
 limitse.dryK<-aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se)
-K2%>%
+K2.2%>%
   rename(Size=size)%>%
-  ggplot(aes(x=ration,y=delta.dry,fill=Size))+
+  ggplot(aes(x=percent_adj,y=delta.dry,fill=Size))+
   geom_errorbar(aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se),
                 width=0,
                 position=position_dodge(width=0.25))+
@@ -557,7 +556,7 @@ K2%>%
 
 # Wet condition factor
 
-w.m1<-lm(wet~percent*size,data=finalK.revised)
+w.m1<-lm(wet~percent*size,data=finalK)
 w.m1
 summary(w.m1)
 plot(w.m1)
@@ -566,8 +565,8 @@ qqnorm(resid(w.m1))
 Anova(w.m1,type = "III")
 
 #GLMM
-w.m2<-glm(wet~percent*size,data=finalK.revised,
-          family = Gamma(link = "log"))
+w.m2<-glm(wet~percent*size,data=finalK,
+            family = Gamma(link = "log"))
 plot(w.m2)
 hist(resid(w.m2))
 qqnorm(resid(w.m2))
@@ -615,32 +614,23 @@ hist(resid(hsi.m2))
 summary(hsi.m2)
 Anova(hsi.m2,type="III")
 
-d05<-deltaHSI%>%
-  filter(ration=="0.0%" | ration =="0.5%")
-hsi.m3<-lm(dHSI~0+ration+size,data=d05)
-plot(hsi.m3)
-hist(resid(hsi.m3))
-summary(hsi.m3)
-Anova(hsi.m3,type="III")
-
-
 deltaHSI%>%
   group_by(size,ration)%>%
   summarise(mean(dHSI),se=sd(dHSI)/sqrt(n()))
-ggplot(d05,aes(x=size,y=dHSI,colour=ration))+
+ggplot(deltaHSI,aes(x=size,y=dHSI,colour=ration))+
   geom_boxplot()
 ggplot(deltaHSI,aes(x=size,y=dHSI,colour=ration))+
   geom_point(position='dodge')
 
 levels(deltaHSI$size)
-d05$size<-fct_relevel(d05$size,"small","large")
+deltaHSI$size<-fct_relevel(deltaHSI$size,"small","large")
 
-d05%>%
+deltaHSI%>%
   rename(Ration=ration)%>%
   ggplot(aes(x=size,y=dHSI,fill=Ration))+
   geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
   geom_boxplot(colour='black')+
-  scale_fill_manual(values=c('grey30','grey90'))+
+  scale_fill_manual(values=c('grey30','grey50','grey70','grey90'))+
   theme_bw(base_rect_size = 1)+
   theme(panel.grid = element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
@@ -722,27 +712,26 @@ survival%>%
   ggplot(aes(x=julian_date,y=exp_surv,linetype=ration))+geom_smooth()
 
 # ----- survival models ----
-survival.revised<-survival%>%
-  filter(ration=="0.0%" | ration == "0.5%")
+
 # GLS
-s.m1<-gls(exp_surv~size*ration*julian_date,data=survival.revised)
+s.m1<-gls(exp_surv~size*ration*julian_date,data=survival)
 plot(s.m1)
 
-s.m2<-lm(exp_surv~size*ration*julian_date,data=survival.revised)
+s.m2<-lm(exp_surv~size*ration*julian_date,data=survival)
 plot(s.m2)
 
-s.m3<-glm(exp_surv~size*ration*julian_date,data=survival.revised,family=Gamma(link="log"))
+s.m3<-glm(exp_surv~size*ration*julian_date,data=survival,family=Gamma(link="log"))
 plot(s.m3)
 glimpse(survival)
 
 s.m4<-glmer(exp_surv~size*ration*julian_date+(1|julian_date),
-            family=Gamma(link="log"),data=survival.revised)
+            family=Gamma(link="log"),data=survival)
 plot(s.m4)
 
 
 # split into increments of 30 days
 # survival at day 20, 40, 60, 80
-S<-survival.revised%>%
+S<-survival%>%
   filter(julian_date==0 | julian_date==23 | 
            julian_date==46 | 
            julian_date ==69| julian_date == 114)%>%
@@ -836,29 +825,22 @@ size.surv.small<-left_join(condition,tanks)%>%
   filter(date!="2017-03-25")%>%
   filter(date!="2017-04-24")%>%
   filter(size=='small')%>%
-  select(julian_date,tank,sl_mm,wet_total_weight_g,ration)%>%
-  filter(!is.na(tank))%>%
-  filter(ration=="0.0%" | ration == "0.5%")%>%
-  select(-ration)
+  select(julian_date,tank,sl_mm,wet_total_weight_g)%>%
+  filter(!is.na(tank))
 
 size.surv.large<-left_join(condition,tanks)%>%
   filter(date!="2017-03-21")%>%
   filter(date!="2017-03-25")%>%
   filter(date!="2017-04-24")%>%
   filter(size=='large')%>%
-  select(julian_date,tank,sl_mm,wet_total_weight_g,ration)%>%
-  filter(!is.na(tank))%>%
-  filter(ration=="0.0%" | ration == "0.5%")%>%
-  select(-ration)
+  select(julian_date,tank,sl_mm,wet_total_weight_g)%>%
+  filter(!is.na(tank))
 
-size.surv.revised<-size.surv%>%
-  filter(ration=="0.0%" | ration == "0.5%")%>%
-  select(-ration,-size)
 
-cor(x=size.surv.revised$julian_date,y=size.surv.revised$sl_mm)
+cor(x=size.surv$julian_date,y=size.surv$sl_mm)
 cor(size.surv.small,use="complete.obs")
 cor(size.surv.large,use='complete.obs')
-cor(size.surv.revised,use='complete.obs')
+cor(size.surv,use='complete.obs')
 corrplot(size.surv, type="upper", order="hclust", 
          p.mat = res2$P, sig.level = 0.01, insig = "blank")
 
@@ -874,12 +856,13 @@ size.surv<-left_join(condition,tanks)%>%
   filter(date!="2017-03-21")%>%
   filter(date!="2017-03-25")%>%
   filter(date!="2017-04-24")%>%
+  filter(size=='small')%>%
   select(julian_date,tank,sl_mm,wet_total_weight_g,size,ration)%>%
   filter(!is.na(tank))
 ggplot(size.surv,aes(x=tank,y=sl_mm,colour=julian_date))+geom_point()
 
 wireframe(julian_date~tank*sl_mm,data=size.surv,
-          drape=TRUE,colorkey=TRUE)
+drape=TRUE,colorkey=TRUE)
 library(rgl)
 plot3d(size.surv$julian_date,size.surv$sl_mm,size.surv$tank,
        "Julian Date","SL","Tank",col=rainbow(1000))
@@ -900,15 +883,15 @@ mortrate<-tank_survival%>%
   summarise(mean(rate))
 summary(mortrate)
 # --- Survival manuscript figures ----
-SA<-survival.revised%>%
+SA<-survival%>%
   filter(size=="small")%>%
   rename(Ration=ration)%>%
   ggplot()+
-  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),size=1,se=FALSE)+
+  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),size=1.5,se=FALSE)+
   theme_bw()+
   ylab("% Survival")+xlab("Day of experiment")+
-  scale_colour_manual(values=c('grey0','grey39'))+
-  scale_fill_manual(values=c('grey0','grey39'))+
+  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
+  scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
   theme(panel.grid=element_blank())+
   ylim(0,102)+xlim(0,125)+
   theme(axis.title = element_text(size=12))+
@@ -916,15 +899,15 @@ SA<-survival.revised%>%
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
 
-SB<-survival.revised%>%
+SB<-survival%>%
   filter(size=="large")%>%
   rename(Ration=ration)%>%
   ggplot()+
-  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),se=FALSE,size=1)+
+  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),se=FALSE,size=1.5)+
   theme_bw()+
   ylab("% Survival")+xlab("Day of experiment")+
-  scale_colour_manual(values=c('grey0','grey39'))+
-  scale_fill_manual(values=c('grey0','grey39'))+
+  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
+  scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
   theme(panel.grid=element_blank())+
   ylim(0,102)+xlim(0,125)+
   theme(axis.title = element_text(size=12))+
@@ -973,22 +956,20 @@ ggplot(data=sgr_all,aes(x=percent,y=sgr_w,colour=size))+geom_point()
 
 #---- SGR Models -----
 # weight
-sgr.revised<-sgr_all%>%
-  filter(ration=="0.0%" | ration == "0.5%")
-sgrw.m1<-lm(sgr_w~0+ration*size,data=sgr.revised)
+sgrw.m1<-lm(sgr_w~ration*size,data=sgr_all)
+
 plot(sgrw.m1)
 hist(resid(sgrw.m1))
 qqnorm(resid(sgrw.m1))
 Anova(sgrw.m1,type="III")
-summary(sgrw.m1)
 
-sgrw.m2<-lm(sgr_w~0+ration+size,data=sgr.revised)
+sgrw.m2<-lm(sgr_w~0+ration+size,data=sgr_all)
 plot(sgrw.m2)
 hist(resid(sgrw.m2))
 Anova(sgrw.m2,type="III")
 summary(sgrw.m2)
 
-sgrw.m3<-lm(sgr_w~0+ration,data=sgr.revised)
+sgrw.m3<-lm(sgr_w~0+ration,data=sgr_all)
 plot(sgrw.m3)
 hist(resid(sgrw.m3))
 Anova(sgrw.m3,type="III")
@@ -1005,22 +986,21 @@ Anova(sgrw.m4,type="III")
 summary(sgrw.m4)
 
 # Length
-sgrl.m1<-lm(sgr_sl~0+ration*size,data=sgr.revised)
+sgrl.m1<-lm(sgr_sl~ration*size,data=sgr_all)
 sgrl.m1
 summary(sgrl.m1)
 plot(sgrl.m1)
 Anova(sgrl.m1,type="III")
 
 # take out size
-sgrl.m2<-lm(sgr_sl~0+ration+size,data=sgr.revised)
+sgrl.m2<-lm(sgr_sl~0+ration+size,data=sgr_all)
 
 plot(sgrl.m2)
 hist(resid(sgrl.m2))
 Anova(sgrl.m2,type="III")
 summary(sgrl.m2)
 
-exp(logLik(sgrl.m1))
-exp(logLik(sgrl.m2))
+
 
 
 # model 2 is better!
@@ -1029,8 +1009,8 @@ exp(logLik(sgrl.m2))
 #when size=large, add .1 to percent
 #when size=small, subtract .1 from percent
 
-ggplot(sgr.revised,aes(x=percent_adj,y=sgr_w,fill=size))+
-  geom_pointrange(aes(shape=size,ymin=sgr_w-sgr_se_w,ymax=sgr_w+sgr_se_w),size=.75)+
+ggplot(weight,aes(x=percent_adj,y=sgr_weight,fill=size))+
+  geom_pointrange(aes(shape=size,ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),size=.75)+
   theme_classic()+
   ggtitle("SGR: Weight")+
   ylab("Specifci growth rate")+xlab("Ration (% body weight)")+
@@ -1047,26 +1027,23 @@ ggplot(sgr.revised,aes(x=percent_adj,y=sgr_w,fill=size))+
 
 sgrlarge<-sgrsum%>%
   filter(size=="large")%>%
-  filter(percent<1)%>%
   mutate(percent_adj=percent+0.05)%>%
   data.frame()
 
 sgrsmall<-sgrsum%>%
   filter(size=="small")%>%
-  filter(percent<1)%>%
   mutate(percent_adj=percent-0.05)%>%
-  mutate(percent_adj=percent+0.05)%>%
   data.frame()
 
 sgr_adjusted<-bind_rows(sgrlarge,sgrsmall)
 write.csv(sgr_adjusted,'./data/data-working/sgr.csv',row.names=FALSE)
 sgr_adjusted2<-read.csv('./data/data-working/sgr2.csv')
-w<-sgr.revised%>%
+w<-sgr_adjusted2%>%
   rename(Size=size)%>%
-  ggplot(aes(x=ration,mean_weight,fill=Size))+
+  ggplot(aes(x=percent_adj,sgr_weight,fill=Size))+
   geom_hline(yintercept=0,linetype='dashed',colour='red',size=1)+
-  geom_smooth(aes(x=ration,y=sgr_weight,linetype=Size),se=FALSE,colour='grey1')+
-  geom_pointrange(aes(shape=Size,ymin=mean_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),size=.5)+
+  geom_smooth(aes(x=percent,y=sgr_weight,linetype=Size),se=FALSE,colour='grey1')+
+  geom_pointrange(aes(shape=Size,ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),size=.5)+
   theme_bw(base_rect_size = 2)+
   xlab("Food ration (% body weight)")+ylab("Specific growth rate")+
   theme(axis.title=element_text(size=20))+
@@ -1085,7 +1062,7 @@ w<-sgr.revised%>%
   theme(plot.title = element_text(size=24,face='bold',hjust=0.5))+
   theme(axis.title.y=element_text(margin=margin(r=5)))
 
-l<-sgr.revised%>%
+l<-sgr_adjusted2%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,sgr_length,fill=Size))+
   geom_hline(yintercept=0,linetype='dashed',colour='red',size=1)+
@@ -1113,10 +1090,9 @@ ggarrange(w+theme(legend.position = 'none')+theme(axis.title.x = element_blank()
           l+theme(axis.title.y=element_text(colour='white'))+theme(axis.title.x=element_blank()),
           ncol=2,nrow=1)
 
-W<-sgr_adjusted%>%
-  filter(ration=="0.0%" | ration == "0.5%")%>%
+W<-sgr_adjusted2%>%
   rename(Size=size)%>%
-  ggplot(aes(x=ration,y=sgr_weight,fill=Size))+
+  ggplot(aes(x=percent_adj,y=sgr_weight,fill=Size))+
   geom_errorbar(aes(ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),
                 width=0,
                 position=position_dodge(width=0.25))+
@@ -1133,10 +1109,9 @@ W<-sgr_adjusted%>%
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
 
-L<-sgr_adjusted%>%
-  filter(ration=="0.0%" | ration == "0.5%")%>%
+L<-sgr_adjusted2%>%
   rename(Size=size)%>%
-  ggplot(aes(x=ration,y=sgr_length,fill=Size))+
+  ggplot(aes(x=percent_adj,y=sgr_length,fill=Size))+
   geom_errorbar(aes(ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),
                 width=0,
                 position=position_dodge(width=0.25))+
@@ -1169,8 +1144,8 @@ table4.2<-sgr_adjusted%>%
 sgr_adjusted%>%
   filter(ration!="0.0%")%>%
   summarise(m.w=mean(sgr_weight),m.sl=mean(sgr_length),
-            se.w=sd(sgr_weight)/sqrt(n()),
-            se.sl=sd(sgr_length)/sqrt(n()))
+         se.w=sd(sgr_weight)/sqrt(n()),
+         se.sl=sd(sgr_length)/sqrt(n()))
 #Relative Rate of increase
 names(lw)
 lw2<-length_weight%>%
