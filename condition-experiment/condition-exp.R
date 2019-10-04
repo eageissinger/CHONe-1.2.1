@@ -329,8 +329,11 @@ lc%>%
  # ---- Live condition figures -----
 limitse<-aes(ymin=kavg-sek,ymax=kavg+sek)
 LCA<-lc%>%
-  rename(Ration=ration)%>%
   filter(size=='small')%>%
+  mutate(Ration="0.0%")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%","2.5%"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%","4.9%"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%","9.8%"))%>%
   ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
   geom_point(aes(shape=Ration,colour=Ration,fill=Ration),
              position = position_dodge(width=4))+
@@ -352,8 +355,11 @@ LCA<-lc%>%
   theme(axis.title.x= element_text(margin=margin(t=15)))
   
 LCB<-lc%>%
-  rename(Ration=ration)%>%
   filter(size=='large')%>%
+  mutate(Ration="0.0%")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%","2.5%"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%","4.9%"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%","9.8%"))%>%
   ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
   geom_point(aes(shape=Ration,colour=Ration,fill=Ration),
              position=position_dodge(width=4))+
@@ -504,14 +510,22 @@ lrtest(m.food,m.null)
 
 K_adj0<-finalK%>%
   filter(size=='small')%>%
+  mutate(percent=0.0)%>%
+  mutate(percent=replace(percent, ration=="0.5%",2.5))%>%
+  mutate(percent=replace(percent,ration=="1.0%",4.9))%>%
+  mutate(percent=replace(percent,ration=="2.0%",9.8))%>%
   mutate(percent_adj=percent-0.05)
 Kadj1<-finalK%>%
   filter(size=='large')%>%
+  mutate(percent=0.0)%>%
+  mutate(percent=replace(percent, ration=="0.5%",2.5))%>%
+  mutate(percent=replace(percent,ration=="1.0%",4.9))%>%
+  mutate(percent=replace(percent,ration=="2.0%",9.8))%>%
   mutate(percent_adj=percent+0.05)
 K2<-bind_rows(K_adj0,Kadj1)
-write.csv(K2,'./data/data-working/deltaK.csv',row.names=FALSE)
-K2.2<-read.csv('./data/data-working/deltaK2.csv')
-K2.2%>%
+#write.csv(K2,'./data/data-working/deltaK.csv',row.names=FALSE)
+#K2.2<-read.csv('./data/data-working/deltaK2.csv')
+K2%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,y=delta.dry,fill=Size))+
   geom_hline(yintercept=0,linetype='dashed',colour='red',size=1)+
@@ -536,7 +550,7 @@ K2.2%>%
 
 
 limitse.dryK<-aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se)
-K2.2%>%
+K2%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,y=delta.dry,fill=Size))+
   geom_errorbar(aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se),
@@ -626,7 +640,10 @@ levels(deltaHSI$size)
 deltaHSI$size<-fct_relevel(deltaHSI$size,"small","large")
 
 deltaHSI%>%
-  rename(Ration=ration)%>%
+  mutate(Ration="0.0%")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%", "2.5%"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%", "4.9%"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%", "9.8%"))%>%
   ggplot(aes(x=size,y=dHSI,fill=Ration))+
   geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
   geom_boxplot(colour='black')+
@@ -652,6 +669,10 @@ finalK%>%
 
 hsiA<-deltaHSI%>%
   filter(size=='small')%>%
+  mutate(percent2=0.0)%>%
+  mutate(percent2=replace(percent2,ration=="0.5%", 2.5))%>%
+  mutate(percent2=replace(percent2,ration=="1.0%", 4.9))%>%
+  mutate(percent2=replace(percent2,ration=="2.0%", 9.8))%>%
   ggplot(aes(x=as.factor(percent),y=dHSI))+
   geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
   geom_boxplot(colour='black',fill='grey90')+
@@ -670,6 +691,10 @@ hsiA<-deltaHSI%>%
 
 hsiB<-deltaHSI%>%
   filter(size=='large')%>%
+  mutate(percent2=0.0)%>%
+  mutate(percent2=replace(percent2,ration=="0.5%", 2.5))%>%
+  mutate(percent2=replace(percent2,ration=="1.0%", 4.9))%>%
+  mutate(percent2=replace(percent2,ration=="2.0%", 9.8))%>%
   ggplot(aes(x=as.factor(percent),y=dHSI))+
   geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
   geom_boxplot(colour='black',fill='grey90')+
@@ -687,7 +712,7 @@ hsiB<-deltaHSI%>%
   theme(axis.title.x= element_text(margin=margin(t=15)))
 
 
-ggarrange(hsiA,hsiB+theme(axis.title.y=element_text(colour='white')), labels=c("Small","Large"),ncol=2,nrow=1)
+ggarrange(hsiA,hsiB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1)
 
 # hsi.m1! figure out how to interpret the interaction!
 
@@ -885,9 +910,12 @@ summary(mortrate)
 # --- Survival manuscript figures ----
 SA<-survival%>%
   filter(size=="small")%>%
-  rename(Ration=ration)%>%
+  mutate(Ration="0.0%")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%", "2.5%"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%", "4.9%"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%", "9.8%"))%>%
   ggplot()+
-  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),size=1.5,se=FALSE)+
+  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),size=1,se=FALSE)+
   theme_bw()+
   ylab("% Survival")+xlab("Day of experiment")+
   scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
@@ -901,9 +929,12 @@ SA<-survival%>%
 
 SB<-survival%>%
   filter(size=="large")%>%
-  rename(Ration=ration)%>%
+  mutate(Ration="0.0%")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%", "2.5%"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%", "4.9%"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%", "9.8%"))%>%
   ggplot()+
-  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),se=FALSE,size=1.5)+
+  geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),se=FALSE,size=1)+
   theme_bw()+
   ylab("% Survival")+xlab("Day of experiment")+
   scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
@@ -1027,18 +1058,26 @@ ggplot(weight,aes(x=percent_adj,y=sgr_weight,fill=size))+
 
 sgrlarge<-sgrsum%>%
   filter(size=="large")%>%
+  mutate(Ration="0.0%")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%","2.5%"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%","4.9%"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%","9.8%"))%>%
   mutate(percent_adj=percent+0.05)%>%
   data.frame()
 
 sgrsmall<-sgrsum%>%
   filter(size=="small")%>%
+  mutate(Ration="0.0%")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%","2.5%"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%","4.9%"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%","9.8%"))%>%
   mutate(percent_adj=percent-0.05)%>%
   data.frame()
 
 sgr_adjusted<-bind_rows(sgrlarge,sgrsmall)
-write.csv(sgr_adjusted,'./data/data-working/sgr.csv',row.names=FALSE)
-sgr_adjusted2<-read.csv('./data/data-working/sgr2.csv')
-w<-sgr_adjusted2%>%
+#write.csv(sgr_adjusted,'./data/data-working/sgr.csv',row.names=FALSE)
+#sgr_adjusted2<-read.csv('./data/data-working/sgr2.csv')
+w<-sgr_adjusted%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,sgr_weight,fill=Size))+
   geom_hline(yintercept=0,linetype='dashed',colour='red',size=1)+
@@ -1062,7 +1101,7 @@ w<-sgr_adjusted2%>%
   theme(plot.title = element_text(size=24,face='bold',hjust=0.5))+
   theme(axis.title.y=element_text(margin=margin(r=5)))
 
-l<-sgr_adjusted2%>%
+l<-sgr_adjusted%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,sgr_length,fill=Size))+
   geom_hline(yintercept=0,linetype='dashed',colour='red',size=1)+
@@ -1090,7 +1129,7 @@ ggarrange(w+theme(legend.position = 'none')+theme(axis.title.x = element_blank()
           l+theme(axis.title.y=element_text(colour='white'))+theme(axis.title.x=element_blank()),
           ncol=2,nrow=1)
 
-W<-sgr_adjusted2%>%
+W<-sgr_adjusted%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,y=sgr_weight,fill=Size))+
   geom_errorbar(aes(ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),
@@ -1109,7 +1148,7 @@ W<-sgr_adjusted2%>%
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
 
-L<-sgr_adjusted2%>%
+L<-sgr_adjusted%>%
   rename(Size=size)%>%
   ggplot(aes(x=percent_adj,y=sgr_length,fill=Size))+
   geom_errorbar(aes(ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),

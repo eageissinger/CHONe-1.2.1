@@ -780,7 +780,11 @@ energy%>%
 #Feed conversion efficiency
 # remove -Inf and NaNs
 energy.0<-energy%>%
-  filter(trt!="0.0%")
+  filter(trt!="0.0%")%>%
+  mutate(percent2=0.0)%>%
+  mutate(percent2=replace(percent2,trt=="0.5%",2.5))%>%
+  mutate(percent2=replace(percent2,trt=="1.0%", 4.9))%>%
+  mutate(percent2=replace(percent2,trt=="2.0%", 9.8))
 names(energy)
 energy$FCE[which(is.nan(energy$FCE))] = NA
 energy$FCE[which(is.infinite(energy$FCE))] = NA
@@ -800,7 +804,7 @@ ggplot(energy.0,aes(y=FCE,x=julian_date,shape=as.factor(ration),colour=size))+
 
 ggplot(energy.0,aes(y=FCE,x=julian_date,shape=as.factor(ration),colour=size))+
   geom_point()+
-  facet_wrap(aes(as.factor(ration)))
+  facet_wrap(vars(as.factor(ration)))
 
 # remove outliers
 fce<-energy.0%>%
@@ -814,16 +818,20 @@ Anova(m1.2,type="III")
 
 # take % out of treatment label
 fce2<-fce%>%
-  mutate(percent=as.numeric(str_sub(trt,start = 1,end = 3)))
+  mutate(percent=as.numeric(str_sub(trt,start = 1,end = 3)))%>%
+  mutate(percent2=0.0)%>%
+  mutate(percent2=replace(percent2,trt=="0.5%",2.5))%>%
+  mutate(percent2=replace(percent2,trt=="1.0%", 4.9))%>%
+  mutate(percent2=replace(percent2,trt=="2.0%", 9.8))
 
 ggplot(fce,aes(y=FCE,x=daily_temp,colour=size))+
   geom_point()+
-  facet_wrap(aes(ration))
+  facet_wrap(vars(ration))
 F1<-ggplot(fce2)+
-  geom_boxplot(aes(y=FCE,x=as.factor(percent),colour=daily_temp),
+  geom_boxplot(aes(y=FCE,x=as.factor(percent2)),
                outlier.shape = NA)+
-  geom_jitter(aes(y=FCE,x=as.factor(percent),colour=daily_temp),width=.15)+
-  facet_wrap(aes(size=factor(size,levels=c("small","large"))))+
+  geom_jitter(aes(y=FCE,x=as.factor(percent2),colour=daily_temp),width=.15)+
+  facet_wrap(vars(size=factor(size,levels=c("small","large"))))+
   ylab("Feed conversion efficiency (g · "~g^-1*")")+xlab("Ration (% body weight)")+
   theme_bw()+theme(panel.grid = element_blank())+
   scale_color_gradient(low="blue",high="red")+
@@ -844,11 +852,14 @@ summary(m2)
 Anova(m2,type="III")
 
 energy.02<-energy.0%>%
-  mutate(percent=as.numeric(str_sub(trt,start = 1,end = 3)))
+  mutate(percent=0.0)%>%
+  mutate(percent=replace(percent,trt=="0.5%",2.5))%>%
+  mutate(percent=replace(percent,trt=="1.0%", 4.9))%>%
+  mutate(percent=replace(percent,trt=="2.0%", 9.8))
 F2<-ggplot(energy.02)+
   geom_boxplot(aes(y=F.rate,x=as.factor(percent),colour=daily_temp))+
   geom_jitter(aes(y=F.rate,x=as.factor(percent),colour=daily_temp),width=.15)+
-  facet_wrap(aes(size=factor(size,levels=c("small","large"))))+
+  facet_wrap(vars(size=factor(size,levels=c("small","large"))))+
   ylab("Feeding rate (% body weight · "~day^-1*")")+xlab("Ration (% body weight)")+
   theme_bw()+theme(panel.grid = element_blank())+
   scale_color_gradient(low="blue",high="red")+
