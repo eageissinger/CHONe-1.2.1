@@ -20,7 +20,7 @@ library(glmmTMB)
 library(lme4)
 library(mgcv)
 library(effects)
-
+library(lmtest)
 # ---- load data ----
 condition<-read.csv("./data/data-working/condition-newman.csv")
 pulse_range1<-read.csv("./data/data-working/pulse_range_age1_final.csv")
@@ -147,6 +147,7 @@ nrow(abund)
 # determine pulse selection
 # determine start year
 summary(condition)
+summary(winter)
 # start with 1999 cohort, end with 2016 (for now)
 cond<-condition%>%
   filter(cohort<2017)
@@ -290,7 +291,7 @@ Anova(m3,type="III")
 #GLMM binomial
 alldata<-alldata%>%filter(pulse<5)
 alldata$pulse<-as.factor(alldata$pulse)
-m4<-glmer(cbind(postCount,preCount)~pulse+postK+preK+scale(days_below_1)+
+m4<-glmer(cbind(postCount,preCount)~pulse+preK+postK+scale(days_below_1)+
             (1|cohort),data=alldata,family=binomial)
 
 plot(m4)
@@ -303,30 +304,25 @@ qqline(resid(m4),col='red')
 logLik(m4)
 exp(logLik(m4))
 summary(m4)
-Anova(m4,type="III")
+Anova(m4,type="III",test.statistic = c("LR"))
 plot(allEffects(m4))
 
+m0<-update(m4.revised,.~1+(1|cohort))
+m1<-glmer(cbind(postCount,preCount)~pulse+
+            (1|cohort),data=alldata,family=binomial)
+m2<-glmer(cbind(postCount,preCount)~pulse+preK+
+            (1|cohort),data=alldata,family=binomial)
+m3<-glmer(cbind(postCount,preCount)~pulse+preK+postK+
+          (1|cohort),data=alldata,family=binomial)
 
-null<-glmer(cbind(postCount,preCount)~1+(1|cohort),data=alldata,family=binomial)
-plot(null)
-hist(resid(null))
-qqnorm(resid(null))
-qqline(resid(null),col='red')
-exp(logLik(null))
-summary(null)
+logLik(m0)
+logLik(m1)
+logLik(m2)
+logLik(m3)
+logLik(m4)
 
-var1<-glmer(cbind(postCount,preCount)~scale(days_below_1)+
-              (1|cohort),data=alldata,family=binomial)
-var2<-glmer(cbind(postCount,preCount)~scale(days_below_1)+preK+
-              (1|cohort),data=alldata,family=binomial)
-var3<-glmer(cbind(postCount,preCount)~scale(days_below_1)+preK+postK+
-              (1|cohort),data=alldata,family=binomial)
-AIC(null)
-AIC(var1)
-AIC(var2)
-AIC(var3)
-AIC(m4)
-# better than the null - doesn't explain all variation but is explaining some variation
+m4ANODEV<-lrtest(m0,m1,m2,m3,m4)
+Anova(m4,type="III")
 
 # --- Further investegation ----
 alldata%>%
@@ -349,6 +345,9 @@ alldata%>%
 ggplot(alldata,aes(x=cohort,y=postK))+geom_smooth()
 ggplot(alldata,aes(x=cohort,y=preK))+geom_smooth()
 ggplot(alldata,aes(x=cohort,y=days_below_1))+geom_smooth()
+alldata%>%
+  mutate(survival=postCount/preCount)%>%
+  ggplot(aes(x=cohort,y=survival))+geom_smooth()
 
 alldata%>%
   filter(pulse==1)%>%
@@ -475,3 +474,5 @@ qqline(resid(pm4))
 logLik(pm4)
 Anova(pm4,type="III")
 plot(allEffects(pm4))
+
+# ---- condition vs growth (length) ----
