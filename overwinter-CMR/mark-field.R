@@ -430,6 +430,8 @@ run.mstrata=function()
                                  groups="pulse")
   # Create default design data
   mstrata.ddl=make.design.data(mstrata.processed) # Add distance covariate
+  mstrata.ddl$Psi$bc[mstrata.ddl$Psi$stratum%in%c("B","C")&mstrata.ddl$Psi$tostratum=="C"]=1
+  
   mstrata.ddl$Psi$distance=0
   mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="A"&mstrata.ddl$Psi$tostratum=="B"]=4
   mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="A"&mstrata.ddl$Psi$tostratum=="C"]=1.23
