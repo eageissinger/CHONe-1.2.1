@@ -11,10 +11,9 @@ setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 # ---- load packages ----
 library(MASS)
 library(lubridate)
-library(tidyverse)
 library(pscl)
-library(boot)
 library(car)
+library(boot)
 library(corrplot)
 library(glmmTMB)
 library(lme4)
@@ -22,6 +21,11 @@ library(mgcv)
 library(effects)
 library(lmtest)
 library(magclass)
+library(sjPlot)
+library(sjlabelled)
+library(sjmisc)
+library(tidyverse)
+
 # ---- load data ----
 condition<-read.csv("./data/data-working/condition-newman.csv")
 pulse_range1<-read.csv("./data/data-working/pulse_range_age1_final.csv")
@@ -338,6 +342,46 @@ Anova(m4,type="III")
 summary(m4)
 plot(allEffects(m4))
 
+  ggplot(aes(x=cohort,y=postCount/preCount))+geom_point()+
+  geom_smooth(method="lm")+
+  facet_wrap(~pulse)
+
+ggplot(alldata,aes(x=cohort,y=preCount))+geom_point()+
+  geom_smooth(method="glm")+
+  facet_wrap(~pulse)
+ggplot(alldata,aes(x=cohort,y=postCount))+geom_point()+
+  geom_smooth(method="glm")+
+  facet_wrap(~pulse)
+ggplot(alldata,aes(x=preK,y=postCount))+geom_point()+
+  geom_smooth(method="glm")+
+  facet_wrap(~pulse)
+ggplot(alldata,aes(x=postK,y=postCount))+geom_point()+
+  geom_smooth(method="glm")+
+  facet_wrap(~pulse)
+ggplot(alldata,aes(x=days_below_1,y=postCount))+geom_point()+
+  geom_smooth(method="glm")+
+  facet_wrap(~pulse)
+ggplot(alldata,aes(x=pulse,y=postCount/preCount))+geom_point()+
+  geom_boxplot(outlier.shape = NA)
+
+plot_model(m4)
+plot_model(m4,show.intercept=TRUE,order.terms = c(1,2,3,4,5,6))
+plot_model(m4,type="std")
+plot_model(m4,show.intercept = TRUE)
+plot_model(m4,transform = "plogis",show.intercept = TRUE)
+
+plot_model(
+  m4, 
+  type="std",
+  title = "Survival",
+  colors = "black", 
+  show.values = TRUE,
+  value.offset = .4,
+  value.size = 4,
+  dot.size = 3,
+  line.size = 1.5,
+  vline.color = "#a8ddb5"
+)
 # ---- predictions ----
 # predict values
 output.m4<-data.frame(pulse=rep(seq(c(1:4)),18),
