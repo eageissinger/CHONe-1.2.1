@@ -330,11 +330,14 @@ lc%>%
 limitse<-aes(ymin=kavg-sek,ymax=kavg+sek)
 LCA<-lc%>%
   filter(size=='small')%>%
-  mutate(Ration="0.0%")%>%
-  mutate(Ration=replace(Ration,ration=="0.5%","2.5%"))%>%
-  mutate(Ration=replace(Ration,ration=="1.0%","4.9%"))%>%
-  mutate(Ration=replace(Ration,ration=="2.0%","9.8%"))%>%
-  ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
+  mutate(Ration="Starvation")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%","Low"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%","Medium"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%","High"))
+LCA$Ration<-factor(LCA$Ration,levels=c("Starvation","Low","Medium","High"))
+
+
+LCA.plot<-ggplot(LCA,aes(x=julian_date,y=kavg,colour=Ration))+
   geom_point(aes(shape=Ration,colour=Ration,fill=Ration),
              position = position_dodge(width=4))+
   stat_smooth(aes(linetype=Ration),method="lm",se=FALSE)+
@@ -356,11 +359,13 @@ LCA<-lc%>%
   
 LCB<-lc%>%
   filter(size=='large')%>%
-  mutate(Ration="0.0%")%>%
-  mutate(Ration=replace(Ration,ration=="0.5%","2.5%"))%>%
-  mutate(Ration=replace(Ration,ration=="1.0%","4.9%"))%>%
-  mutate(Ration=replace(Ration,ration=="2.0%","9.8%"))%>%
-  ggplot(aes(x=julian_date,y=kavg,colour=Ration))+
+  mutate(Ration="Starvation")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%","Low"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%","Medium"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%","High"))
+LCB$Ration<-factor(LCB$Ration,levels=c("Starvation","Low","Medium","High"))
+
+LCB.plot<-ggplot(LCB,aes(x=julian_date,y=kavg,colour=Ration))+
   geom_point(aes(shape=Ration,colour=Ration,fill=Ration),
              position=position_dodge(width=4))+
   stat_smooth(aes(linetype=Ration),method="lm",se=FALSE)+
@@ -380,7 +385,7 @@ LCB<-lc%>%
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
 
-ggarrange(LCA,LCB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
+ggarrange(LCA.plot,LCB.plot+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
 ggarrange(LCA+theme(axis.title=element_text(size=22,face='bold'))+
             theme(axis.text = element_text(size=22,face='bold'))+
@@ -514,15 +519,24 @@ K_adj0<-finalK%>%
   mutate(percent=replace(percent, ration=="0.5%",2.5))%>%
   mutate(percent=replace(percent,ration=="1.0%",4.9))%>%
   mutate(percent=replace(percent,ration=="2.0%",9.8))%>%
-  mutate(percent_adj=percent-0.05)
+  mutate(percent_adj=percent-0.05)%>%
+  mutate(Ration="Starvation")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%","Low"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%","Medium"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%","High"))
 Kadj1<-finalK%>%
   filter(size=='large')%>%
   mutate(percent=0.0)%>%
   mutate(percent=replace(percent, ration=="0.5%",2.5))%>%
   mutate(percent=replace(percent,ration=="1.0%",4.9))%>%
   mutate(percent=replace(percent,ration=="2.0%",9.8))%>%
-  mutate(percent_adj=percent+0.05)
+  mutate(percent_adj=percent+0.05)%>%
+  mutate(Ration="Starvation")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%","Low"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%","Medium"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%","High"))
 K2<-bind_rows(K_adj0,Kadj1)
+K2$Ration<-factor(K2$Ration,levels=c("Starvation","Low","Medium","High"))
 #write.csv(K2,'./data/data-working/deltaK.csv',row.names=FALSE)
 #K2.2<-read.csv('./data/data-working/deltaK2.csv')
 K2%>%
@@ -552,14 +566,14 @@ K2%>%
 limitse.dryK<-aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se)
 K2%>%
   rename(Size=size)%>%
-  ggplot(aes(x=percent_adj,y=delta.dry,fill=Size))+
+  ggplot(aes(x=Ration,y=delta.dry,fill=Size))+
   geom_errorbar(aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se),
                 width=0,
                 position=position_dodge(width=0.25))+
   geom_point(aes(shape=Size,fill=Size),
              position=position_dodge(width = 0.25))+
   theme_bw(base_rect_size = 1)+
-  ylab(expression(Delta *"Fulton's K"))+xlab("Food ration (% body weight)")+
+  ylab(expression(Delta *"Fulton's K"))+xlab("Food ration")+
   scale_fill_manual(values=c('grey0','grey64'))+
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
@@ -669,18 +683,19 @@ finalK%>%
 
 hsiA<-deltaHSI%>%
   filter(size=='small')%>%
-  mutate(percent2=0.0)%>%
-  mutate(percent2=replace(percent2,ration=="0.5%", 2.5))%>%
-  mutate(percent2=replace(percent2,ration=="1.0%", 4.9))%>%
-  mutate(percent2=replace(percent2,ration=="2.0%", 9.8))%>%
-  ggplot(aes(x=as.factor(percent),y=dHSI))+
+  mutate(Ration="Starvation")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%", "Low"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%", "Medium"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%", "High"))
+hsiA$Ration<-factor(hsiA$Ration,levels=c("Starvation","Low","Medium","High"))
+hsiA.plot<-ggplot(hsiA,aes(x=Ration,y=dHSI))+
   geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
   geom_boxplot(colour='black',fill='grey90')+
-  geom_jitter(aes(x=as.factor(percent),y=dHSI,colour=ration),width=0.25)+
+  geom_jitter(aes(x=Ration,y=dHSI,colour=ration),width=0.25)+
   theme_bw(base_rect_size = 1)+
   theme(panel.grid = element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  ylab(expression(Delta*'HSI'))+xlab('Food ration (% body weight)')+
+  ylab(expression(Delta*'HSI'))+xlab('Food ration')+
   scale_colour_manual(values=c('grey1','grey22','grey40','grey60'))+
   theme(legend.position = 'none')+
   ylim(-0.6,0.7)+
@@ -691,18 +706,20 @@ hsiA<-deltaHSI%>%
 
 hsiB<-deltaHSI%>%
   filter(size=='large')%>%
-  mutate(percent2=0.0)%>%
-  mutate(percent2=replace(percent2,ration=="0.5%", 2.5))%>%
-  mutate(percent2=replace(percent2,ration=="1.0%", 4.9))%>%
-  mutate(percent2=replace(percent2,ration=="2.0%", 9.8))%>%
-  ggplot(aes(x=as.factor(percent),y=dHSI))+
+  mutate(Ration="Starvation")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%", "Low"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%", "Medium"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%", "High"))
+hsiB$Ration<-factor(hsiB$Ration,levels=c("Starvation","Low","Medium","High"))
+
+hsiB.plot<-ggplot(hsiB,aes(x=Ration,y=dHSI))+
   geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
   geom_boxplot(colour='black',fill='grey90')+
-  geom_jitter(aes(x=as.factor(percent),y=dHSI,colour=ration),width=0.25)+
+  geom_jitter(aes(x=Ration,y=dHSI,colour=ration),width=0.25)+
   theme_bw(base_rect_size = 1)+
   theme(panel.grid = element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  ylab(expression(Delta*'HSI'))+xlab('Food ration (% body weight)')+
+  ylab(expression(Delta*'HSI'))+xlab('Food ration')+
   scale_colour_manual(values=c('grey1','grey22','grey40','grey60'))+
   theme(legend.position = 'none')+
   ylim(-0.6,0.7)+
@@ -712,7 +729,9 @@ hsiB<-deltaHSI%>%
   theme(axis.title.x= element_text(margin=margin(t=15)))
 
 
-ggarrange(hsiA,hsiB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1)
+ggarrange(hsiA.plot+theme(axis.text.x=element_text(angle = 45,hjust=1)),
+          hsiB.plot+theme(axis.title.y=element_text(colour='white'))+
+            theme(axis.text.x=element_text(angle = 45,hjust=1)), labels=c("A","B"),ncol=2,nrow=1)
 
 # hsi.m1! figure out how to interpret the interaction!
 
@@ -845,6 +864,14 @@ survival%>%
 
 # correlation between size and survival
 head(condition)
+
+size.surv<-left_join(condition,tanks)%>%
+  filter(date!="2017-03-21")%>%
+  filter(date!="2017-03-25")%>%
+  filter(date!="2017-04-24")%>%
+  select(julian_date,tank,sl_mm,wet_total_weight_g)%>%
+  filter(!is.na(tank))
+  
 size.surv.small<-left_join(condition,tanks)%>%
   filter(date!="2017-03-21")%>%
   filter(date!="2017-03-25")%>%
@@ -862,12 +889,9 @@ size.surv.large<-left_join(condition,tanks)%>%
   filter(!is.na(tank))
 
 
-cor(x=size.surv$julian_date,y=size.surv$sl_mm)
-cor(size.surv.small,use="complete.obs")
-cor(size.surv.large,use='complete.obs')
-cor(size.surv,use='complete.obs')
-corrplot(size.surv, type="upper", order="hclust", 
-         p.mat = res2$P, sig.level = 0.01, insig = "blank")
+cor.test(x=size.surv$julian_date,y=size.surv$sl_mm, method=c("pearson","kendall","spearman"))
+cor.test(x=size.surv.small$julian_date,y=size.surv.small$sl_mm, method=c("pearson","kendall","spearman"))
+cor.test(x=size.surv.large$julian_date,y=size.surv.large$sl_mm, method=c("pearson","kendall","spearman"))
 
 str(size.surv)
 summary(size.surv)
@@ -908,13 +932,18 @@ mortrate<-tank_survival%>%
   summarise(mean(rate))
 summary(mortrate)
 # --- Survival manuscript figures ----
+
 SA<-survival%>%
   filter(size=="small")%>%
-  mutate(Ration="0.0%")%>%
-  mutate(Ration=replace(Ration,ration=="0.5%", "2.5%"))%>%
-  mutate(Ration=replace(Ration,ration=="1.0%", "4.9%"))%>%
-  mutate(Ration=replace(Ration,ration=="2.0%", "9.8%"))%>%
-  ggplot()+
+  mutate(Ration="Starvation")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%", "Low"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%", "Medium"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%", "High"))
+SA$Ration<-as.factor(SA$Ration)
+SA$Ration<-factor(SA$Ration, levels=c("Starvation","Low","Medium","High"))
+levels(SA$Ration)
+
+SA.plot<-ggplot(SA)+
   geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),size=1,se=FALSE)+
   theme_bw()+
   ylab("% Survival")+xlab("Day of experiment")+
@@ -929,11 +958,16 @@ SA<-survival%>%
 
 SB<-survival%>%
   filter(size=="large")%>%
-  mutate(Ration="0.0%")%>%
-  mutate(Ration=replace(Ration,ration=="0.5%", "2.5%"))%>%
-  mutate(Ration=replace(Ration,ration=="1.0%", "4.9%"))%>%
-  mutate(Ration=replace(Ration,ration=="2.0%", "9.8%"))%>%
-  ggplot()+
+  mutate(Ration="Starvation")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%", "Low"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%", "Medium"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%", "High"))
+SB$Ration<-as.factor(SB$Ration)
+SB$Ration<-factor(SB$Ration, levels=c("Starvation","Low","Medium","High"))
+levels(SB$Ration)
+  
+  
+SB.plot<-ggplot(SB)+
   geom_smooth(aes(x=julian_date,y=exp_surv,col=Ration,linetype=Ration),se=FALSE,size=1)+
   theme_bw()+
   ylab("% Survival")+xlab("Day of experiment")+
@@ -946,7 +980,7 @@ SB<-survival%>%
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
 
-ggarrange(SA,SB+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
+ggarrange(SA.plot,SB.plot+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
 
 ggarrange(SA+theme(axis.title=element_text(size=22,face='bold'))+
@@ -1058,23 +1092,24 @@ ggplot(weight,aes(x=percent_adj,y=sgr_weight,fill=size))+
 
 sgrlarge<-sgrsum%>%
   filter(size=="large")%>%
-  mutate(Ration="0.0%")%>%
-  mutate(Ration=replace(Ration,ration=="0.5%","2.5%"))%>%
-  mutate(Ration=replace(Ration,ration=="1.0%","4.9%"))%>%
-  mutate(Ration=replace(Ration,ration=="2.0%","9.8%"))%>%
+  mutate(Ration="Starvation")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%","Low"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%","Medium"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%","High"))%>%
   mutate(percent_adj=percent+0.05)%>%
   data.frame()
 
 sgrsmall<-sgrsum%>%
   filter(size=="small")%>%
-  mutate(Ration="0.0%")%>%
-  mutate(Ration=replace(Ration,ration=="0.5%","2.5%"))%>%
-  mutate(Ration=replace(Ration,ration=="1.0%","4.9%"))%>%
-  mutate(Ration=replace(Ration,ration=="2.0%","9.8%"))%>%
+  mutate(Ration="Starvation")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%","Low"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%","Medium"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%","High"))%>%
   mutate(percent_adj=percent-0.05)%>%
   data.frame()
 
 sgr_adjusted<-bind_rows(sgrlarge,sgrsmall)
+sgr_adjusted$Ration<-factor(sgr_adjusted$Ration,levels=c("Starvation","Low","Medium","High"))
 #write.csv(sgr_adjusted,'./data/data-working/sgr.csv',row.names=FALSE)
 #sgr_adjusted2<-read.csv('./data/data-working/sgr2.csv')
 w<-sgr_adjusted%>%
@@ -1131,14 +1166,14 @@ ggarrange(w+theme(legend.position = 'none')+theme(axis.title.x = element_blank()
 
 W<-sgr_adjusted%>%
   rename(Size=size)%>%
-  ggplot(aes(x=percent_adj,y=sgr_weight,fill=Size))+
+  ggplot(aes(x=Ration,y=sgr_weight,fill=Size))+
   geom_errorbar(aes(ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),
                 width=0,
                 position=position_dodge(width=0.25))+
   geom_point(aes(shape=Size,fill=Size),
              position=position_dodge(width = 0.25))+
   theme_bw(base_rect_size = 1)+
-  ylab("Specific growth rate (grams � "~day^-1*")")+xlab("Food ration (% body weight)")+
+  ylab("Specific growth rate (% g � "~day^-1*")")+xlab("Food ration")+
   scale_fill_manual(values=c('grey0','grey64'))+
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
@@ -1150,14 +1185,14 @@ W<-sgr_adjusted%>%
 
 L<-sgr_adjusted%>%
   rename(Size=size)%>%
-  ggplot(aes(x=percent_adj,y=sgr_length,fill=Size))+
+  ggplot(aes(x=Ration,y=sgr_length,fill=Size))+
   geom_errorbar(aes(ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),
                 width=0,
                 position=position_dodge(width=0.25))+
   geom_point(aes(shape=Size,fill=Size),
              position=position_dodge(width = 0.25))+
   theme_bw(base_rect_size = 1)+
-  ylab("Specific growth rate (mm � "~day^-1*")")+xlab("Food ration (% body weight)")+
+  ylab("Specific growth rate (% mm � "~day^-1*")")+xlab("Food ration")+
   scale_fill_manual(values=c('grey0','grey64'))+
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
@@ -1167,7 +1202,9 @@ L<-sgr_adjusted%>%
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
 
-ggarrange(W,L, labels=c("A","B"),ncol=2,nrow=1,
+ggarrange(W+theme(axis.text.x = element_text(angle=45,hjust=1)),
+          L+theme(axis.text.x = element_text(angle=45,hjust=1)),
+          labels=c("A","B"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
 
 

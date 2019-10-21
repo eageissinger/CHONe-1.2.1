@@ -819,20 +819,21 @@ Anova(m1.2,type="III")
 # take % out of treatment label
 fce2<-fce%>%
   mutate(percent=as.numeric(str_sub(trt,start = 1,end = 3)))%>%
-  mutate(percent2=0.0)%>%
-  mutate(percent2=replace(percent2,trt=="0.5%",2.5))%>%
-  mutate(percent2=replace(percent2,trt=="1.0%", 4.9))%>%
-  mutate(percent2=replace(percent2,trt=="2.0%", 9.8))
+  mutate(Ration="Starvation")%>%
+  mutate(Ration=replace(Ration,trt=="0.5%","Low"))%>%
+  mutate(Ration=replace(Ration,trt=="1.0%", "Medium"))%>%
+  mutate(Ration=replace(Ration,trt=="2.0%", "High"))
+fce2$Ration<-factor(fce2$Ration,levels=c("Starvation","Low","Medium","High"))
 
 ggplot(fce,aes(y=FCE,x=daily_temp,colour=size))+
   geom_point()+
   facet_wrap(vars(ration))
 F1<-ggplot(fce2)+
-  geom_boxplot(aes(y=FCE,x=as.factor(percent2)),
+  geom_boxplot(aes(y=FCE,x=Ration),
                outlier.shape = NA)+
-  geom_jitter(aes(y=FCE,x=as.factor(percent2),colour=daily_temp),width=.15)+
+  geom_jitter(aes(y=FCE,x=Ration,colour=daily_temp),width=.15)+
   facet_wrap(vars(size=factor(size,levels=c("small","large"))))+
-  ylab("Feed conversion efficiency (g · "~g^-1*")")+xlab("Ration (% body weight)")+
+  ylab("Feed conversion efficiency (g · "~g^-1*")")+xlab("Ration")+
   theme_bw()+theme(panel.grid = element_blank())+
   scale_color_gradient(low="blue",high="red")+
   labs(colour="Temp. (°C)")+
@@ -852,15 +853,16 @@ summary(m2)
 Anova(m2,type="III")
 
 energy.02<-energy.0%>%
-  mutate(percent=0.0)%>%
-  mutate(percent=replace(percent,trt=="0.5%",2.5))%>%
-  mutate(percent=replace(percent,trt=="1.0%", 4.9))%>%
-  mutate(percent=replace(percent,trt=="2.0%", 9.8))
+  mutate(Ration="Starvation")%>%
+  mutate(Ration=replace(Ration,trt=="0.5%","Low"))%>%
+  mutate(Ration=replace(Ration,trt=="1.0%", "Medium"))%>%
+  mutate(Ration=replace(Ration,trt=="2.0%", "High"))
+energy.02$Ration<-factor(energy.02$Ration,levels=c("Starvation","Low","Medium","High"))
 F2<-ggplot(energy.02)+
-  geom_boxplot(aes(y=F.rate,x=as.factor(percent),colour=daily_temp))+
-  geom_jitter(aes(y=F.rate,x=as.factor(percent),colour=daily_temp),width=.15)+
+  geom_boxplot(aes(y=F.rate,x=Ration,colour=daily_temp))+
+  geom_jitter(aes(y=F.rate,x=Ration,colour=daily_temp),width=.15)+
   facet_wrap(vars(size=factor(size,levels=c("small","large"))))+
-  ylab("Feeding rate (% body weight · "~day^-1*")")+xlab("Ration (% body weight)")+
+  ylab("Feeding rate (% body weight · "~day^-1*")")+xlab("Ration")+
   theme_bw()+theme(panel.grid = element_blank())+
   scale_color_gradient(low="blue",high="red")+
   labs(colour="Temp. (°C)")+
@@ -869,7 +871,10 @@ F2<-ggplot(energy.02)+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
 F2
-ggarrange(F2+theme(axis.title.x=element_text(colour='white')),F1, labels=c("A","B"),ncol=1,nrow=2,
+ggarrange(F2+theme(axis.title.x=element_text(colour='white'))+
+            theme(axis.text.x=element_text(angle = 45,hjust=1)),
+          F1+theme(axis.text.x=element_text(angle = 45,hjust=1)),
+          labels=c("A","B"),ncol=1,nrow=2,
           common.legend=TRUE,legend='right')
 
 
