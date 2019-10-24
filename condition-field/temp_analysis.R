@@ -158,6 +158,11 @@ days95<-temp%>%
   summarise(cohort=1994,days_below_1=n())%>%
   data.frame()
 
+min.max<-yr95%>%
+  filter(date>="1995-01-20")%>%
+  filter(date<"1995-06-20")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=1995)
 
 # ----- 1996 ------
 yr96<-temp%>%
@@ -191,6 +196,12 @@ avg96<-yr96%>%
   summarise(cohort=1995,mean_temp=mean(daily_temp_C))%>%
   data.frame()
 
+yr96%>%
+  filter(date>="1996-1-1")%>%
+  filter(date<"1996-4-1")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=1996)%>%
+  bind_rows(min.max)->min.max
 
 # ----- 1997 -----
 yr97<-temp%>%
@@ -220,6 +231,14 @@ avg97<-yr97%>%
   filter(date<"1997-5-15")%>%
   summarise(cohort=1996,mean_temp=mean(daily_temp_C))%>%
   data.frame()
+
+yr97%>%
+  filter(date>="1997-1-4")%>%
+  filter(date<"1997-5-15")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=1997)%>%
+  bind_rows(min.max)->min.max
+
 
 # ---- 1998 -----
 yr98<-temp%>%
@@ -266,6 +285,12 @@ avg99<-yr99%>%
   summarise(cohort=1998,mean_temp=mean(daily_temp_C))%>%
   data.frame()
 
+yr99%>%
+  filter(date>="1999-1-1")%>%
+  filter(date<"1999-3-26")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=1999)%>%
+  bind_rows(min.max)->min.max
 
 # ----- 2000 -----
 yr00<-temp%>%
@@ -296,6 +321,13 @@ avg00<-yr00%>%
   summarise(cohort=1999,mean_temp=mean(daily_temp_C))%>%
   data.frame()
 
+yr00%>%
+  filter(date>="1999-12-29")%>%
+  filter(date<"2000-4-13")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2000)%>%
+  bind_rows(min.max)->min.max
+
 # ----- 2001 -----
 yr01<-temp%>%
   filter(date>="2000-10-1")%>%
@@ -324,6 +356,13 @@ avg01<-yr01%>%
   filter(date<"2001-5-20")%>%
   summarise(cohort=2000,mean_temp=mean(daily_temp_C))%>%
   data.frame()
+
+yr01%>%
+  filter(date>="2001-1-29")%>%
+  filter(date<"2001-5-20")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2001)%>%
+  bind_rows(min.max)->min.max
 
 # ----- 2002 -----
 yr02<-temp%>%
@@ -354,6 +393,13 @@ avg02<-yr02%>%
   summarise(cohort=2001,mean_temp=mean(daily_temp_C))%>%
   data.frame()
 
+yr02%>%
+  filter(date>="2002-1-5")%>%
+  filter(date<"2002-4-15")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2002)%>%
+  bind_rows(min.max)->min.max
+
 # ----- 2003 ----
 yr03<-temp%>%
   filter(date>="2002-10-1")%>%
@@ -382,6 +428,13 @@ avg03<-yr03%>%
   filter(date<"2003-5-3")%>%
   summarise(cohort=2002,mean_temp=mean(daily_temp_C))%>%
   data.frame()
+
+yr03%>%
+  filter(date>="2003-1-2")%>%
+  filter(date<"2003-5-3")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2003)%>%
+  bind_rows(min.max)->min.max
 
 # ---- 2004 -----
 yr04<-temp%>%
@@ -412,6 +465,13 @@ avg04<-yr04%>%
   summarise(cohort=2003,mean_temp=mean(daily_temp_C))%>%
   data.frame()
 
+yr04%>%
+  filter(date>="2004-1-9")%>%
+  filter(date<"2004-5-3")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2004)%>%
+  bind_rows(min.max)->min.max
+
 # ----- 2005 -----
 yr05<-temp%>%
   filter(date>="2004-10-1")%>%
@@ -440,6 +500,13 @@ avg05<-yr05%>%
   filter(date<"2005-4-28")%>%
   summarise(cohort=2004,mean_temp=mean(daily_temp_C))%>%
   data.frame()
+
+yr05%>%
+  filter(date>="2005-1-5")%>%
+  filter(date<"2005-4-28")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2005)%>%
+  bind_rows(min.max)->min.max
 
 # ----- 2006 -----
 yr06<-temp%>%
@@ -471,6 +538,12 @@ avg06<-yr06%>%
   summarise(cohort=2005,mean_temp=mean(daily_temp_C))%>%
   data.frame()
 
+yr06%>%
+  filter(date>="2006-1-11")%>%
+  filter(date<"2006-4-1")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2006)%>%
+  bind_rows(min.max)->min.max
 
 # ----- 2007 -----
 yr07<-temp%>%
@@ -502,7 +575,12 @@ avg07<-yr07%>%
   summarise(cohort=2006,mean_temp=mean(daily_temp_C))%>%
   data.frame()
   
-  
+yr07%>%
+  filter(date>="2007-1-15")%>%
+  filter(date<"2007-4-20")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2007)%>%
+  bind_rows(min.max)->min.max
 
 # ----- 2008 -----
 yr08<-temp%>%
@@ -532,6 +610,13 @@ avg08<-yr08%>%
   filter(date<"2008-4-23")%>%
   summarise(cohort=2007,mean_temp=mean(daily_temp_C))%>%
   data.frame()
+
+yr08%>%
+  filter(date>="2007-12-14")%>%
+  filter(date<"2008-4-23")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2008)%>%
+  bind_rows(min.max)->min.max
 
 # ---- 2009 ----
 yr09<-temp%>%
@@ -563,6 +648,13 @@ avg09<-yr09%>%
   summarise(cohort=2008,mean_temp=mean(daily_temp_C))%>%
   data.frame()
 
+yr09%>%
+  filter(date>="2009-1-13")%>%
+  filter(date<"2009-4-21")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2009)%>%
+  bind_rows(min.max)->min.max
+
 # ----- 2010 -----
 yr10<-temp%>%
   filter(date>="2009-10-1")%>%
@@ -591,6 +683,13 @@ avg10<-yr10%>%
   filter(date<"2010-3-26")%>%
   summarise(cohort=2009,mean_temp=mean(daily_temp_C))%>%
   data.frame()
+
+yr10%>%
+  filter(date>="2010-1-10")%>%
+  filter(date<"2010-3-26")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2010)%>%
+  bind_rows(min.max)->min.max
 
 # ------ 2011 --------
 yr11<-temp%>%
@@ -621,6 +720,13 @@ avg11<-yr11%>%
   summarise(cohort=2010,mean_temp=mean(daily_temp_C))%>%
   data.frame()
 
+yr11%>%
+  filter(date>="2011-1-26")%>%
+  filter(date<"2011-4-1")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2011)%>%
+  bind_rows(min.max)->min.max
+
 # ----- 2012 ------
 yr12<-temp%>%
   filter(date>="2011-10-1")%>%
@@ -649,6 +755,13 @@ avg12<-yr12%>%
   filter(date<"2012-4-9")%>%
   summarise(cohort=2011,mean_temp=mean(daily_temp_C))%>%
   data.frame()
+
+yr12%>%
+  filter(date>="2012-1-11")%>%
+  filter(date<"2012-4-9")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2012)%>%
+  bind_rows(min.max)->min.max
 
 #-----2013 ------
 yr13<-temp%>%
@@ -679,6 +792,13 @@ avg13<-yr13%>%
   summarise(cohort=2012,mean_temp=mean(daily_temp_C))%>%
   data.frame()
 
+yr13%>%
+  filter(date>="2013-1-3")%>%
+  filter(date<"2013-4-14")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2013)%>%
+  bind_rows(min.max)->min.max
+
 # ----- 2014 ------
 yr14<-temp%>%
   filter(date>="2013-10-1")%>%
@@ -707,6 +827,13 @@ avg14<-yr14%>%
   filter(date<"2014-4-22")%>%
   summarise(cohort=2013,mean_temp=mean(daily_temp_C))%>%
   data.frame()
+
+yr14%>%
+  filter(date>="2013-12-22")%>%
+  filter(date<"2014-4-22")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2014)%>%
+  bind_rows(min.max)->min.max
 
 # ---- 2015 ------
 yr15<-temp%>%
@@ -738,6 +865,13 @@ avg15<-yr15%>%
   summarise(cohort=2014,mean_temp=mean(daily_temp_C))%>%
   data.frame()
 
+yr15%>%
+  filter(date>="2015-1-1")%>%
+  filter(date<"2015-4-25")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2015)%>%
+  bind_rows(min.max)->min.max
+
 # ----- 2016 ------
 yr16<-temp%>%
   filter(date>="2015-10-1")%>%
@@ -767,6 +901,13 @@ avg16<-yr16%>%
   filter(date<"2016-4-16")%>%
   summarise(cohort=2015,mean_temp=mean(daily_temp_C))%>%
   data.frame()
+
+yr16%>%
+  filter(date>="2015-12-28")%>%
+  filter(date<"2016-4-26")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2016)%>%
+  bind_rows(min.max)->min.max
 
 # ----- 2017 ------
 yr17<-temp%>%
@@ -798,6 +939,12 @@ avg17<-yr17%>%
   summarise(cohort=2016,mean_temp=mean(daily_temp_C))%>%
   data.frame()
 
+yr17%>%
+  filter(date>="2017-01-03")%>%
+  filter(date<"2017-05-06")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2017)%>%
+  bind_rows(min.max)->min.max
 
 # ----- create winter summary tables------
 winterdays<-bind_rows(days95,days96,days97,days99,days00,days01,days02,
@@ -808,7 +955,9 @@ meantemp<-bind_rows(avg95,avg96,avg97,avg99,avg00,avg01,avg02,avg03,
                     avg04,avg05,avg06,avg07,avg08,avg09,avg10,avg11,avg12,
                     avg13,avg14,avg15,avg16,avg17)
 
-
+min.max%>%
+  rename(mintemp='min(daily_temp_C)',maxtemp='max(daily_temp_C)')%>%
+  summarise(min(mintemp),max(maxtemp))
 # ----- load winter duration data ------
 winterlength<-read.csv("./data/data-working/newman-winter-duration.csv",header=TRUE,sep=",")
 
