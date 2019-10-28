@@ -385,8 +385,10 @@ LCB.plot<-ggplot(LCB,aes(x=julian_date,y=kavg,colour=Ration))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
 
-ggarrange(LCA.plot,LCB.plot+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
+Fig2<-ggarrange(LCA.plot,LCB.plot+theme(axis.title.y=element_text(colour='white')), labels=c("a","b"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
+ggsave(file="Fig2.png",plot=Fig2,width=168, height=84,units="mm")
+ggsave(file="Fig2.eps",plot=Fig2,width=168, height=84,units="mm")
 ggarrange(LCA+theme(axis.title=element_text(size=22,face='bold'))+
             theme(axis.text = element_text(size=22,face='bold'))+
             theme(legend.title = element_text(size=20,face='bold'))+
@@ -564,7 +566,7 @@ K2%>%
 
 
 limitse.dryK<-aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se)
-K2%>%
+Fig3<-K2%>%
   rename(Size=size)%>%
   ggplot(aes(x=Ration,y=delta.dry,fill=Size))+
   geom_errorbar(aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se),
@@ -580,7 +582,10 @@ K2%>%
   theme(axis.title = element_text(size=12))+
   theme(axis.text = element_text(size=10))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
-  theme(axis.title.x= element_text(margin=margin(t=15)))
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  theme(legend.position = "top")
+ggsave(file="Fig3.png",plot=Fig3,width=84, height=84,units="mm")
+ggsave(file="Fig3.eps",plot=Fig3,width=84, height=84,units="mm")
 
 # Wet condition factor
 
@@ -729,10 +734,11 @@ hsiB.plot<-ggplot(hsiB,aes(x=Ration,y=dHSI))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
 
 
-ggarrange(hsiA.plot+theme(axis.text.x=element_text(angle = 45,hjust=1)),
+Fig4<-ggarrange(hsiA.plot+theme(axis.text.x=element_text(angle = 45,hjust=1)),
           hsiB.plot+theme(axis.title.y=element_text(colour='white'))+
-            theme(axis.text.x=element_text(angle = 45,hjust=1)), labels=c("A","B"),ncol=2,nrow=1)
-
+            theme(axis.text.x=element_text(angle = 45,hjust=1)), labels=c("a","b"),ncol=2,nrow=1)
+ggsave(file="Fig4.png",plot=Fig4,width=168, height=84,units="mm")
+ggsave(file="Fig4.eps",plot=Fig4,width=168, height=84,units="mm")
 # hsi.m1! figure out how to interpret the interaction!
 
 # ---- Survival -----
@@ -980,8 +986,10 @@ SB.plot<-ggplot(SB)+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
 
-ggarrange(SA.plot,SB.plot+theme(axis.title.y=element_text(colour='white')), labels=c("A","B"),ncol=2,nrow=1,
+Fig1<-ggarrange(SA.plot,SB.plot+theme(axis.title.y=element_text(colour='white')), labels=c("a","b"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
+ggsave(file="Fig1.png",plot=Fig2,width=168, height=84,units="mm")
+ggsave(file="Fig1.eps",plot=Fig2,width=168, height=84,units="mm")
 
 ggarrange(SA+theme(axis.title=element_text(size=22,face='bold'))+
             theme(axis.text = element_text(size=22,face='bold'))+
@@ -1202,12 +1210,12 @@ L<-sgr_adjusted%>%
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
 
-ggarrange(W+theme(axis.text.x = element_text(angle=45,hjust=1)),
+Fig5<-ggarrange(W+theme(axis.text.x = element_text(angle=45,hjust=1)),
           L+theme(axis.text.x = element_text(angle=45,hjust=1)),
-          labels=c("A","B"),ncol=2,nrow=1,
-          common.legend=TRUE,legend='top')
-
-
+          labels=c("a","b"),ncol=2,nrow=1,
+          common.legend=TRUE,legend='right')
+ggsave(file="Fig5.png",plot=Fig5,width=168, height=84,units="mm")
+ggsave(file="Fig5.eps",plot=Fig5,width=168, height=84,units="mm")
 table4<-sgr_adjusted%>%
   group_by(ration,size)%>%
   summarise(mean(sgr_weight),se=sd(sgr_weight/sqrt(n())),

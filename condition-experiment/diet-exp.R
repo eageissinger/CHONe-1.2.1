@@ -833,7 +833,7 @@ F1<-ggplot(fce2)+
                outlier.shape = NA)+
   geom_jitter(aes(y=FCE,x=Ration,colour=daily_temp),width=.15)+
   facet_wrap(vars(size=factor(size,levels=c("small","large"))))+
-  ylab("Feed conversion efficiency (g · "~g^-1*")")+xlab("Ration")+
+  ylab("Feed conversion efficiency (g · "~d^-1*")")+xlab("Ration")+
   theme_bw()+theme(panel.grid = element_blank())+
   scale_color_gradient(low="blue",high="red")+
   labs(colour="Temp. (°C)")+
@@ -862,7 +862,7 @@ F2<-ggplot(energy.02)+
   geom_boxplot(aes(y=F.rate,x=Ration,colour=daily_temp))+
   geom_jitter(aes(y=F.rate,x=Ration,colour=daily_temp),width=.15)+
   facet_wrap(vars(size=factor(size,levels=c("small","large"))))+
-  ylab("Feeding rate (% body weight · "~day^-1*")")+xlab("Ration")+
+  ylab("Feeding rate (% body weight · "~d^-1*")")+xlab("Ration")+
   theme_bw()+theme(panel.grid = element_blank())+
   scale_color_gradient(low="blue",high="red")+
   labs(colour="Temp. (°C)")+
@@ -871,13 +871,13 @@ F2<-ggplot(energy.02)+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
 F2
-ggarrange(F2+theme(axis.title.x=element_text(colour='white'))+
+Fig6<-ggarrange(F2+theme(axis.title.x=element_text(colour='white'))+
             theme(axis.text.x=element_text(angle = 45,hjust=1)),
           F1+theme(axis.text.x=element_text(angle = 45,hjust=1)),
-          labels=c("A","B"),ncol=1,nrow=2,
+          labels=c("a","b"),ncol=1,nrow=2,
           common.legend=TRUE,legend='right')
-
-
+ggsave(file="Fig6.png",plot=Fig6,width=168, height=180,units="mm")
+ggsave(file="Fig6.eps",plot=Fig6,width=168, height=168,units="mm")
 dflarge<-energy.0%>%
   filter(size=="large")
 m3<-lm(F.rate~factor(trt)+daily_temp,data=dflarge)
