@@ -1,4 +1,6 @@
-data/
+data/data-working
+data/data-original
+data/data-archived
 output/
 shapefiles/
 *.html
