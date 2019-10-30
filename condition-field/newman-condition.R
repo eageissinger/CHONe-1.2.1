@@ -11,16 +11,21 @@ setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 # ---- load packages ----
 library(MASS)
 library(lubridate)
-library(tidyverse)
 library(pscl)
-library(boot)
 library(car)
+library(boot)
 library(corrplot)
 library(glmmTMB)
 library(lme4)
 library(mgcv)
 library(effects)
 library(lmtest)
+library(magclass)
+library(sjPlot)
+library(sjlabelled)
+library(sjmisc)
+library(tidyverse)
+
 # ---- load data ----
 condition<-read.csv("./data/data-working/condition-newman.csv")
 pulse_range1<-read.csv("./data/data-working/pulse_range_age1_final.csv")
@@ -29,7 +34,17 @@ winter<-read.csv("./data/data-working/newman-winter-summary.csv")
 catch_haul<-read.csv("./data/data-working/catch_haul.csv")
 pulse_range0<-read.csv("./data/data-working/pulse_range_age0_final.csv")
 count.data<-read.csv("./data/data-working/newman-catch.csv")
+SLfull<-read.csv("./data/data-working/newman-length-all.csv")
 str(catch_haul)
+
+# ---- SL data -----
+names(SLfull)
+SLfull<-SLfull%>%
+  select(-Wt...g.,-Time.1)
+
+SLfull$date<-ymd(paste(SLfull$year,SLfull$month,SLfull$day,sep="-"))
+
+
 # ----- abundance data -----
 abund<-catch_haul%>%
   select(year,trip,age,total_catch,total_measured,julian.date,extrap_1,
@@ -291,6 +306,8 @@ Anova(m3,type="III")
 #GLMM binomial
 alldata<-alldata%>%filter(pulse<5)
 alldata$pulse<-as.factor(alldata$pulse)
+alldata$pulse<-droplevels(alldata$pulse)
+
 m4<-glmer(cbind(postCount,preCount)~pulse+preK+postK+scale(days_below_1)+
             (1|cohort),data=alldata,family=binomial)
 
@@ -307,7 +324,7 @@ summary(m4)
 Anova(m4,type="III",test.statistic = c("LR"))
 plot(allEffects(m4))
 
-m0<-update(m4.revised,.~1+(1|cohort))
+m0<-glmer(cbind(postCount,preCount)~1+(1|cohort),data=alldata,family=binomial)
 m1<-glmer(cbind(postCount,preCount)~pulse+
             (1|cohort),data=alldata,family=binomial)
 m2<-glmer(cbind(postCount,preCount)~pulse+preK+
@@ -315,14 +332,102 @@ m2<-glmer(cbind(postCount,preCount)~pulse+preK+
 m3<-glmer(cbind(postCount,preCount)~pulse+preK+postK+
           (1|cohort),data=alldata,family=binomial)
 
-logLik(m0)
-logLik(m1)
-logLik(m2)
-logLik(m3)
-logLik(m4)
+exp(logLik(m0))
+exp(logLik(m1))
+exp(logLik(m2))
+exp(logLik(m3))
+exp(logLik(m4))
 
-m4ANODEV<-lrtest(m0,m1,m2,m3,m4)
 Anova(m4,type="III")
+summary(m4)
+plot(allEffects(m4))
+
+  ggplot(aes(x=cohort,y=postCount/preCount))+geom_point()+
+  geom_smooth(method="lm")+
+  facet_wrap(~pulse)
+
+ggplot(alldata,aes(x=cohort,y=preCount))+geom_point()+
+  geom_smooth(method="glm")+
+  facet_wrap(~pulse)
+ggplot(alldata,aes(x=cohort,y=postCount))+geom_point()+
+  geom_smooth(method="glm")+
+  facet_wrap(~pulse)
+ggplot(alldata,aes(x=preK,y=postCount))+geom_point()+
+  geom_smooth(method="glm")+
+  facet_wrap(~pulse)
+ggplot(alldata,aes(x=postK,y=postCount))+geom_point()+
+  geom_smooth(method="glm")+
+  facet_wrap(~pulse)
+ggplot(alldata,aes(x=days_below_1,y=postCount))+geom_point()+
+  geom_smooth(method="glm")+
+  facet_wrap(~pulse)
+ggplot(alldata,aes(x=pulse,y=postCount/preCount))+geom_point()+
+  geom_boxplot(outlier.shape = NA)
+
+plot_model(m4)
+plot_model(m4,show.intercept=TRUE,order.terms = c(1,2,3,4,5,6))
+plot_model(m4,type="std")
+plot_model(m4,show.intercept = TRUE)
+plot_model(m4,transform = "plogis",show.intercept = TRUE)
+
+plot_model(
+  m4, 
+  type="std",
+  title = "Survival",
+  colors = "black", 
+  show.values = TRUE,
+  value.offset = .4,
+  value.size = 4,
+  dot.size = 3,
+  line.size = 1.5,
+  vline.color = "#a8ddb5"
+)
+# ---- predictions ----
+# predict values
+output.m4<-data.frame(pulse=rep(seq(c(1:4)),18),
+                      postK=sample(seq(from=0.5,
+                                to=0.9,
+                                length=72)),
+                      preK=sample(seq(from=0.5,
+                               to=0.9,
+                               length=72)),
+                      days_below_1=sample(seq(from=min(alldata$days_below_1),
+                                       to=max(alldata$days_below_1),
+                                       length=72)),
+                      cohort=c(rep(c(1999),4),rep(c(2000),4),rep(c(2001),4),rep(c(2002),4),rep(c(2003),4),rep(c(2004),4),
+                               rep(c(2005),4),rep(c(2006),4),rep(c(2007),4),rep(c(2007),4),rep(c(2007),4),rep(c(2010),4),
+                               rep(c(2011),4),rep(c(2012),4),rep(c(2013),4),rep(c(2014),4),rep(c(2015),4),rep(c(2016),4)))
+output.m4$pulse<-as.factor(output.m4$pulse)
+
+output.m4$predicted<-predict(m4,output.m4,allow.new.levels=TRUE,type='response')
+# issues with predicting: issue incorporating factor
+## also, i have randomly assigned all values randomly to pulses, however, the range for each pulse should
+## likely remain the same for all sample data..... Don't know where to go from here
+
+ggplot(alldata,aes(x=postK,y=postCount/preCount,colour=pulse))+geom_point()+
+  geom_smooth(method="glm",alpha=0.15,aes(fill=pulse))
+ggplot(alldata,aes(x=preK,y=postCount/preCount,colour=pulse))+geom_point()+
+  geom_smooth(method='glm',alpha=0.15,aes(fill=pulse))
+
+
+str(p0<-predict(m4))
+str(p1<-predict(m4,re.form=NA))
+newdata<-with(alldata,expand.grid(pulse=unique(pulse),postK=unique(postK),preK=unique(preK),
+                                  days_below_1=unique(days_below_1),cohort=unique(cohort)))
+str(p2<-predict(m4,newdata,allow.new.levels=TRUE))
+str(p3<-predict(m4,newdata,re.form=NA,allow.new.levels=TRUE))
+str(p4<-predict(m4,newdata,re.form= ~(1|cohort),allow.new.levels=TRUE))
+stopifnot(identical(p2,p4))
+summary(m4)
+
+output.m4$pred<-predict(m4, newdata = output.m4, newparams = NULL,
+        re.form = NULL,
+        random.only=FALSE, terms = NULL,
+        type = c("link", "response"), allow.new.levels = TRUE,
+        na.action = na.pass)
+
+ggplot(alldata,aes(y=postCount/preCount,x=days_below_1,colour=pulse))+geom_point()+
+  geom_smooth(aes(x=days_below_1,y=predicted),data=output.m4,size=1)
 
 # --- Further investegation ----
 alldata%>%
@@ -476,3 +581,53 @@ Anova(pm4,type="III")
 plot(allEffects(pm4))
 
 # ---- condition vs growth (length) ----
+# look at change in size from October (10) to May (05)
+summary(SLfull)
+SL0<-SLfull%>%
+  filter(species=="AC")%>%
+  filter(age==0)%>%
+  mutate(cohort=year)%>%
+  filter(month==10)%>%
+  filter(pulse<5)%>%
+  filter(cohort>1998)%>%
+  filter(cohort<2017)%>%
+  group_by(cohort,pulse)%>%
+  summarise(mmSLpre=mean(mmSL))
+SL1<-SLfull%>%
+  filter(species=="AC")%>%
+  filter(age==1)%>%
+  mutate(cohort=year-1)%>%
+  filter(month==5)%>%
+  filter(pulse<5)%>%
+  filter(cohort>1998)%>%
+  filter(cohort<2017)%>%
+  group_by(cohort,pulse)%>%
+  summarise(mmSLpost=mean(mmSL))
+
+
+SL<-left_join(SL0,SL1)
+
+part2<-left_join(alldata,SL)%>%
+  mutate(dK=postK-preK)%>%
+  mutate(dSL=mmSLpost-mmSLpre)
+
+part2$pulse<-as.factor(part2$pulse)
+m5<-glmer(cbind(postCount,preCount)~pulse+dK+dSL+scale(days_below_1)+(1|cohort),data=part2,family = binomial)
+            
+summary(m5)
+plot(m5)
+plot(allEffects(m5))
+exp(logLik(m5))
+exp(logLik(m4))
+
+summary(m4)
+estimates<-c(9.4750,0.5738,2.0603,5.5028,12.2070,-31.7715,1.3438)
+odds<-exp(estimates)
+prob<-odds/(1+odds)
+prob
+source<-c("Intercept","pulse2","pulse3","pulse4","preK","postK","scale(days_below_1)")
+prob.coeff<-as.data.frame(cbind(source,odds,prob))
+
+
+# summary on todays work: calculated odds and probability, attempted predictions - doesn't seem to work
+# must look at additional info for visualizing ANCOVA model..... Split up into four pulses maybe??
