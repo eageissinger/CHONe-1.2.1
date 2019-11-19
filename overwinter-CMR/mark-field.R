@@ -408,19 +408,16 @@ run.mstrata=function()
   mstrata.ddl$Psi$fix[mstrata.ddl$Psi$stratum=="B" & mstrata.ddl$Psi$tostratum=="C"]=0
   mstrata.ddl$Psi$fix[mstrata.ddl$Psi$stratum=="C" & mstrata.ddl$Psi$tostratum=="A"]=0
   mstrata.ddl$Psi$fix[mstrata.ddl$Psi$stratum=="C" & mstrata.ddl$Psi$tostratum=="B"]=0
+  mstrata.ddl$Psi$fix[mstrata.ddl$Psi$time==1 & mstrata.ddl$Psi$stratum=="A" & mstrata.ddl$Psi$tostratum=="B"]=0
+  mstrata.ddl$Psi$fix[mstrata.ddl$Psi$time==1 & mstrata.ddl$Psi$stratum=="A" & mstrata.ddl$Psi$tostratum=="C"]=0
   mstrata.ddl$S$fix=NA
   mstrata.ddl$S$fix[mstrata$S$stratum=="B"]=0
   mstrata.ddl$S$fix[mstrata$S$stratum=="C"]=0
-  #mstrata.ddl$Psi$distance=0
-  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="A"&mstrata.ddl$Psi$tostratum=="B"]=4
-  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="A"&mstrata.ddl$Psi$tostratum=="C"]=1.23
-  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="B"&mstrata.ddl$Psi$tostratum=="C"]=2
-  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="B"&mstrata.ddl$Psi$tostratum=="A"]=4
-  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="C"&mstrata.ddl$Psi$tostratum=="A"]=1.23
-  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="C"&mstrata.ddl$Psi$tostratum=="B"]=2
+  mstrata.ddl$p$fix=NA
+  mstrata.ddl$p$fix[mstrata.ddl$p$stratum=="B"]=0
+  mstrata.ddl$p$fix[mstrata.ddl$p$stratum=="C"]=0
   # Create formula
   Psi.s=list(formula=~1+stratum:tostratum)
-  Psi.time=list(formula=~time)
   p.time=list(formula=~time)
   S.time=list(formula=~time)
   p.dot=list(formula=~1)
@@ -429,8 +426,6 @@ run.mstrata=function()
   p.pulse=list(formula=~pulse)
   S.pulse=list(formula=~pulse)
   Psi.pulse.stratum=list(formula=~1+stratum:tostratum+pulse)
-  Psi.stratum.time=list(formula=~1+stratum:tostratum+time)
-  Psi.stratum.time.pulse=list(formula=~1+stratum:tostratum+pulse+time)
   p.pulse.time=list(formula=~pulse+time)
   S.pulse.time=list(formula=~pulse+time)
   #add time after this run
@@ -440,7 +435,7 @@ run.mstrata=function()
 }
 mstrata.results=run.mstrata()
 mstrata.results
-summary(mstrata.results[[56]])
+summary(mstrata.results[[32]])
 mstrata.results[[56]]
 mstrata.results[[2]]$design.matrix
 
