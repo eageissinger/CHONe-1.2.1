@@ -6,11 +6,11 @@ setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 # ---- load required packages ----
 
 library(lubridate)
-
 library(mixdist)
 #library(marked)
 library(tidyverse)
 library(RMark)
+
 source("./misc/pulse_range_fct.R")
 
 # ---- load data ----
@@ -399,62 +399,51 @@ summary(mstrata.ddl$p)
 run.mstrata=function()
 {
   # Process data
-  mstrata.processed=process.data(mcod,model="Multistrata",time.intervals = c(5,217))
-  # Create default design data
-  mstrata.ddl=make.design.data(mstrata.processed) # Add distance covariate
-  mstrata.ddl$Psi$distance=0
-  mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="A"&mstrata.ddl$Psi$tostratum=="B"]=4
-  mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="A"&mstrata.ddl$Psi$tostratum=="C"]=1.23
-  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="B"&mstrata.ddl$Psi$tostratum=="C"]=2
-  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="B"&mstrata.ddl$Psi$tostratum=="A"]=4
-  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="C"&mstrata.ddl$Psi$tostratum=="A"]=1.23
-  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="C"&mstrata.ddl$Psi$tostratum=="B"]=2
-  # Create formula
-  Psi.distance=list(formula=~distance)
-  Psi.distance.time=list(formula=~distance+time)
-  p.stratum=list(formula=~stratum)
-  S.stratum=list(formula=~stratum)
-  model.list=create.model.list("Multistrata")
-  mstrata.results=mark.wrapper(model.list,data=mstrata.processed,ddl=mstrata.ddl)
-  return(mstrata.results)
-}
-mstrata.results=run.mstrata()
-mstrata.results
-summary(mstrata.results[[2]])
-
-# add pulse structure
-run.mstrata=function()
-{
-  # Process data
   mstrata.processed=process.data(mcod,model="Multistrata",time.intervals = c(5,217),
                                  groups="pulse")
   # Create default design data
-  mstrata.ddl=make.design.data(mstrata.processed) # Add distance covariate
-  mstrata.ddl$Psi$bc[mstrata.ddl$Psi$stratum%in%c("B","C")&mstrata.ddl$Psi$tostratum=="C"]=1
-  
-  mstrata.ddl$Psi$distance=0
-  mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="A"&mstrata.ddl$Psi$tostratum=="B"]=4
-  mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="A"&mstrata.ddl$Psi$tostratum=="C"]=1.23
+  mstrata.ddl=make.design.data(mstrata.processed) 
+  mstrata.ddl$Psi$fix=NA
+  mstrata.ddl$Psi$fix[mstrata.ddl$Psi$stratum=="B" & mstrata.ddl$Psi$tostratum=="A"]=0
+  mstrata.ddl$Psi$fix[mstrata.ddl$Psi$stratum=="B" & mstrata.ddl$Psi$tostratum=="C"]=0
+  mstrata.ddl$Psi$fix[mstrata.ddl$Psi$stratum=="C" & mstrata.ddl$Psi$tostratum=="A"]=0
+  mstrata.ddl$Psi$fix[mstrata.ddl$Psi$stratum=="C" & mstrata.ddl$Psi$tostratum=="B"]=0
+  mstrata.ddl$S$fix=NA
+  mstrata.ddl$S$fix[mstrata$S$stratum=="B"]=0
+  mstrata.ddl$S$fix[mstrata$S$stratum=="C"]=0
+  #mstrata.ddl$Psi$distance=0
+  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="A"&mstrata.ddl$Psi$tostratum=="B"]=4
+  #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="A"&mstrata.ddl$Psi$tostratum=="C"]=1.23
   #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="B"&mstrata.ddl$Psi$tostratum=="C"]=2
   #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="B"&mstrata.ddl$Psi$tostratum=="A"]=4
   #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="C"&mstrata.ddl$Psi$tostratum=="A"]=1.23
   #mstrata.ddl$Psi$distance[mstrata.ddl$Psi$stratum=="C"&mstrata.ddl$Psi$tostratum=="B"]=2
   # Create formula
-  Psi.distance=list(formula=~distance)
-  Psi.distance.time=list(formula=~distance+time)
+  Psi.s=list(formula=~1+stratum:tostratum)
+  Psi.time=list(formula=~time)
+  p.time=list(formula=~time)
+  S.time=list(formula=~time)
+  p.dot=list(formula=~1)
+  S.dot=list(formula=~1)
   Psi.pulse=list(formula=~pulse)
-  Psi.pulse.distance=list(formula=~distance+pulse)
-  Psi.pulse.distance.time=list(formula=~distance+pulse+time)
-  p.stratum=list(formula=~stratum)
-  S.stratum=list(formula=~stratum)
+  p.pulse=list(formula=~pulse)
   S.pulse=list(formula=~pulse)
-  S.stratum.pulse=list(formula=~stratum+pulse)
+  Psi.pulse.stratum=list(formula=~1+stratum:tostratum+pulse)
+  Psi.stratum.time=list(formula=~1+stratum:tostratum+time)
+  Psi.stratum.time.pulse=list(formula=~1+stratum:tostratum+pulse+time)
+  p.pulse.time=list(formula=~pulse+time)
+  S.pulse.time=list(formula=~pulse+time)
+  #add time after this run
   model.list=create.model.list("Multistrata")
   mstrata.results=mark.wrapper(model.list,data=mstrata.processed,ddl=mstrata.ddl)
   return(mstrata.results)
 }
 mstrata.results=run.mstrata()
 mstrata.results
-summary(mstrata.results[[8]])
+summary(mstrata.results[[56]])
+mstrata.results[[56]]
+mstrata.results[[2]]$design.matrix
+
+
 cleanup(ask=FALSE)
 
