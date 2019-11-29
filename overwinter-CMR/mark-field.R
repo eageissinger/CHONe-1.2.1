@@ -436,7 +436,7 @@ run.mstrata=function()
 mstrata.results=run.mstrata()
 mstrata.results
 summary(mstrata.results[[32]])
-mstrata.results[[56]]
+mstrata.results[[32]]
 mstrata.results[[2]]$design.matrix
 
 
