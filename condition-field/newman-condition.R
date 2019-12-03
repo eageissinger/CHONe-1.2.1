@@ -272,8 +272,8 @@ summary(alldata)
 str(alldata)
 
 # GLM: Bionomial
-m0<-glm(cbind(postCount,preCount)~factor(pulse)+preK+postK+days_below_1+days_below_1+cohort,
-        data=alldata,family=binomial)
+m0<-glm(cbind(postCount,preCount)~factor(pulse)+preK+postK+days_below_1+cohort,
+        data=alldata,family=binomial(link = "logit"))
 plot(m0)
 hist(resid(m0))
 fit<-fitted(m0)
@@ -283,6 +283,18 @@ exp(logLik(m0))
 summary(m0)
 Anova(m0,type="III")
 AIC(m0)
+
+plot(allEffects(m0))
+
+plot_model(m0,show.intercept = TRUE)
+plot_model(m0)
+
+
+
+m1<-glm(cbind(postCount,preCount)~factor(pulse)+preK+postK+days_below_1+days_below_1,
+    data=alldata,family=binomial)
+plot(m1)
+hist(resid(m1))
 
 # GLM Poisson
 m2<-glm(postCount~preCount+factor(pulse)+preK+postK+days_below_1+mean_temp,
@@ -321,7 +333,7 @@ qqline(resid(m4),col='red')
 logLik(m4)
 exp(logLik(m4))
 summary(m4)
-Anova(m4,type="III",test.statistic = c("LR"))
+Anova(m4,type="III")
 plot(allEffects(m4))
 
 m0<-glmer(cbind(postCount,preCount)~1+(1|cohort),data=alldata,family=binomial)
