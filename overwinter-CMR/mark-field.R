@@ -306,6 +306,16 @@ pulse.results[[15]]$design.data
 names(pulse.results)
 round(pulse.results$Phi.timepluspulse.p.time$results$real[,1:4],3)
 
+mymodel<-pulse.results[[15]]
+
+model1<-mymodel$results$real[,1:4]
+model1.est<-cbind(model1[rep(seq_len(nrow(model1))), ])
+pulse.results[[15]]
+
+
+
+
+
 
 # ---- pulses 1:3 ----
 # Take out late pulses (the ones that were not marked)
@@ -337,6 +347,7 @@ early.pulse.model<-function()
 }
 early.pulse.results<-early.pulse.model()
 early.pulse.results
+early.pulse.results[[15]]
 adjust.chat(3.32,early.pulse.results)
 adjust.chat(0.80,early.pulse.results)
 nb.processed<-process.data(nb13,time.intervals = c(5,217),
@@ -439,6 +450,58 @@ summary(mstrata.results[[32]])
 mstrata.results[[32]]
 mstrata.results[[2]]$design.matrix
 
+# ---- take out pulse 4 for mulit-state ----
+mcod13<-mcod%>%
+  filter(pulse!=4)%>%
+  as.data.frame()
+run.mstrata=function()
+{
+  # Process data
+  mstrata.processed=process.data(mcod13,model="Multistrata",time.intervals = c(5,217),
+                                 groups="pulse")
+  # Create default design data
+  mstrata.ddl=make.design.data(mstrata.processed) 
+  mstrata.ddl$Psi$fix=NA
+  mstrata.ddl$Psi$fix[mstrata.ddl$Psi$stratum=="B" & mstrata.ddl$Psi$tostratum=="A"]=0
+  mstrata.ddl$Psi$fix[mstrata.ddl$Psi$stratum=="B" & mstrata.ddl$Psi$tostratum=="C"]=0
+  mstrata.ddl$Psi$fix[mstrata.ddl$Psi$stratum=="C" & mstrata.ddl$Psi$tostratum=="A"]=0
+  mstrata.ddl$Psi$fix[mstrata.ddl$Psi$stratum=="C" & mstrata.ddl$Psi$tostratum=="B"]=0
+  mstrata.ddl$Psi$fix[mstrata.ddl$Psi$time==1 & mstrata.ddl$Psi$stratum=="A" & mstrata.ddl$Psi$tostratum=="B"]=0
+  mstrata.ddl$Psi$fix[mstrata.ddl$Psi$time==1 & mstrata.ddl$Psi$stratum=="A" & mstrata.ddl$Psi$tostratum=="C"]=0
+  mstrata.ddl$S$fix=NA
+  mstrata.ddl$S$fix[mstrata$S$stratum=="B"]=0
+  mstrata.ddl$S$fix[mstrata$S$stratum=="C"]=0
+  mstrata.ddl$p$fix=NA
+  mstrata.ddl$p$fix[mstrata.ddl$p$stratum=="B"]=0
+  mstrata.ddl$p$fix[mstrata.ddl$p$stratum=="C"]=0
+  # Create formula
+  Psi.s=list(formula=~1+stratum:tostratum)
+  p.time=list(formula=~time)
+  S.time=list(formula=~time)
+  p.dot=list(formula=~1)
+  S.dot=list(formula=~1)
+  Psi.pulse=list(formula=~pulse)
+  p.pulse=list(formula=~pulse)
+  S.pulse=list(formula=~pulse)
+  Psi.pulse.stratum=list(formula=~1+stratum:tostratum+pulse)
+  p.pulse.time=list(formula=~pulse+time)
+  S.pulse.time=list(formula=~pulse+time)
+  #add time after this run
+  model.list=create.model.list("Multistrata")
+  mstrata.results=mark.wrapper(model.list,data=mstrata.processed,ddl=mstrata.ddl)
+  return(mstrata.results)
+}
+mstrata.results=run.mstrata()
+mstrata.results
+mstrata.results[[32]]
+#cleanup(ask=FALSE)
 
-cleanup(ask=FALSE)
-
+# ---- follow up -----
+mcod%>%
+  filter(ch == "0AB")
+mcod%>%
+  filter(ch == "0AA" | ch == "A0A" | ch == "AAA")
+mcod%>%filter(pulse==3)
+mcod%>%filter(pulse==4)
+mcod%>%filter(pulse==2)
+mcod%>%filter(pulse==1)
