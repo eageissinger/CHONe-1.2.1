@@ -1,7 +1,7 @@
 ### Mark-recapture ###
 
 # ---- set working directory ----
-setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/overwinter-CMR/")
 
 # ---- load required packages ----
 
@@ -11,15 +11,15 @@ library(mixdist)
 library(tidyverse)
 library(RMark)
 
-source("./misc/pulse_range_fct.R")
+source("../pulse-structure/pulse_range_fct.R")
 
 # ---- load data ----
-data<-read.csv("./data/data-working/CMR-field-MAY-captures.csv")
-fallcatch<-read.csv("./data/data-working/CMR-field-adj.csv")
-subsample<-read.csv("./data/data-working/subsample_wk1-2-field.csv")
-pulse0<-read.csv("./data/data-working/CMR-0pulses.csv")
-pulse1<-read.csv("./data/data-working/pulse_range_age1_final.csv")
-trips<-read.csv("./data/data-working/newman-trips.csv")
+data<-read.csv("../data/data-working/CMR-field-MAY-captures.csv")
+allCMR<-read.csv("../data/data-working/CMR-field-adj.csv")
+CMRpulse<-read.csv("../data/data-working/CMR-0pulses.csv")
+pulse0<-read.csv("../data/data-working/pulse_range_age0_final2019-12-06.csv")
+pulse1<-read.csv("../data/data-working/pulse_range_age1_final2019-12-6.csv")
+trips<-read.csv("../data/data-working/newman-trips.csv")
 
 # ---- check data ----
 names(data)
@@ -27,19 +27,19 @@ str(data)
 summary(data)
 head(data)
 
-names(subsample)
-str(subsample)
-summary(subsample)
-head(subsample)
+#names(subsample)
+#str(subsample)
+#summary(subsample)
+#head(subsample)
 
 str(trips)
 # format date
 data$date<-ymd(paste(data$year,data$month,data$day,sep="-"))
-subsample$date<-ymd(paste(subsample$Year,subsample$Month,subsample$Day,sep="-"))
+#subsample$date<-ymd(paste(subsample$Year,subsample$Month,subsample$Day,sep="-"))
 
 trips$date<-ymd(paste(trips$year,trips$month,trips$day,sep="-"))
-fallcatch$date<-ymd(paste(fallcatch$year,fallcatch$month,fallcatch$day,sep="-"))
-fallcatch<-fallcatch%>%filter(day==19 & status==1)
+#fallcatch$date<-ymd(paste(fallcatch$year,fallcatch$month,fallcatch$day,sep="-"))
+#fallcatch<-fallcatch%>%filter(day==19 & status==1)
 
 data<-left_join(data,trips)
                 
@@ -49,120 +49,57 @@ data<-left_join(data,trips)
 # set up age 1 pulses
 glimpse(pulse1)
 summary(pulse1)
+str(pulse1)
 pulse1<-pulse1%>%
-  mutate(pulse=replace(pulse,pulse==3,2),
-         pulse=replace(pulse,pulse==5,3))%>%
-  filter(!is.na(min))
+  filter(!is.na(min) | !is.na(max))
+
+
 pulse.assign1<-data.frame(trip=rep(pulse1$trip,pulse1$max-pulse1$min+1),
                          year=rep(pulse1$year,pulse1$max-pulse1$min+1),
                          pulse=rep(pulse1$pulse,pulse1$max-pulse1$min+1),
+                         age=rep(pulse1$age,pulse1$max-pulse1$min+1),
                          mmSL=unlist(mapply(seq,pulse1$min,pulse1$max)))
 
 glimpse(pulse.assign1)
-pulse.assign1<-pulse.assign1%>%
-  mutate(age=1)
 glimpse(pulse0)
-pulse0<-pulse0%>%
-  mutate(year=cohort, age=0)%>%
-  select(-cohort)
-
-pulses<-bind_rows(pulse0,pulse.assign1)%>%
+pulse.assign0<-data.frame(trip=rep(pulse0$trip,pulse0$max-pulse0$min+1),
+                          year=rep(pulse0$year,pulse0$max-pulse0$min+1),
+                          pulse=rep(pulse0$pulse,pulse0$max-pulse0$min+1),
+                          age=rep(pulse0$age,pulse0$max-pulse0$min+1),
+                          mmSL=unlist(mapply(seq,pulse0$min,pulse0$max)))
+pulses<-bind_rows(pulse.assign0,pulse.assign1)%>%
   rename(sl=mmSL)%>%
   filter(year>=2016)
 
-# ----- pulse assign ----
-data$site<-str_sub(data$animal_id,start = 1,end = 2)
-data$id<-as.numeric(str_sub(data$animal_id,start=4))
-head(data)
 
+# create dataframe with all fish with a trip, and status=1 or status 0 and id<1
+allCMR<-left_join(allCMR,trips)%>%
+  mutate(id=as.numeric(str_sub(animal_id,start=4)))
+pulse.size<-allCMR%>%
+  filter(!is.na(trip))%>%
+  filter(status==1 | id<=1)
 
-# assign fall fish
-october.pulses<-pulses%>%
-  filter(year==2016 & age==0)
-fall.fish<-data%>%
-  filter(id<2)
+pulse.size1<-left_join(pulse.size,pulses)%>%
+  select(animal_id,pulse)
 
-fall.pulses<-left_join(fall.fish,october.pulses)
+# assign pulses to fish during the no trip week
+notrip<-allCMR%>%
+  filter(is.na(trip))%>%
+  filter(status==1 | id<=1)
 
-may.pulses<-pulses%>%
-  filter(year==2017 & age==1 & trip ==10)%>%
-  select(-trip,-year)
-spring.fish<-data%>%
-  filter(id>1)
+pulse.size2<-left_join(notrip,CMRpulse)%>%
+  select(animal_id,pulse)
 
-spring.pulses<-left_join(spring.fish,may.pulses)
-
-pulse.size<-bind_rows(fall.pulses,spring.pulses)
-
-# fill in missing pulses
-fall.pulses%>%
-  ggplot(aes(x=date,y=sl,colour=factor(pulse)))+geom_point()
-ggplot(pulse.size,aes(x=date,y=sl,colour=factor(pulse)))+geom_point()
-
-
-oct.notrip<-pulse.size%>%filter(id<2 & day == 19)%>%
-  filter(!is.na(sl))
-oct<-bind_rows(oct.notrip,fallcatch)%>%# include captured fish
-  select(-pulse,-status)
-
-qplot(sl,data=oct,binwidth=5)
-SL<-select(oct,sl)
-summarise(SL,min(sl),max(sl))
-group.oct<-mixgroup(SL,breaks= c(0,seq(50,90,5),93),
-                    xname=NULL,k=NULL,usecondit=FALSE)
-plot(group.oct)
-
-# ---- set initial parameters ----
-par<-mixparam(c(60,80),c(5),pi=NULL)
-plot(group.oct,par,"gamma")
-
-# fit mixture
-fit1<-mix(group.oct,par, dist="gamma",mixconstr(consigma = "CCV"),
-          emsteps = 15, usecondit = FALSE)
-
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-par2<-mixparam(c(52,62,80),c(5),pi=NULL)
-plot(group.oct,par2,"gamma")
-
-fit2<-mix(group.oct,par2,dist="gamma",mixconstr(consigma = "CCV"),
-          emsteps = 15, usecondit = FALSE)
-summary(fit2)
-plot(fit2)
-plot(fit2,root=T)
-
-head(oct)
-notrip<-bind_cols(fit2$parameters, fit2$se)%>%
-  mutate(trip=1,year=2016,month=10,day=19,cohort=2016)
-notrip<-mutate(notrip,dummy_pulse=rev(seq(1:nrow(notrip))))
-
-pulse.range<-pulse_range(notrip)
-
-# use min and max for each pulse to then create a dataframe with all length possibilities per pulse
-pulse.assign<-data.frame(trip=rep(pulse.range$trip,pulse.range$max-pulse.range$min+1),
-                         cohort=rep(pulse.range$cohort,pulse.range$max-pulse.range$min+1),
-                         pulse=rep(pulse.range$dummy_pulse,pulse.range$max-pulse.range$min+1),
-                         sl=unlist(mapply(seq,pulse.range$min,pulse.range$max)))
-
-pulse.assign<-pulse.assign%>%
-  mutate(year=cohort)%>%
-  select(-cohort,-trip,-year)
-
-oct.notrip<-oct.notrip%>%
-  select(-pulse)
-
-pulses.notrip<-left_join(oct.notrip,pulse.assign)
-
-# combine
 # pulse.size and pulses.notrip
 # take out october no trip from pulse.size, then re-add pulses.notrip
+cod.id<-bind_rows(pulse.size1,pulse.size2)
 
-final1<-pulse.size[1:140,]
-final2<-pulse.size[170:1200,]
+# check if each fish has pulse assignment
+allCMR%>%
+  distinct(animal_id)%>%
+  summarise(n())
 
-final<-bind_rows(final1,pulses.notrip,final2)
+final<-left_join(data,cod.id)
 
 
 final%>%
@@ -348,23 +285,22 @@ early.pulse.model<-function()
 early.pulse.results<-early.pulse.model()
 early.pulse.results
 early.pulse.results[[15]]
-adjust.chat(3.32,early.pulse.results)
-adjust.chat(0.80,early.pulse.results)
+#adjust.chat(3.32,early.pulse.results)
+#adjust.chat(0.80,early.pulse.results)
 nb.processed<-process.data(nb13,time.intervals = c(5,217),
                            groups="pulse")
 summary(early.pulse.results[[15]])
+early.pulse.results[[15]]
 c.hat<-early.pulse.results[[15]]$results$deviance/early.pulse.results[[15]]$results$deviance.df
 c.hat
 tail(nb.pulse)
 
-PIMS(early.pulse.results[[15]],"p")
-
 release.gof(nb.processed,invisible = TRUE,title="release-gof",view=TRUE)
-summary(pulse.results[[15]])
-pulse.results[[15]]
-pulse.results[[15]]$design.data
+
 names(early.pulse.results)
 round(early.pulse.results$Phi.timepluspulse.p.time$results$real[,1:4],4)
+
+#write.csv(early.pulse.results[[15]]$results$real,"../output/CMR-pulse.csv",row.names = FALSE)
 
 # ---- format for Mstrata ----
 
@@ -493,7 +429,10 @@ run.mstrata=function()
 }
 mstrata.results=run.mstrata()
 mstrata.results
-mstrata.results[[32]]
+mstrata.results[[33]]
+summary(mstrata.results[[33]])
+write.csv(mstrata.results[[33]]$results$real,"../data/output/multistrata.csv",row.names=FALSE)
+
 #cleanup(ask=FALSE)
 
 # ---- follow up -----

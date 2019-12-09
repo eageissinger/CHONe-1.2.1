@@ -2,8 +2,8 @@
 setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/overwinter-CMR/")
 
 # ---- load data ----
-NB<-read.csv("../data/output/early-pulse-CJS.csv")
-multi<-read.csv("../data/output/early-pulse-multi.csv")
+NB<-read.csv("../data/output/CMR-pulse.csv")
+multi<-read.csv("../data/output/multistrata.csv")
 octfish<-read.csv("../data/data-working/oct-cod-pulses.csv")
 mayfish<-read.csv("../data/data-working/may-cod-pulses.csv")
 # ---- load packages ----
@@ -31,17 +31,18 @@ mayfish$date<-ymd(paste(mayfish$year,mayfish$month,mayfish$day,sep="-"))
 
 NB%>%
   mutate(M=-log(estimate))%>%
-  mutate(M=replace(M,parameter=="p",NA))->NB
+  mutate(M=replace(M,parameter=="p",NA))%>%
+  mutate(Mse=-log(se),Mlcl=-log(lcl),Mucl=-log(ucl))->NB
 
 multi%>%
   mutate(M=-log(estimate))%>%
-  mutate(M=replace(Z, parameter =="p" | parameter=="Psi", NA))%>%
+  mutate(M=replace(M, parameter =="p" | parameter=="Psi", NA))%>%
   mutate(Mse=-log(se),Mlcl=-log(lcl),Mucl=-log(ucl))->multi
 
 NB%>%
   filter(parameter=="Phi")%>% # convert to instantaneous mort
   mutate(season="fall")%>%
-  mutate(season=replace(season,time==6,"overwinter"))%>%
+  mutate(season=replace(season,day==6,"overwinter"))%>%
   ggplot()+
   geom_point(aes(x=season,y=estimate,colour=factor(group)),
              position=position_dodge(width=.2))+
@@ -77,10 +78,19 @@ multi%>%
 NB%>%
   filter(parameter=="Phi")%>%
   mutate(season="fall")%>%
-  mutate(season=replace(season,time==6,"overwinter"))%>%
+  mutate(season=replace(season,day==6,"overwinter"))%>%
   ggplot()+
-  geom_point(aes(x=season,y=Z,colour=factor(group)),
-             position=position_dodge(width=.5))
+  geom_point(aes(x=as.factor(group),y=M),
+             position=position_dodge(width=.5),size=2)+
+  geom_errorbar(aes(x=group,ymin=Mlcl,ymax=Mucl,group=factor(group)),
+                position=position_dodge(width=.5),
+                width=0)+
+  facet_wrap(~season)+
+  theme_bw()+
+  xlab("Pulse")+
+  ylab("M("~day^-1*")")
+
+
 # ---- Size Frequency -----
 
 # October
