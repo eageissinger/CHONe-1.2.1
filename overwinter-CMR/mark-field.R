@@ -116,7 +116,14 @@ mrkdata<-final%>%
   filter(age<2)%>%
   select(date,year,month,animal_id,sl,mark,pulse)%>%
   data.frame()
-
+mrkdata%>%
+  filter(!is.na(sl))%>%
+  filter(is.na(pulse))
+mrkdata<-mrkdata%>%
+  mutate(pulse=replace(pulse,is.na(pulse) & sl<=62,4))%>%
+  mutate(pulse=replace(pulse,is.na(pulse) & sl>135,1))
+#<=62,4
+#>135,1
 # Determine time-steps
 collection.dates<-distinct(mrkdata,date)
 year<-2016
@@ -431,7 +438,7 @@ mstrata.results=run.mstrata()
 mstrata.results
 mstrata.results[[33]]
 summary(mstrata.results[[33]])
-write.csv(mstrata.results[[33]]$results$real,"../data/output/multistrata.csv",row.names=FALSE)
+#write.csv(mstrata.results[[33]]$results$real,"../data/output/multistrata.csv",row.names=FALSE)
 
 #cleanup(ask=FALSE)
 
@@ -444,3 +451,13 @@ mcod%>%filter(pulse==3)
 mcod%>%filter(pulse==4)
 mcod%>%filter(pulse==2)
 mcod%>%filter(pulse==1)
+
+# format for recapture presence/absence
+
+recap<-mrkdata%>%
+  select(-year,-month,-day)%>%
+  mutate(site=str_sub(animal_id,start=1,end=2))
+
+mrkdata4<-spread(recap,date,mark,fill=0)
+#write.csv(mrkdata4,"../data/data-working/CMR-wide.csv",row.names=FALSE)
+
