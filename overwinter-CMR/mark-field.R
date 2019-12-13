@@ -292,6 +292,20 @@ early.pulse.model<-function()
 early.pulse.results<-early.pulse.model()
 early.pulse.results
 early.pulse.results[[15]]
+
+
+# rerun only model 15 Phi(~time + pulse) p(~time)
+nb.processed<-process.data(nb13,time.intervals = c(5,217),
+                           groups="pulse")
+nb.ddl<-make.design.data(nb.processed)
+Phi.timepluspulse<-list(formula=~time+pulse)
+p.time<-list(formula=~time)
+
+model15<-mark(nb.processed,nb.ddl,model.parameters=list(Phi=Phi.timepluspulse,p=p.time))
+summary(model15)
+#export.MARK(nb.processed, "NB-results",model=early.pulse.results,replace=FALSE)
+
+
 #adjust.chat(3.32,early.pulse.results)
 #adjust.chat(0.80,early.pulse.results)
 nb.processed<-process.data(nb13,time.intervals = c(5,217),
@@ -302,12 +316,11 @@ c.hat<-early.pulse.results[[15]]$results$deviance/early.pulse.results[[15]]$resu
 c.hat
 tail(nb.pulse)
 
-release.gof(nb.processed,invisible = TRUE,title="release-gof",view=TRUE)
 
 names(early.pulse.results)
 round(early.pulse.results$Phi.timepluspulse.p.time$results$real[,1:4],4)
 
-#write.csv(early.pulse.results[[15]]$results$real,"../output/CMR-pulse.csv",row.names = FALSE)
+#write.csv(early.pulse.results[[15]]$results$real,"../data/output/CMR-pulse.csv",row.names = FALSE)
 
 # ---- format for Mstrata ----
 
@@ -396,6 +409,7 @@ mstrata.results[[2]]$design.matrix
 # ---- take out pulse 4 for mulit-state ----
 mcod13<-mcod%>%
   filter(pulse!=4)%>%
+  select(-sl)%>%
   as.data.frame()
 run.mstrata=function()
 {
@@ -439,7 +453,10 @@ mstrata.results
 mstrata.results[[33]]
 summary(mstrata.results[[33]])
 #write.csv(mstrata.results[[33]]$results$real,"../data/output/multistrata.csv",row.names=FALSE)
+mstrata.processed=process.data(mcod13,model="Multistrata",time.intervals = c(5,217),
+                               groups="pulse")
 
+#export.MARK(mstrata.processed,"multistate",model=mstrata.results,replace = TRUE)
 #cleanup(ask=FALSE)
 
 # ---- follow up -----
