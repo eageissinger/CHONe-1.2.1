@@ -25,6 +25,7 @@ summary(data)
 
 # format fish id to match animal_id
 data<-data%>%
+  filter(age==1)%>%
   mutate(animal_id=str_c(site,2,fish,sep="."))%>%
   mutate(animal_id=str_replace(animal_id,'.2.','_2.'))
 
@@ -41,11 +42,12 @@ pulse.assign<-data.frame(trip=rep(pulses$trip,pulses$max-pulses$min+1),
                          age=rep(pulses$age,pulses$max-pulses$min+1),
                          mmSL=unlist(mapply(seq,pulses$min,pulses$max)))
 
-data<-left_join(data,pulse.assign)
+data1<-left_join(data,pulse.assign)%>%
+  distinct()
 
 # mark presence/absence
 # ---- Condition Factor ----
-data%>%
+data1%>%
   mutate(K=(body_weight_g/(mmSL*.1)^3)*1000)%>%
   mutate(HSI=((liver_weight_mg*.001)/body_weight_g)*1000)->data
 
@@ -66,11 +68,13 @@ pulse.K<-glm(K~site*factor(pulse),family=Gamma(link="log"),data=data)
 plot(pulse.K)
 hist(resid(pulse.K))
 Anova(pulse.K,type="III")
+summary(pulse.K)
 
-pulse.HSI<-glm(HSI~site*factor(pulse),family=Gamma(link="log"),data=data)
+pulse.HSI<-glm(HSI~site+factor(pulse),family=Gamma(link="log"),data=data)
 plot(pulse.HSI)
 hist(resid(pulse.HSI))
 Anova(pulse.HSI,type="III")
+summary(pulse.HSI)
 
 ## NEED TO INCORPORATE RECAPTURE VS NO RECAP
 head(recap)
@@ -100,8 +104,24 @@ Anova(mHSI.full)
 
 ggplot(data2,aes(x=factor(pulse),y=HSI))+geom_boxplot()
 
+data2%>%
+  group_by(pulse)%>%
+  filter(!is.na(HSI))%>%
+  summarise(mean(HSI))
+
 ggplot(data2,aes(x=factor(pulse),y=HSI))+geom_boxplot()+
   geom_jitter(aes(x=factor(pulse),y=HSI,colour=site))
 
+data2%>%
+  group_by(site,pulse)%>%
+  summarise(n())
+
 # determine where the 62 mm fish fit
 ggplot(data2,aes(x=site,y=sl,colour=factor(pulse)))+geom_point()
+
+# Evaluate recapture data
+recap%>%
+  filter(recap!=0)
+
+data2%>%
+  filter(recap!=0)

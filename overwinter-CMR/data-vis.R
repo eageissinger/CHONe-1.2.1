@@ -42,7 +42,7 @@ multi%>%
 NB%>%
   filter(parameter=="Phi")%>% # convert to instantaneous mort
   mutate(season="fall")%>%
-  mutate(season=replace(season,day==6,"overwinter"))%>%
+  mutate(season=replace(season,time==6,"overwinter"))%>%
   ggplot()+
   geom_point(aes(x=season,y=estimate,colour=factor(group)),
              position=position_dodge(width=.2))+
@@ -67,7 +67,7 @@ multi%>%
   ggplot()+
   geom_point(aes(x=as.factor(group),y=M),
              position=position_dodge(width=.5),size=2)+
-  geom_errorbar(aes(x=group,ymin=Mlcl,ymax=Mucl,group=factor(group)),
+  geom_errorbar(aes(x=group,ymin=M-Mse,ymax=M+Mse,group=factor(group)),
                                                              position=position_dodge(width=.5),
                                                              width=0)+
   facet_wrap(~season)+
@@ -78,11 +78,11 @@ multi%>%
 NB%>%
   filter(parameter=="Phi")%>%
   mutate(season="fall")%>%
-  mutate(season=replace(season,day==6,"overwinter"))%>%
+  mutate(season=replace(season,time==6,"overwinter"))%>%
   ggplot()+
   geom_point(aes(x=as.factor(group),y=M),
              position=position_dodge(width=.5),size=2)+
-  geom_errorbar(aes(x=group,ymin=Mlcl,ymax=Mucl,group=factor(group)),
+  geom_errorbar(aes(x=group,ymin=M-Mse,ymax=M+Mse,group=factor(group)),
                 position=position_dodge(width=.5),
                 width=0)+
   facet_wrap(~season)+
@@ -90,37 +90,81 @@ NB%>%
   xlab("Pulse")+
   ylab("M("~day^-1*")")
 
+NB%>%
+  filter(parameter=="Phi")%>%
+  mutate(season="fall")%>%
+  mutate(season=replace(season,time==6,"overwinter"))%>%
+  ggplot()+
+  geom_point(aes(x=as.factor(group),y=M,shape=season),
+             position=position_dodge(width=.5),size=2)+
+  geom_errorbar(aes(x=as.factor(group),ymin=M-Mse,ymax=M+Mse,shape=season),
+                position=position_dodge(width=.5),
+                width=0)+
+  theme_bw()+
+  xlab("Pulse")+
+  ylab("M("~day^-1*")")
 
 # ---- Size Frequency -----
 
 # October
 octfish%>%
   filter(date=='2016-10-14' & id<1 & !is.na(sl))%>%
-  ggplot()+geom_histogram(aes(x=sl,fill=factor(pulse)),binwidth = 3)
-
+  ggplot()+geom_histogram(aes(x=sl,fill=factor(pulse)),binwidth = 1)
+octfish%>%
+  filter(date=='2016-10-14' & id<1 & !is.na(sl))%>%
+  group_by(pulse)%>%
+  summarise(min(sl),max(sl))
 
 octfish%>%
   filter(date=='2016-10-19' & id <1 & !is.na(sl))%>%
-  ggplot()+geom_histogram(aes(x=sl,fill=factor(pulse)),binwidth = 3)
+  ggplot()+geom_histogram(aes(x=sl,fill=factor(pulse)),binwidth = 1)
+
+octfish%>%
+  filter(date=='2016-10-19' & id <1 & !is.na(sl))%>%
+  group_by(pulse)%>%
+  summarise(min(sl),max(sl))
 
 octfish%>%
   group_by(date,pulse)%>%
   summarise(mean(sl),max(sl),min(sl))
 
-mayfish%>%
-  filter(id>=2 & site=="NB" & date == '2017-05-24' & age == 1)%>%
-  ggplot()+geom_histogram(aes(x=sl,fill=factor(pulse)),binwidth = 3)
-mayfish%>%
-  filter(id>=2 & site=="NB" & date == '2017-05-24' & age == 1)%>%
-  filter(is.na(pulse))
+mayfish<-mayfish%>%
+  mutate(pulse=replace(pulse,is.na(pulse) & sl<=62,4))%>%
+  mutate(pulse=replace(pulse,is.na(pulse) & sl>115,1))
 
 mayfish%>%
+  filter(id>=2 & site=="NB" & date == '2017-05-24' & age == 1)%>%
+  ggplot()+geom_histogram(aes(x=sl,fill=factor(pulse)),binwidth = 3)
+mayfish%>%
+  filter(id>=2 & site=="NB" & date == '2017-05-24' & age == 1)%>%
+  filter(is.na(pulse))
+mayfish%>%
+  filter(id>=2 & site=="NB" & date == '2017-05-24' & age == 1)%>%
+  group_by(pulse)%>%
+  summarise(min(sl),max(sl))
+mayfish%>%
   filter(id>=2 & site == "MI" & date == '2017-05-24' & age == 1)%>%
   ggplot()+geom_histogram(aes(x=sl,fill=factor(pulse)),binwidth = 3)
 mayfish%>%
   filter(id>=2 & site == "MI" & date == '2017-05-24' & age == 1)%>%
-  filter(is.na(pulse))
+  group_by(pulse)%>%
+  summarise(min(sl),max(sl))
+mayfish%>%
+  filter(id>=2 & site =="CC" & date == '2017-05-24' & age == 1)%>%
+  group_by(pulse)%>%
+  summarise(min(sl),max(sl))
 
 mayfish%>%
   filter(id>=2 & site =="CC" & date == '2017-05-24' & age == 1)%>%
   ggplot()+geom_histogram(aes(x=sl,fill=factor(pulse)),binwidth = 3)
+
+mayfish%>%
+  filter(id>2 & date == '2017-05-24 & age == 1')%>%
+  ggplot()+geom_histogram(aes(x=sl,fill=factor(pulse)),binwidth = 3)+
+  facet_wrap(~site)
+
+octfish%>%
+  filter(id<1 & !is.na(sl))%>%
+  ggplot()+geom_histogram(aes(x=sl,fill=factor(pulse)),binwidth=3)+
+  facet_wrap(~date)
+
