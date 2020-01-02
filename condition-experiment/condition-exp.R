@@ -4,11 +4,11 @@
 setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 #----load data-----
-condition<-read.csv("./data/data-working/condition-exp.csv",header=TRUE)
-length_weight<-read.csv("./data/data-working/length-weight-exp.csv",header=TRUE)
-tank_survival<-read.csv("./data/data-working/tank-survival-exp.csv",header=TRUE)
-temp<-read.csv("./data/data-working/temperature-exp.csv",header=TRUE)
-tanks<-read.csv("./data/data-working/tank-assignments-exp.csv")
+condition<-read.csv("./data/condition-exp.csv",header=TRUE)
+length_weight<-read.csv("./data/length-weight-exp.csv",header=TRUE)
+tank_survival<-read.csv("./data/tank-survival-exp.csv",header=TRUE)
+temp<-read.csv("./data/temperature-exp.csv",header=TRUE)
+tanks<-read.csv("./data/tank-assignments-exp.csv")
 
 # ----load pacakges -----
 library(car)
@@ -988,8 +988,8 @@ SB.plot<-ggplot(SB)+
 
 Fig1<-ggarrange(SA.plot,SB.plot+theme(axis.title.y=element_text(colour='white')), labels=c("a","b"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
-ggsave(file="Fig1.png",plot=Fig2,width=168, height=84,units="mm")
-ggsave(file="Fig1.eps",plot=Fig2,width=168, height=84,units="mm")
+ggsave(file="Fig1.png",plot=Fig1,width=168, height=84,units="mm")
+ggsave(file="Fig1.eps",plot=Fig1,width=168, height=84,units="mm")
 
 ggarrange(SA+theme(axis.title=element_text(size=22,face='bold'))+
             theme(axis.text = element_text(size=22,face='bold'))+
