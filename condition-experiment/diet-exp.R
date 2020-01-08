@@ -4,12 +4,12 @@
 setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
 
 # ---- load data ----
-total<-read.csv("./data/data-working/diet_feeding-exp.csv")
-leftover<-read.csv("./data/data-working/diet_leftover-exp.csv")
-temp<-read.csv("./data/data-working/temperature-exp.csv")
-lw<-read.csv("./data/data-working/length-weight-exp.csv")
-condition<-read.csv("./data/data-working/condition-exp.csv")
-tanks<-read.csv("./data/data-working/tank-assignments-exp.csv")
+total<-read.csv("./data/diet_feeding-exp.csv")
+leftover<-read.csv("./data/diet_leftover-exp.csv")
+temp<-read.csv("./data/temperature-exp.csv")
+lw<-read.csv("./data/length-weight-exp.csv")
+condition<-read.csv("./data/condition-exp.csv")
+tanks<-read.csv("./data/tank-assignments-exp.csv")
 
 # ---- packages ----
 library(MASS)
@@ -103,7 +103,7 @@ lw<-lw%>%
 
 # add final measurement from condition to lw
 finalw<-condition%>%
-  filter(julian_date==114 | julian_date == 84 | julian_date ==80)%>%
+  filter(julian_date==114 | julian_date == 84 | julian_date == 80)%>%
   group_by(tank,julian_date)%>%
   summarise(sl=mean(sl_mm),sl.sd=sd(sl_mm),weight=mean(wet_total_weight_g),weight.sd=sd(wet_total_weight_g),biomass=sum(wet_total_weight_g))
 finalw<-left_join(finalw,tanks)
@@ -895,7 +895,31 @@ hist(resid(m4))
 summary(m4)
 Anova(m4,type="III")
 
+# summary table of feeding rate and temperature
+summary(energy.02)
+energy.02%>%
+  filter(daily_temp<=0)%>%
+  group_by(size,Ration)%>%
+  filter(!is.na(F.rate))%>%
+  summarise(min(F.rate),max(F.rate))
 
+energy.02%>%
+  filter(daily_temp>0)%>%
+  filter(daily_temp<0.4)%>%
+  group_by(size,Ration)%>%
+  filter(!is.na(F.rate))%>%
+  summarise(min(F.rate),max(F.rate))
+
+energy.02%>%
+  filter(daily_temp>1)%>%
+  group_by(size,Ration)%>%
+  filter(!is.na(F.rate))%>%
+  summarise(min(F.rate),max(F.rate))
+energy.02%>%
+  filter(!is.na(daily_temp))%>%
+  group_by(size,Ration,daily_temp)%>%
+  summarise(min(F.rate),max(F.rate))
+  
 # ---- presentation figures ----
 mid<-mean(fce$daily_temp)
 B<-F1+
