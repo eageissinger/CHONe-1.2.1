@@ -1,7 +1,7 @@
 #### Food consumption ####
 
 # --- set working directory ----
-setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 
 # ---- load data ----
 total<-read.csv("./data/diet_feeding-exp.csv")
@@ -13,8 +13,8 @@ tanks<-read.csv("./data/tank-assignments-exp.csv")
 
 # ---- packages ----
 library(MASS)
-library(strucchange)
-library(timeSeries)
+#library(strucchange)
+#library(timeSeries)
 library(pscl)
 library(boot)
 library(car)
@@ -899,22 +899,22 @@ Anova(m4,type="III")
 summary(energy.02)
 energy.02%>%
   filter(daily_temp<=0)%>%
-  group_by(size,Ration)%>%
+  group_by(Ration)%>%
   filter(!is.na(F.rate))%>%
-  summarise(min(F.rate),max(F.rate))
+  summarise(min(F.rate),max(F.rate),mean(F.rate))
 
 energy.02%>%
   filter(daily_temp>0)%>%
-  filter(daily_temp<0.4)%>%
-  group_by(size,Ration)%>%
+  filter(daily_temp<0.5)%>%
+  group_by(Ration)%>%
   filter(!is.na(F.rate))%>%
-  summarise(min(F.rate),max(F.rate))
+  summarise(min(F.rate),max(F.rate),mean(F.rate))
 
 energy.02%>%
   filter(daily_temp>1)%>%
-  group_by(size,Ration)%>%
+  group_by(Ration)%>%
   filter(!is.na(F.rate))%>%
-  summarise(min(F.rate),max(F.rate))
+  summarise(min(F.rate),max(F.rate),mean(F.rate))
 energy.02%>%
   filter(!is.na(daily_temp))%>%
   group_by(size,Ration,daily_temp)%>%
@@ -944,3 +944,65 @@ ggarrange(A+
             theme(strip.text = element_blank()),
           ncol=2,nrow=1,
           common.legend=TRUE,legend='right')
+
+
+tr<-lm(F.rate~daily_temp,data=energy.02)
+plot(tr)
+hist(resid(tr))
+Anova(tr,type="III")
+summary(tr)
+
+ggplot(energy.02)+geom_smooth(method="lm",aes(x=daily_temp,y=F.rate))+geom_point(aes(x=daily_temp,y=F.rate))
+# need information on metabolic requirements... what is the minimum amount of food for body to function?
+# or will this be enough to satisfy the editor? Must email Ben
+lowfood<-energy.02%>%
+  filter(Ration=="Low")
+
+# Consumption and temperature
+diet_temp<-diet_final%>%
+  filter(percent_consumed!=0)
+
+ggplot(diet_temp)+geom_point(aes(x=daily_temp,y=percent_consumed))
+d1<-lm(percent_consumed~daily_temp+trt,data=diet_temp)
+plot(d1)
+hist(resid(d1))
+Anova(d1,type="III")
+summary(d1)
+
+ggplot(diet_temp)+geom_smooth(method="lm",aes(x=daily_temp,y=percent_consumed))+facet_grid(~trt)
+
+tr1<-lm(F.rate~daily_temp+size,data=lowfood)
+plot(tr1)
+hist(resid(tr1))
+Anova(tr1)
+summary(tr1)
+ggplot(lowfood)+geom_point(aes(x=daily_temp,y=F.rate))
+
+medfood<-energy.02%>%
+  filter(Ration=="Medium")
+
+tr2<-lm(F.rate~daily_temp,data=medfood)
+plot(tr2)
+hist(resid(tr2))
+Anova(tr2)
+summary(tr2)
+ggplot(medfood)+geom_point(aes(x=daily_temp,y=F.rate))
+
+highfood<-energy.02%>%
+  filter(Ration=="High")
+
+tr3<-lm(F.rate~daily_temp+size,data=highfood)
+plot(tr3)
+hist(resid(tr3))
+Anova(tr3)
+summary(tr3)
+ggplot(highfood)+geom_point(aes(x=daily_temp,y=F.rate,colour=size))
+
+test<-energy.02%>%
+  filter(Ration!="Low")
+
+test.m1<-lm(F.rate~daily_temp+Ration,data=test)
+plot(test.m1)
+hist(resid(test.m1))
+Anova(test.m1)
+summary(test.m1)
