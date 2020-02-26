@@ -1049,3 +1049,100 @@ fig1
 fig2
 fig3
 dev.off()
+
+# ---- Part 3: Pulse Assignments ----
+pulse.range<-pulse_range(mixtures)
+
+# use min and max for each pulse to then create a dataframe with all length possibilities per pulse
+pulse.assign<-data.frame(trip=rep(pulse.range$trip,pulse.range$max-pulse.range$min+1),
+                         age=rep(pulse.range$age,pulse.range$max-pulse.range$min+1),
+                         year=rep(pulse.range$year,pulse.range$max-pulse.range$min+1),
+                         pulse=rep(pulse.range$dummy_pulse,pulse.range$max-pulse.range$min+1),
+                         mmSL=unlist(mapply(seq,pulse.range$min,pulse.range$max)))
+# add additinal info such as date, cohort, pulse so that it is present in dataframe
+#check the new dataframe
+View(pulse.assign)
+summary(pulse.assign)
+glimpse(pulse.assign)
+
+# assign pulses to length data
+length.pulse<-cod%>%
+  select(-Pulse)%>%
+  filter(Age<2)%>%
+  rename(age=Age,trip=Trip,year=Year)%>%
+  left_join(pulse.assign)
+
+# ---- Part 4: Verify pulse assignment ----
+# replot pulses and calculate pulse abundances
+#  combine age 0 and  with revised age 1 data frame (age1.length.pulse)
+# structure new age1 data to match age 0 format
+revised<-length.pulse%>%
+  group_by(year,trip,age,pulse)%>%
+  summarise(mean=mean(mmSL),min=min(mmSL),max=max(mmSL))%>%
+  left_join(tripdates)%>%
+  mutate(date=ymd(paste(year,month,day,sep="-")))
+
+# visualize pulses
+ggplot(revised,aes(x=date,y=mean,shape=factor(pulse),colour=age))+geom_point(size=2)+
+  geom_errorbar(aes(ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2015 Cohort")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+# Assignment Round 1:
+mydata<-pulse.range%>%
+  rename(pulse=dummy_pulse)%>%
+  mutate(pulse=replace(pulse,age==1 & trip <= 14 & pulse ==3,5))%>%
+  mutate(pulse=replace(pulse,age==1 & trip ==15 & pulse == 4,5))%>%
+  mutate(pulse=replace(pulse,age==1 & trip == 17 & pulse == 3,5))%>%
+  mutate(pulse=replace(pulse,age==1 & trip <=14 & pulse == 2,3))%>%
+  mutate(pulse=replace(pulse,age==1 & trip==17 & pulse ==2,3))%>%
+  mutate(pulse=replace(pulse,age==1 & trip == 19 & pulse == 4,3))%>%
+  mutate(pulse=replace(pulse,age==1 & trip == 20 & pulse == 1,3))%>%
+  mutate(pulse=replace(pulse,age==1 & pulse == 1,2))%>%
+  mutate(age=replace(age,age==0 & trip == 18 & pulse == 1,1))%>%
+  mutate(pulse=replace(pulse,age==1 & trip ==18 & pulse ==1,4))%>%
+  mutate(pulse=replace(pulse,age==0 & trip == 18,1))%>%
+  mutate(pulse=replace(pulse,age==0 & trip>=21 & pulse==2,3))
+
+# deal with the outliers
+# start by combining pulse range to length data
+
+pulse_assign2<-data.frame(trip=rep(mydata$trip,mydata$max-mydata$min+1),
+                          age=rep(mydata$age,mydata$max-mydata$min+1),
+                          year=rep(mydata$year,mydata$max-mydata$min+1),
+                          pulse=rep(mydata$pulse,mydata$max-mydata$min+1),
+                          mmSL=unlist(mapply(seq,mydata$min,mydata$max)))
+cod2<-cod%>%
+  select(-Pulse)%>%
+  rename(trip=Trip,age=Age,year=Year)%>%
+  left_join(pulse_assign2)
+
+
+final<-cod2%>%
+  mutate(pulse=replace(pulse,age==1 & trip<=18 & mmSL>175,1))%>%
+  mutate(pulse=replace(pulse,age==1 & mmSL>225,NA))%>%
+  mutate(age=replace(age,age==1 & mmSL>225,2))%>%
+  mutate(pulse=replace(pulse,age==1 & trip ==13 & pulse == 2 & mmSL<118,3))%>%
+  mutate(pulse=replace(pulse,age==1 & trip == 15 & pulse ==2 & mmSL<120,3))%>%
+  mutate(pulse=replace(pulse,age==1 & trip == 16 & is.na(pulse) & mmSL>130,2))%>%
+  mutate(pulse=replace(pulse,age==1 & trip == 16 & is.na(pulse) & mmSL<110,5))%>%
+  mutate(pulse=replace(pulse,age==1 & trip == 16 & is.na(pulse),3))%>%
+  mutate(pulse=replace(pulse,age==1 & trip == 17 & pulse==3 & mmSL<113,5))%>%
+  mutate(pulse=replace(pulse,age==1 & trip == 18 & mmSL<110,5))%>%
+  mutate(pulse=replace(pulse,age==1 & trip == 20 & mmSL<125,5))%>%
+  mutate(pulse=replace(pulse,age==1 & trip == 20 & mmSL>155,2))%>%
+  mutate(pulse=replace(pulse,age==1 & trip == 20 & mmSL>200,1))%>%
+  mutate(pulse=replace(pulse,age==1 & trip >20 & mmSL<127,5))%>%
+  mutate(pulse=replace(pulse,age==1 & trip >20 & mmSL>200,1))%>%
+  mutate(pulse=replace(pulse,age==1 & trip ==21 & mmSL>150,2))%>%
+  mutate(pulse=replace(pulse,age==1 & trip == 22 & mmSL>175,2))%>%
+  mutate(pulse=replace(pulse,age==1 & trip >=21 & is.na(pulse),3))
+  
+
+final%>%
+  filter(age==0)%>%
+  ggplot(aes(x=Date,y=mmSL,colour=factor(pulse)),shape=factor(age))+geom_jitter(size=1)
