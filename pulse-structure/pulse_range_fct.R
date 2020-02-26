@@ -1,10 +1,10 @@
 pulse_range<-function(mixtures) {
   ranges<-mixtures%>%
-    group_by(year,month,day,trip,dummy_pulse,year,cohort)%>%
+    group_by(year,trip,age,dummy_pulse)%>%
     summarise(min=(mu-sigma),max=mu+sigma,sd=sigma)%>%
     mutate(min_round=floor(min),max_round=ceiling(max))%>%# add rounded min and max to create an integer column. Min is rounded down, max is rounded up
     ungroup()%>%
-    group_by(year,month,day)%>%
+    group_by(year,trip,age)%>%
     mutate(diff=(lag(min_round)-max_round)/2)%>% # split difference between the pulse groups
     mutate(plusmax=floor(diff))%>% # round to prevent overlap
     mutate(minusmin=floor(lead(diff)))%>% # round to prevent overlap
@@ -21,7 +21,8 @@ pulse_range<-function(mixtures) {
     mutate(adjustmin=replace(adjustmin,dummy_pulse!=max(dummy_pulse),0))%>% # applies above function to last pulse only
     mutate(max_final3=adjustmax+max_final2,
            min_final3=min_final-adjustmin)%>% # create final max and min columns
-    select(year,month,day,trip,dummy_pulse,year,cohort,min_final3,max_final3)%>% # select final columns
-    rename(min=min_final3,max=max_final3)
+    select(age,year,trip,dummy_pulse,min_final3,max_final3)%>% # select final columns
+    rename(min=min_final3,max=max_final3)%>%
+    ungroup()
   return(ranges)
 }
