@@ -13,6 +13,7 @@ library(mixdist)
 
 #load data
 length<-read.csv("./data/TNNP/TNNP19_length.csv")
+length2018<-read.csv("./data/TNNP/revised_TNNP2018a.csv")
 
 # ---- check data structure ----
 str(length)
@@ -29,8 +30,16 @@ length%>%
          Day=as.integer(str_sub(Date,start=7,end=8)))%>%
   mutate(Date=ymd(paste(Year,Month,Day,sep="-")))->length2
 
+length2018%>%
+  mutate(Month=as.integer(str_sub(Date,start=5,end=6)),
+         Day=as.integer(str_sub(Date,start=7,end=8)))%>%
+  mutate(Date=ymd(paste(Year,Month,Day,sep="-")))->length2018
+
 # Select cod 
 cod<-length2%>%
+  filter(Species=="AC")
+
+cod18<-length2018%>%
   filter(Species=="AC")
 
 # check cod data
@@ -965,8 +974,11 @@ cod.pulse<-left_join(cod.pulse,tripdates)%>%
   filter(mean<200)
 
 # visualize pulses
-ggplot()+
-  geom_jitter(data=filter(cod,Age<2),aes(x=Date,y=mmSL,colour=as.character(Age)),alpha=0.25,size=1)+
+fig1<-cod%>%
+  filter(Age<2)%>%
+  mutate(Date2=Date+3)%>%
+  ggplot()+
+  geom_jitter(aes(x=Date2,y=mmSL,colour=as.character(Age)),alpha=0.25,size=1)+
   geom_point(data=cod.pulse,aes(x=date,y=mean,shape=factor(pulse),fill=factor(age)),size=2)+
   geom_errorbar(data=cod.pulse,aes(x=date,ymin=min,ymax=max),width=0)+
   theme_bw()+
@@ -977,3 +989,63 @@ ggplot()+
   theme(axis.text.x=element_text(angle=40))+
   scale_color_manual(values = c('grey40','blue'))
 
+cod<-cod%>%
+  mutate(cohort=2019)%>%
+  mutate(cohort=replace(cohort,Age==1,2018))%>%
+  mutate(cohort=replace(cohort,Age==2,2017))
+fig2<-cod%>%
+  filter(cohort==2019)%>%
+  mutate(Date2=Date+3)%>%
+  ggplot()+
+  geom_jitter(aes(x=Date2,y=mmSL),alpha=0.25,size=1,colour='blue')+
+  geom_point(data=filter(cod.pulse,age==0),aes(x=date,y=mean,shape=factor(pulse),fill=factor(age)),size=2)+
+  geom_errorbar(data=filter(cod.pulse,age==0),aes(x=date,ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2019 Cohort Newman Sound Atlantic cod")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+# Prepare 2018 cohort data
+cod18<-cod18%>%
+  mutate(cohort=2018)%>%
+  mutate(cohort=replace(cohort,Age==1,2017))%>%
+  mutate(cohort=replace(cohort,Age==2,2016))
+
+cohort.2018<-bind_rows(cod,cod18)%>%
+  filter(cohort==2018)%>%
+  mutate(Date2=Date+5)
+
+tripdates18<-cod18%>%
+  select(Trip,Year,Month,Day)%>%
+  distinct()%>%
+  group_by(Trip,Year,Month)%>%
+  summarise(Day=min(Day))
+
+cod.pulse2018<-cod18%>%
+  group_by(Year,Trip,Age,Pulse)%>%
+  summarise(mean=mean(mmSL),min=min(mmSL),max=max(mmSL))%>%
+  left_join(tripdates18)%>%
+  rename(year=Year,trip=Trip,age=Age,pulse=Pulse,month=Month,day=Day)%>%
+  filter(age==0)%>%
+  bind_rows(filter(cod.pulse,age==1))%>%
+  mutate(date=ymd(paste(year,month,day,sep="-")))
+
+#2018 Cohort plot (2019 age 1s)
+fig3<-ggplot()+
+  geom_jitter(data=cohort.2018,aes(x=Date2,y=mmSL),alpha=0.25,size=1,colour='blue')+
+  geom_point(data=cod.pulse2018,aes(x=date,y=mean,shape=factor(pulse),fill=factor(age)),size=2)+
+  geom_errorbar(data=cod.pulse2018,aes(x=date,ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2018 Cohort Newman Sound Atlantic cod")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+pdf("allplots.pdf",onefile = TRUE)
+fig1
+fig2
+fig3
+dev.off()
