@@ -1,7 +1,7 @@
 ## Pulse structure for 2019 AC Newman Sound
 
 # ----- set working directory ----
-setwd("C:/Users/geissingere/Documents/Research/CHONe-office/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # load source functions
 source("./pulse-structure/pulse_range_fct.R")
@@ -13,7 +13,7 @@ library(mixdist)
 
 #load data
 length<-read.csv("./data/TNNP/TNNP19_length.csv")
-length2018<-read.csv("./data/TNNP/revised_TNNP2018a.csv")
+length2018<-read.csv("./data/TNNP Revised Data/TNNP/output/length/revised_TNNP2018a.csv")
 
 # ---- check data structure ----
 str(length)
@@ -1126,6 +1126,8 @@ final<-cod2%>%
   mutate(pulse=replace(pulse,age==1 & trip<=18 & mmSL>175,1))%>%
   mutate(pulse=replace(pulse,age==1 & mmSL>225,NA))%>%
   mutate(age=replace(age,age==1 & mmSL>225,2))%>%
+  mutate(pulse=replace(pulse,age==1 & trip == 12 & mmSL<80,5))%>%
+  mutate(pulse=replace(pulse,age==1 & trip == 12 & pulse == 2 & mmSL<110,3))%>%
   mutate(pulse=replace(pulse,age==1 & trip ==13 & pulse == 2 & mmSL<118,3))%>%
   mutate(pulse=replace(pulse,age==1 & trip == 15 & pulse ==2 & mmSL<120,3))%>%
   mutate(pulse=replace(pulse,age==1 & trip == 16 & is.na(pulse) & mmSL>130,2))%>%
@@ -1140,9 +1142,81 @@ final<-cod2%>%
   mutate(pulse=replace(pulse,age==1 & trip >20 & mmSL>200,1))%>%
   mutate(pulse=replace(pulse,age==1 & trip ==21 & mmSL>150,2))%>%
   mutate(pulse=replace(pulse,age==1 & trip == 22 & mmSL>175,2))%>%
-  mutate(pulse=replace(pulse,age==1 & trip >=21 & is.na(pulse),3))
+  mutate(pulse=replace(pulse,age==1 & trip >=21 & is.na(pulse),3))%>%
+  mutate(pulse=replace(pulse,age==1 & trip == 21 & mmSL>200,1))%>%
+  mutate(pulse=replace(pulse,age==0 & trip == 19 & mmSL<40,3))%>%
+  mutate(pulse=replace(pulse,age==0 & trip == 20 & pulse==2 & mmSL>66,1))%>%
+  mutate(pulse=replace(pulse,age==0 & trip == 21 & pulse==1 & mmSL<74,2))%>%
+  mutate(pulse=replace(pulse,age==0 & trip == 21 & mmSL<31,4))%>%
+  mutate(pulse=replace(pulse,age==0 & trip == 22 & pulse==1 & mmSL<76,2))%>%
+  mutate(pulse=replace(pulse,age==0 & trip == 22 & mmSL<40,4))%>%
+  mutate(pulse=replace(pulse,age==0 & trip == 23 & pulse == 1 & mmSL<79,2))%>%
+  mutate(pulse=replace(pulse,age==0 & trip == 23 & mmSL<45,4))%>%
+  mutate(pulse=replace(pulse,age ==0 &trip==20 & mmSL>100,NA))%>%
+  mutate(pulse=replace(pulse,age ==0 &trip==21 & mmSL>110,NA))%>%
+  mutate(age=replace(age, age ==0 & is.na(pulse)& mmSL>83,1))%>%
+  mutate(pulse=replace(pulse,age==0 & is.na(pulse),1))%>%
+  mutate(pulse=replace(pulse,age==1 & is.na(pulse),5))
   
 
 final%>%
   filter(age==0)%>%
   ggplot(aes(x=Date,y=mmSL,colour=factor(pulse)),shape=factor(age))+geom_jitter(size=1)
+
+pulse.range2019<-final%>%
+  group_by(age,year,trip,pulse)%>%
+  summarise(mean=mean(mmSL),minSL=min(mmSL),maxSL=max(mmSL))%>%
+  filter(age!=2)%>%
+  ungroup()%>%
+  left_join(tripdates)%>%
+  mutate(date=ymd(paste(year,month,day,sep="-")))
+write.csv(pulse.range2019,"pulse_range2019.csv",row.names = FALSE)  
+
+fig4<-final%>%
+  filter(age<2)%>%
+  mutate(Date2=Date+3)%>%
+  ggplot()+
+  geom_jitter(aes(x=Date2,y=mmSL,colour=as.character(age)),alpha=0.25,size=1)+
+  geom_point(data=pulse.range2019,aes(x=date,y=mean,shape=factor(pulse),fill=as.character(age)),size=2)+
+  geom_errorbar(data=pulse.range2019,aes(x=date,ymin=minSL,ymax=maxSL),width=0)+
+  theme_bw()+
+  ggtitle("2019 Newman Sound Atlantic cod")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))+
+  scale_color_manual(values = c('red','blue'))
+
+fig5<-final%>%
+  filter(age==0)%>%
+  mutate(Date2=Date+3)%>%
+  ggplot()+
+  geom_jitter(aes(x=Date2,y=mmSL,colour=as.character(pulse)),alpha=0.25,size=1)+
+  geom_point(data=filter(pulse.range2019,age==0),aes(x=date,y=mean,shape=factor(pulse),fill=as.character(age)),size=2)+
+  geom_errorbar(data=filter(pulse.range2019,age==0),aes(x=date,ymin=minSL,ymax=maxSL),width=0)+
+  theme_bw()+
+  ggtitle("2019 Newman Sound Atlantic cod: Age 0")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+fig6<-final%>%
+  filter(age==1)%>%
+  mutate(Date2=Date+3)%>%
+  ggplot()+
+  geom_jitter(aes(x=Date2,y=mmSL,colour=as.character(pulse)),alpha=0.25,size=1)+
+  geom_point(data=filter(pulse.range2019,age==1),aes(x=date,y=mean,shape=factor(pulse),fill=as.character(age)),size=2)+
+  geom_errorbar(data=filter(pulse.range2019,age==1),aes(x=date,ymin=minSL,ymax=maxSL),width=0)+
+  theme_bw()+
+  ggtitle("2019 Newman Sound Atlantic cod: Age 1")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+pdf("final2019.pdf",onefile = TRUE)
+fig4
+fig5
+fig6
+dev.off()
