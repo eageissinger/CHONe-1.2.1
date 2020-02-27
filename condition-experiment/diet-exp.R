@@ -1,7 +1,7 @@
 #### Food consumption ####
 
 # --- set working directory ----
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # ---- load data ----
 total<-read.csv("./data/diet_feeding-exp.csv")
@@ -838,6 +838,7 @@ F1<-ggplot(fce2)+
   scale_color_gradient(low="blue",high="red")+
   labs(colour="Temp. (°C)")+
   theme(axis.title = element_text(size=12))+
+  theme(axis.title.y=element_text(size=11))+
   theme(axis.text = element_text(size=10))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
@@ -867,6 +868,7 @@ F2<-ggplot(energy.02)+
   scale_color_gradient(low="blue",high="red")+
   labs(colour="Temp. (°C)")+
   theme(axis.title = element_text(size=12))+
+  theme(axis.title.y=element_text(size=11))+
   theme(axis.text = element_text(size=10))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
@@ -946,13 +948,15 @@ ggarrange(A+
           common.legend=TRUE,legend='right')
 
 
-tr<-lm(F.rate~daily_temp,data=energy.02)
+tr<-lm(F.rate~daily_temp+percent2,data=energy.02)
 plot(tr)
 hist(resid(tr))
 Anova(tr,type="III")
 summary(tr)
 
 ggplot(energy.02)+geom_smooth(method="lm",aes(x=daily_temp,y=F.rate))+geom_point(aes(x=daily_temp,y=F.rate))
+ggplot(energy.02)+geom_smooth(method="lm",aes(x=daily_temp,y=F.rate))+geom_point(aes(x=daily_temp,y=F.rate))+
+  facet_grid(~percent2)
 # need information on metabolic requirements... what is the minimum amount of food for body to function?
 # or will this be enough to satisfy the editor? Must email Ben
 lowfood<-energy.02%>%

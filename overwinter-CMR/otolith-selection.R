@@ -1,10 +1,10 @@
 # Determine sample size for otolith analysis
 # ---- set working directory ----
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # ---- load data ----
-data<-read.csv("./data/EmilieData/CMR-field-May-captures.csv")
-pulse1<-read.csv("./data/EmilieData/pulse_range_age1_final2019-12-6.csv")
+data<-read.csv("./data/data-working/CMR-field-May-captures.csv")
+pulse1<-read.csv("./data/data-working/pulse_range_age1_final2019-12-6.csv")
 
 # --- load pacakges ----
 library(tidyverse)
@@ -46,8 +46,20 @@ cmr%>%
   group_by(site, pulse)%>%
   summarise(n())
 
-data%>%
+markedfish<-data%>%
   filter(month!=5 & mark == 1 & age ==1)%>%
   left_join(pulse.assign,by=c("sl","age"))%>%
   mutate(fish_num=as.integer(str_sub(animal_id,start=6)))%>%
-  distinct(animal_id,fish_num)->markedfish
+  distinct(animal_id,fish_num)
+markedfish%>%
+  group_by(pulse)%>%
+  summarise(min(sl),max(sl))
+cmr%>%
+  group_by(pulse)%>%
+  summarise(min(sl),max(sl))
+
+# pulse 2 fish IDs
+cmr%>%
+  filter(sl>70 & sl < 97)%>%
+  mutate(fish_num=as.integer(str_sub(animal_id,start=6)))%>%
+  distinct(animal_id,fish_num)

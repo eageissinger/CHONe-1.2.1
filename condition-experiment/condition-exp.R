@@ -494,10 +494,22 @@ TukeyHSD(aov.m3)
 ggplot(finalK,aes(x=ration,y=delta.dry,colour=size))+geom_boxplot()
 ggplot(finalK,aes(x=ration,y=delta.dry,colour=size))+geom_point()
 
+# non linear regression
+# create dataframe with proper percents/rations
+finalK<-finalK%>%
+  mutate(percent2=0)%>%
+  mutate(percent2=replace(percent2,ration=="0.5%",2.5))%>%
+  mutate(percent2=replace(percent2,ration=="1.0%",5))%>%
+  mutate(percent2=replace(percent2,ration=="2.0%",10))
+
+
+nls(dry~SSasympOrig(percent2,Asym,lrc),data=finalK)
+nls(delta.dry~SSasympOrig(percent2,Asym,lrc),data=finalK)
+SSasymp
 finalK%>%
   group_by(size,ration)%>%
   summarise(K=mean(delta.dry),se=sd(delta.dry/sqrt(n())))
-
+ggplot(finalK)+geom_point(aes(x=percent2,y=dry))
 # USE model3!!! 
 
 # test if .5, 1 and 2 differ from 0
@@ -1186,8 +1198,9 @@ W<-sgr_adjusted%>%
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  theme(axis.title = element_text(size=12))+
-  theme(axis.text = element_text(size=10))+
+  theme(axis.title = element_text(size=11))+
+  theme(axis.title.y=element_text(size=10))+
+  theme(axis.text = element_text(size=9))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
 
@@ -1205,8 +1218,9 @@ L<-sgr_adjusted%>%
   scale_shape_manual(values=c(22:25))+
   theme(panel.grid=element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  theme(axis.title = element_text(size=12))+
-  theme(axis.text = element_text(size=10))+
+  theme(axis.title = element_text(size=11))+
+  theme(axis.title.y=element_text(size=10))+
+  theme(axis.text = element_text(size=9))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))
 
@@ -1284,3 +1298,59 @@ alivesum<-length_weight%>%
   summarise(meanSL=mean(length_mm),meanWeight=mean(weight_g),
             seSL=sd(length_mm)/sqrt(n()),seWeight=sd(weight_g)/sqrt(n()),
             n=n())
+# ----- Fulton K endpoint -----
+endpoint<-fishcond%>%
+  filter(mortality=="yes")
+
+endpoint%>%
+  filter(ration=="0.0%")%>%
+  group_by(month,size,ration)%>%
+  summarise(Kdry=mean(kdry),sedry=sd(kdry)/sqrt(n()),
+            Kwet=mean(kwet),sewet=sd(kwet)/sqrt(n()),
+            n=n())
+term<-fishcond%>%
+  filter(mortality=="no")%>%
+  filter(tank!=0)%>%
+  group_by(size,ration)%>%
+  summarise(K=mean(kdry),se=sd(kdry)/sqrt(n()))
+
+# Condition trajectory in absence of food
+
+lc.0<-lc%>%
+  filter(ration=="0.0%")
+lc.m4<-lmer(kavg~julian_date+(1|tank),data=lc.0)
+lc.m4
+plot(lc.m4)
+hist(resid(lc.m4))
+qqnorm(resid(lc.m4))
+summary(lc.m4)
+Anova(lc.m4,type="III")
+
+lc.m5<-lmer(kavg~julian_date+size+(1|tank),data=lc.0)
+lc.m5
+plot(lc.m5)
+hist(resid(lc.m5))
+qqnorm(resid(lc.m5))
+summary(lc.m5)
+Anova(lc.m4,type="III")
+
+# separate small and large
+lc.0.small<-lc.0%>%
+  filter(size=="small")
+lc.0.large<-lc.0%>%
+  filter(size=="large")
+
+s.1<-lmer(kavg~julian_date+(1|tank),data=lc.0.small)
+plot(s.1)
+hist(resid(s.1))
+qqnorm(resid(s.1))
+summary(s.1)
+Anova(s.1,type="III")
+
+
+l.1<-lmer(kavg~julian_date+(1|tank),data=lc.0.large)
+plot(l.1)
+hist(resid(l.1))
+qqnorm(resid(l.1))
+summary(l.1)
+Anova(l.1,type="III")
