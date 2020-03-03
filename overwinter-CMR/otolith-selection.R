@@ -46,11 +46,13 @@ cmr%>%
   group_by(site, pulse)%>%
   summarise(n())
 
-markedfish<-data%>%
+
+/<-data%>%
   filter(month!=5 & mark == 1 & age ==1)%>%
   left_join(pulse.assign,by=c("sl","age"))%>%
   mutate(fish_num=as.integer(str_sub(animal_id,start=6)))%>%
-  distinct(animal_id,fish_num)
+  distinct(animal_id,fish_num)%>%
+  arrange(fish_num)
 markedfish%>%
   group_by(pulse)%>%
   summarise(min(sl),max(sl))
@@ -58,8 +60,9 @@ cmr%>%
   group_by(pulse)%>%
   summarise(min(sl),max(sl))
 
-# pulse 2 fish IDs
+# pulse 1 fish IDs
 cmr%>%
-  filter(sl>70 & sl < 97)%>%
+  filter(pulse==1)%>%
+  filter(site=="CC" | site=="MI")%>%
   mutate(fish_num=as.integer(str_sub(animal_id,start=6)))%>%
   distinct(animal_id,fish_num)
