@@ -1162,7 +1162,7 @@ final<-cod2%>%
   mutate(age=replace(age, age ==0 & is.na(pulse)& mmSL>83,1))%>%
   mutate(pulse=replace(pulse,age==0 & is.na(pulse),1))%>%
   mutate(pulse=replace(pulse,age==1 & is.na(pulse),5))%>%
-  mutate(pulse=replace(pulse,age==0 & pulse == 2,1))
+  mutate(pulse=replace(pulse,age==0 & trip == 18 & pulse == 2,1))
   
 pulse.range2019<-final%>%
   group_by(age,year,trip,pulse)%>%
@@ -1246,7 +1246,6 @@ length3<-length%>%
 
 final2<-left_join(length3,pulsefinal)
 
-write.csv(final2, "./data/TNNP/TNNP19_length_revised.csv",row.names = FALSE)
 
 final2%>%
   filter(Species=="AC" & is.na(Pulse))
@@ -1265,4 +1264,9 @@ summary(final3)
 dim(final3)
 dim(length)
 
-write.csv(final3, "./data/TNNP/TNNP19_length_revised.csv",row.names = FALSE)
+write.csv(final3, "./data/TNNP/TNNP19_length_revised_2020-03-19.csv",row.names = FALSE)
+
+final3%>%
+  filter(Age==0)%>%
+  filter(Species=="AC")%>%
+  ggplot(aes(x=Julian.Date,y=mmSL,colour=as.character(Pulse)))+geom_point()
