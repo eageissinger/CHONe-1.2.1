@@ -708,12 +708,11 @@ hsiA$Ration<-factor(hsiA$Ration,levels=c("Starvation","Low","Medium","High"))
 hsiA.plot<-ggplot(hsiA,aes(x=Ration,y=dHSI))+
   geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
   geom_boxplot(colour='black',fill='grey90')+
-  geom_jitter(aes(x=Ration,y=dHSI,colour=ration),width=0.25)+
+  geom_jitter(width=0.25,colour='grey40',alpha=0.75)+
   theme_bw(base_rect_size = 1)+
   theme(panel.grid = element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
   ylab(expression(Delta*'HSI'))+xlab('Food ration')+
-  scale_colour_manual(values=c('grey1','grey22','grey40','grey60'))+
   theme(legend.position = 'none')+
   ylim(-0.6,0.7)+
   theme(axis.title = element_text(size=12))+
@@ -732,12 +731,11 @@ hsiB$Ration<-factor(hsiB$Ration,levels=c("Starvation","Low","Medium","High"))
 hsiB.plot<-ggplot(hsiB,aes(x=Ration,y=dHSI))+
   geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
   geom_boxplot(colour='black',fill='grey90')+
-  geom_jitter(aes(x=Ration,y=dHSI,colour=ration),width=0.25)+
+  geom_jitter(width=0.25,colour='grey40',alpha=0.75)+
   theme_bw(base_rect_size = 1)+
   theme(panel.grid = element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
   ylab(expression(Delta*'HSI'))+xlab('Food ration')+
-  scale_colour_manual(values=c('grey1','grey22','grey40','grey60'))+
   theme(legend.position = 'none')+
   ylim(-0.6,0.7)+
   theme(axis.title = element_text(size=12))+

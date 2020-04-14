@@ -23,7 +23,7 @@ library(ggthemes)
 library(lubridate)
 library(tidyverse)
 library(ggpubr)
-
+library(patchwork)
 # ---- data check ----
 #total
 str(total)
@@ -1010,3 +1010,101 @@ plot(test.m1)
 hist(resid(test.m1))
 Anova(test.m1)
 summary(test.m1)
+
+
+# ---- New Fig 6 ----
+ggplot(energy.02)+
+  geom_smooth(aes(y=F.rate,x=daily_temp,linetype=Ration),method = "lm")+
+  facet_wrap(vars(size=factor(size,levels=c("small","large"))))+
+  ylab("Feeding rate (% body weight · "~d^-1*")")+xlab("Temperature (°C)")+
+  theme_bw()+theme(panel.grid = element_blank())+
+  labs(colour="Ration")+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.title.y=element_text(size=11))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))
+
+Fig6a<-energy.02%>%
+  filter(size=="small")%>%
+  ggplot(aes(y=F.rate,x=daily_temp))+
+  geom_jitter(aes(shape=Ration,colour=Ration,fill=Ration))+
+  geom_smooth(aes(linetype=Ration,colour=Ration),
+              method = "lm",se=FALSE)+
+  ylab("Feeding rate (% body weight · "~d^-1*")")+xlab("Temperature (°C)")+
+  theme_bw()+theme(panel.grid = element_blank())+
+  labs(colour="Ration")+
+  theme(axis.title = element_text(size=11))+
+  theme(axis.title.y=element_text(size=11))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  scale_colour_manual(values=c('grey0','grey39','grey20'))+
+  scale_fill_manual(values=c('grey0','grey39','white'))+
+  scale_shape_manual(values=c(22:24))+
+  theme(plot.margin = unit(c(.25,.25,.25,.5),"cm"))
+
+Fig6b<-energy.02%>%
+  filter(size=="large")%>%
+  ggplot(aes(y=F.rate,x=daily_temp))+
+  geom_jitter(aes(shape=Ration,colour=Ration,fill=Ration))+
+  geom_smooth(aes(linetype=Ration,colour=Ration),
+              method = "lm",se=FALSE)+
+  ylab("Feeding rate (% body weight · "~d^-1*")")+xlab("Temperature (°C)")+
+  theme_bw()+theme(panel.grid = element_blank())+
+  labs(colour="Ration")+
+  theme(axis.title = element_text(size=11))+
+  theme(axis.title.y=element_text(size=11))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  scale_colour_manual(values=c('grey0','grey39','grey20'))+
+  scale_fill_manual(values=c('grey0','grey39','white'))+
+  scale_shape_manual(values=c(22:24))
+Fig6<-ggarrange(Fig6a,Fig6b+theme(axis.title.y=element_text(colour='white')),
+          labels=c("a","b"),ncol=2,nrow=1,
+           common.legend=TRUE,legend='top')
+ggsave(file="Fig6.png",plot=Fig6,width=168, height=84,units="mm")
+
+
+Fig7a<-fce2%>%
+  filter(size=="small")%>%
+  ggplot(aes(y=FCE,x=Ration))+
+  geom_boxplot(colour='black',fill='grey90',outlier.shape = NA)+
+  geom_jitter(aes(y=FCE,x=Ration),width=0.25,colour='grey40',alpha=0.75)+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab("Feed conversion efficiency (g · "~d^-1*")")+xlab('Food ration')+
+  theme(legend.position = 'none')+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ylim(c(-1,1.5))
+Fig7b<-fce2%>%
+  filter(size=="large")%>%
+  ggplot(aes(x=Ration,y=FCE))+
+  geom_boxplot(colour='black',fill='grey90',outlier.shape = NA)+
+  geom_jitter(width=0.25,colour='grey40',alpha=0.75)+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab("Feed conversion efficiency (g · "~d^-1*")")+xlab('Food ration')+
+  theme(legend.position = 'none')+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ylim(c(-1,1.5))
+
+row1<-ggarrange(Fig7a+theme(axis.text.x=element_text(angle = 45,hjust=1))+
+                  theme(axis.title.y=element_blank()),
+          Fig7b+theme(axis.title.y=element_blank())+
+            theme(axis.text.x=element_text(angle = 45,hjust=1)),
+          labels=c("a","b"),ncol=2,nrow=1) 
+
+Fig7<-ggarrange(Fig7a,Fig7b+theme(axis.title.y=element_text(colour='white')),
+          labels=c("a","b"),ncol=2,nrow=1)
+ggsave(file="Fig7.png",plot=Fig7,width=168, height=84,units="mm")
+
