@@ -1,12 +1,12 @@
 # set working directory 
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # ---- load packages ----
 library(tidyverse)
 library(lubridate)
 
 # load data
-pulserange<-read.csv("./data/data-working/age0-pulse-range.csv")
+pulserange<-read.csv("./data/output/age0-pulse-range.csv")
 length<-read.csv("./data/data-working/newman-length.csv")
 
 str(pulserange)
@@ -93,7 +93,6 @@ mydata<-pulserange%>%
 
 pulse_assign0<-data.frame(trip=rep(mydata$trip,mydata$max-mydata$min+1),
                           year=rep(mydata$year,mydata$max-mydata$min+1),
-                          month=rep(mydata$month,mydata$max-mydata$min+1),
                           cohort=rep(mydata$cohort,mydata$max-mydata$min+1),
                           pulse=rep(mydata$pulse,mydata$max-mydata$min+1),
                           mmSL=unlist(mapply(seq,mydata$min,mydata$max)))
@@ -299,5 +298,5 @@ final_range<-final%>%
   group_by(year,trip,age,pulse)%>%
   summarise(min=min(mmSL),max=max(mmSL))
 
-write.csv(final_range,"./data/data-working/pulse_range_0_final.csv",row.names = FALSE)
-write.csv(final,"./data/data-working/length_pulse_0_final.csv",row.names=FALSE)
+write.csv(final_range,"./data/output/pulse_range_0_final.csv",row.names = FALSE)
+write.csv(final,"./data/output/length_pulse_0_final.csv",row.names=FALSE)
