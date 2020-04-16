@@ -262,6 +262,7 @@ final<-pulse.length%>%
   mutate(pulse=replace(pulse,year==2016 & trip == 20 & mmSL<40,4))%>%
   mutate(pulse=replace(pulse,year==2016 & trip == 21 & mmSL<43,4))%>%
   mutate(pulse=replace(pulse,year==2016 & trip == 21 & pulse == 2 & mmSL<54,3))%>%
+  mutate(pulse=replace(pulse,year==2016 & trip == 22 & pulse ==2 & mmSL<55,3))%>%
   mutate(pulse=replace(pulse,year==2016 & trip == 22 & mmSL<50,4))%>%
   mutate(pulse=replace(pulse,year==2016 & trip == 22 & is.na(pulse),1))%>%
   mutate(pulse=replace(pulse,year==2017 & trip <20 & is.na(pulse),1))%>%
@@ -291,7 +292,7 @@ final<-pulse.length%>%
 
 final$date<-ymd(paste(final$year,final$month,final$day,sep="-"))
 final%>%
-  filter(year==2011 & age ==0)%>%
+  filter(year==1998 & age ==0)%>%
   ggplot(aes(x=date,y=mmSL,colour=factor(pulse)))+geom_jitter(size=1)
 
 final_range<-final%>%
