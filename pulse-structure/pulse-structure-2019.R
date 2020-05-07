@@ -37,10 +37,10 @@ length2018%>%
 
 # Select cod 
 cod<-length2%>%
-  filter(Species=="AC")
+  filter(Species=="AC" | Species=="AC ")
 
 cod18<-length2018%>%
-  filter(Species=="AC")
+  filter(Species=="AC" | Species =="AC ")
 
 # check cod data
 summary(cod)
@@ -953,7 +953,7 @@ View(mixtures)
 
 # add 'cohort', 'age' to mixtures df
 # ---- Final mixtures DF -----
-write.csv(mixtures,"./data/TNNP/AC-mixture-dist-2019.csv",row.names = FALSE)
+write.csv(mixtures,"./data/output/AC-mixture-dist-2019.csv",row.names = FALSE)
 
 
 # ---- Part 2: Estimating pulses ----
@@ -974,7 +974,7 @@ cod.pulse<-left_join(cod.pulse,tripdates)%>%
   filter(mean<200)
 
 # visualize pulses
-fig1<-cod%>%
+cod%>%
   filter(Age<2)%>%
   mutate(Date2=Date+3)%>%
   ggplot()+
@@ -993,7 +993,7 @@ cod<-cod%>%
   mutate(cohort=2019)%>%
   mutate(cohort=replace(cohort,Age==1,2018))%>%
   mutate(cohort=replace(cohort,Age==2,2017))
-fig2<-cod%>%
+cod%>%
   filter(cohort==2019)%>%
   mutate(Date2=Date+3)%>%
   ggplot()+
@@ -1033,7 +1033,7 @@ cod.pulse2018<-cod18%>%
   mutate(date=ymd(paste(year,month,day,sep="-")))
 
 #2018 Cohort plot (2019 age 1s)
-fig3<-ggplot()+
+ggplot()+
   geom_jitter(data=cohort.2018,aes(x=Date2,y=mmSL),alpha=0.25,size=1,colour='blue')+
   geom_point(data=cod.pulse2018,aes(x=date,y=mean,shape=factor(pulse),fill=factor(age)),size=2)+
   geom_errorbar(data=cod.pulse2018,aes(x=date,ymin=min,ymax=max),width=0)+
@@ -1044,11 +1044,11 @@ fig3<-ggplot()+
                date_labels="%b")+
   theme(axis.text.x=element_text(angle=40))
 
-pdf("allplots.pdf",onefile = TRUE)
-fig1
-fig2
-fig3
-dev.off()
+#pdf("allplots.pdf",onefile = TRUE)
+#fig1
+#fig2
+#fig3
+#dev.off()
 
 # ---- Part 3: Pulse Assignments ----
 pulse.range<-pulse_range(mixtures)
@@ -1171,9 +1171,9 @@ pulse.range2019<-final%>%
   ungroup()%>%
   left_join(tripdates)%>%
   mutate(date=ymd(paste(year,month,day,sep="-")))
-write.csv(pulse.range2019,"pulse_range2019.csv",row.names = FALSE)  
+write.csv(pulse.range2019,"data/output/pulse_range2019.csv",row.names = FALSE)  
 
-fig4<-final%>%
+final%>%
   filter(age<2)%>%
   mutate(Date2=Date+3)%>%
   ggplot()+
@@ -1188,7 +1188,7 @@ fig4<-final%>%
   theme(axis.text.x=element_text(angle=40))+
   scale_color_manual(values = c('red','blue'))
 
-fig5<-final%>%
+final%>%
   filter(age==0)%>%
   mutate(Date2=Date+3)%>%
   ggplot()+
@@ -1202,7 +1202,7 @@ fig5<-final%>%
                date_labels="%b")+
   theme(axis.text.x=element_text(angle=40))
 
-fig6<-final%>%
+final%>%
   filter(age==1)%>%
   mutate(Date2=Date+3)%>%
   ggplot()+
@@ -1216,11 +1216,11 @@ fig6<-final%>%
                date_labels="%b")+
   theme(axis.text.x=element_text(angle=40))
 
-pdf("final2019.pdf",onefile = TRUE)
-fig4
-fig5
-fig6
-dev.off()
+#pdf("final2019.pdf",onefile = TRUE)
+#fig4
+#fig5
+#fig6
+#dev.off()
 
 # ---- Part 5: Final assignment ----
 summary(final)

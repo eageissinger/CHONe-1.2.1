@@ -1,18 +1,18 @@
 ### Pulse Determination for Age 1 ###
 
 # ---- set working directory ----
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # ---- load packages ----
 library(lubridate)
 library(tidyverse)
 
 # ---- load extra functions ----
-source("./code/pulse_range_fct.R")
+source("./pulse-structure/pulse_range_fct.R")
 
 # ---- load data -----
-age0<-read.csv("./data/data-working/pulse_range_0_final.csv")
-age1<-read.csv("./data/data-working/age-1-mixture-dist.csv")
+age0<-read.csv("./data/output/pulse_range_0_final.csv")
+age1<-read.csv("./data/output/age-1-mixture-dist.csv")
 catch.haul<-read.csv("./data/data-working/catch_haul.csv")
 fullcount<-read.csv("./data/data-working/newman-catch.csv")
 length<-read.csv('./data/data-working/newman-length.csv')
@@ -141,7 +141,6 @@ range_final<-pulse_range(age1)
 
 pulse_assign<-data.frame(trip=rep(range_final$trip,range_final$max-range_final$min+1),
                          year=rep(range_final$year,range_final$max-range_final$min+1),
-                         cohort=rep(range_final$cohort,range_final$max-range_final$min+1),
                          pulse=rep(range_final$dummy_pulse,range_final$max-range_final$min+1),
                          mmSL=unlist(mapply(seq,range_final$min,range_final$max)))
 # add additinal info such as date, cohort, pulse so that it is present in dataframe
@@ -156,7 +155,7 @@ glimpse(pulse_assign)
 
 #View(lengthtrip)
 age1length<-length%>%filter(age==1)%>%select(-pulse)
-View(age1length)
+#View(age1length)
 head(age1length)
 # assign pulses to subsetted age1 length data
 
@@ -168,23 +167,19 @@ head(age1length_pulse)
 # create summary table of min and max for each assigned pulse by year
 
 table1<-age1length_pulse%>%
-  group_by(year,cohort,trip,pulse)%>%
+  group_by(year,trip,pulse)%>%
   summarise(min=min(mmSL),max=max(mmSL))
 #View(table1)
-table2<-pulse_range%>%
-  group_by(year,cohort,date,dummy_pulse)%>%
-  summarise(min=min_round,max=max_round)
-#View(table2)
 
 table3<-age1length_pulse%>%
-  group_by(year,cohort,trip,pulse)%>%
+  group_by(year,trip,pulse)%>%
   summarise(min=min(mmSL),max=max(mmSL))%>%
   filter(is.na(pulse))
 #View(table3)
 
-write.csv(age1length_pulse,"./data/data-working/age1_dummypulse.csv",row.names = FALSE)
+write.csv(age1length_pulse,"./data/output/age1_dummypulse.csv",row.names = FALSE)
 
-write.csv(range_final,"./data/data-working/age1-pulse-range.csv",row.names = FALSE)
+write.csv(range_final,"./data/output/age1-pulse-range.csv",row.names = FALSE)
 
 # ---- Finalize pulse assignments ----
 
@@ -237,7 +232,7 @@ cohort.graph(growth1)
 
 # ---- tables -----
 catch2<-catch.haul%>%
-  select(year,month,trip,age,total_catch,total_measured,extrap_1,extrap_2,
+  select(year,trip,age,total_catch,total_measured,extrap_1,extrap_2,
          extrap_3,extrap_4,extrap_5,extrap_6,extrap_unknown,total)%>%
   gather(key="extrap",value = "catch_haul",c(7:13),na.rm = FALSE)%>%
   mutate(total_measured=replace(total_measured,total_catch==0,0))%>%
@@ -247,7 +242,7 @@ catch2<-catch.haul%>%
 View(catch2)
 
 table1<-catch2%>%
-  group_by(year,month,trip,age,pulse,total_catch,total_measured)%>%
+  group_by(year,trip,age,pulse,total_catch,total_measured)%>%
   summarise(catch_per_haul=mean(catch_haul))
 
 # Use tables and figures to determine pulse assignments based on

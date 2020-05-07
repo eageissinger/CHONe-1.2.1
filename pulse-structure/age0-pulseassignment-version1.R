@@ -1,4 +1,6 @@
- # set working directory 
+# age 0 with errors (version 1)
+
+# set working directory 
 setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # ---- load packages ----
@@ -262,7 +264,6 @@ final<-pulse.length%>%
   mutate(pulse=replace(pulse,year==2016 & trip == 20 & mmSL<40,4))%>%
   mutate(pulse=replace(pulse,year==2016 & trip == 21 & mmSL<43,4))%>%
   mutate(pulse=replace(pulse,year==2016 & trip == 21 & pulse == 2 & mmSL<54,3))%>%
-  mutate(pulse=replace(pulse,year==2016 & trip == 22 & pulse ==2 & mmSL<55,3))%>%
   mutate(pulse=replace(pulse,year==2016 & trip == 22 & mmSL<50,4))%>%
   mutate(pulse=replace(pulse,year==2016 & trip == 22 & is.na(pulse),1))%>%
   mutate(pulse=replace(pulse,year==2017 & trip <20 & is.na(pulse),1))%>%
@@ -279,39 +280,55 @@ final<-pulse.length%>%
   mutate(pulse=replace(pulse,year==2018 & trip == 20 & pulse == 1 & mmSL<74,2))%>%
   mutate(pulse=replace(pulse,year==2018 & trip == 20 & mmSL<58,3))%>%
   mutate(pulse=replace(pulse,year==2018 & trip == 20 & mmSL<43,4))%>%
-  mutate(pulse=replace(pulse,year==2018 & trip == 21 & pulse == 1 & mmSL<78,2))%>%
+  mutate(pulse=replace(pulse,year==2018 & trip == 21 & pulse == 1 & mmSL<83,2))%>%
   mutate(pulse=replace(pulse,year==2018 & trip == 21 & pulse == 2 & mmSL<59,3))%>%
   mutate(pulse=replace(pulse,year==2018 & trip == 21 & mmSL<45,4))%>%
-  mutate(pulse=replace(pulse,year==2018 & trip == 22 & mmSL>81,1))%>%
+  mutate(pulse=replace(pulse,year==2018 & trip == 22 & mmSL>93,1))%>%
   mutate(pulse=replace(pulse,year==2018 & trip == 22 & pulse == 3 & mmSL>68,2))%>%
   mutate(pulse=replace(pulse,year==2018 & trip == 23 & pulse == 3 & mmSL>76,2))%>%
-  mutate(pulse=replace(pulse,year==2018 & trip == 23 & pulse == 1 & mmSL<85, 2))
+  mutate(pulse=replace(pulse,year==2018 & trip == 23 & pulse == 1 & mmSL<100, 2))
 #final%>%
 #  filter(year==2011 & age == 0)%>%
 #  ggplot(aes(y=mmSL,x=trip,colour=factor(pulse)))+geom_point(size=1)
 
 final$date<-ymd(paste(final$year,final$month,final$day,sep="-"))
 final%>%
-  filter(year==2018 & age ==0)%>%
+  filter(year==2011 & age ==0)%>%
   ggplot(aes(x=date,y=mmSL,colour=factor(pulse)))+geom_jitter(size=1)
 
 final_range<-final%>%
-  group_by(year,date,trip,age,pulse)%>%
+  group_by(year,trip,date,age,pulse)%>%
   summarise(min=min(mmSL),max=max(mmSL))
 
-write.csv(final_range,"./data/output/pulse_range_0_final.csv",row.names = FALSE)
-write.csv(final,"./data/output/length_pulse_0_final.csv",row.names=FALSE)
+write.csv(final,"./output/finalv1-age0.csv",row.names = FALSE)
 
+write.csv(final_range,"./output/age0_range-v1.csv",row.names = FALSE)
 
-final<-final%>%
+final%>%
+  filter(age==0)%>%
+  filter(year==2016)%>%
+  mutate(date2=date+3)%>%
+  ggplot()+
+  geom_jitter(aes(x=date2,y=mmSL,colour=as.character(pulse)),alpha=0.25,size=1)+
+  geom_point(data=filter(final_range,year==2016),aes(x=date,y=(min+max)/2,shape=factor(pulse),fill=as.character(age)),size=2)+
+  geom_errorbar(data=filter(final_range,year==2016),aes(x=date,ymin=min,ymax=max),width=0)+
+  theme_bw()+
+  ggtitle("2016 Newman Sound Atlantic cod: Age 0")+
+  xlab("Date")+ylab("Standard length (mm)")+
+  scale_x_date(date_breaks="1 month",
+               date_labels="%b")+
+  theme(axis.text.x=element_text(angle=40))
+
+final<-final%>%mutate(date=ymd(paste(year,month,day,sep="-")))%>%
+  filter(age==0)%>%
   mutate(date2=date+3)
 
 
 # ---- All years as function -----
-cohort0.graph<-function(final,final_range,na.rm=FALSE, ...){
+cohort2.graph<-function(final,final_range,na.rm=FALSE, ...){
   
   cohort_list<-rev(unique(final$year))
-  pdf("output/age0_v2.pdf")
+  pdf("output/age0_v1.pdf")
   for (i in seq_along(cohort_list)) {
     plot<-ggplot(subset(final,final$year==cohort_list[i]))+
       geom_jitter(aes(x=date2,y=mmSL,colour=as.character(pulse)),alpha=0.5,size=1)+
@@ -329,11 +346,11 @@ cohort0.graph<-function(final,final_range,na.rm=FALSE, ...){
     print(plot)
   }
 }
-cohort0.graph(final,final_range)
+cohort2.graph(final,final_range)
 dev.off()
 
 # 2016 only
-pdf("./output/V2-Age0-2016.pdf")
+pdf("./output/V1-Age0-2016.pdf")
 ggplot()+
   geom_jitter(data=filter(final,year==2016),aes(x=date2,y=mmSL,colour=as.character(pulse)),alpha=0.5,size=1)+
   geom_point(data=filter(final_range,year==2016),aes(x=date,y=(min+max)/2,shape=factor(pulse)),size=2)+
@@ -342,7 +359,7 @@ ggplot()+
   ggtitle("Age 0 2016 cohort")+
   xlab("Date")+ylab("Standard length (mm)")+
   scale_x_date(date_breaks="1 month",
-               date_labels="%b")+
+                date_labels="%b")+
   theme(axis.text.x = element_text(angle=40))+
   scale_colour_manual(values=c("#009E73","#E69F00", "#0072B2","#CC79A7","#56B4E9","#F0E442","#D55E00"))
 

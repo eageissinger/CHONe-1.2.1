@@ -6,7 +6,7 @@
 # Determine pulse structure of age 1 cod using mixture models
 
 # ----- set working directory ----
-setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
 
 #load packages
 library(tidyverse)
@@ -5516,4 +5516,4 @@ View(mixtures)
 mixtures2<-mixtures%>%
   mutate(cohort=year,age=0)
 
-write.csv(mixtures2,"./data/output/age-0-mixture-dist.csv",row.names = FALSE)
+write.csv(mixtures2,"./data/data-working/age-0-mixture-dist.csv",row.names = FALSE)

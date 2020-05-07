@@ -2,14 +2,14 @@
 # find mistakes if necessasry
 
 # set working directory
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1")
 
 # ---- load packages ----
 library(tidyverse)
 library(lubridate)
 
 # --- load data ----
-range0<-read.csv("./data/data-working/pulse_range_age0_round1.csv")
+range0<-read.csv("./data/output/pulse_range_0_final.csv")
 #catch_haul<-read.csv("./data/data-working/catch_haul.csv")
 length<-read.csv("./data/data-working/newman-length.csv")
 
@@ -19,13 +19,12 @@ str(range0)
 
 pulse_assign0<-data.frame(trip=rep(range0$trip,range0$max-range0$min+1),
                           year=rep(range0$year,range0$max-range0$min+1),
-                          cohort=rep(range0$cohort,range0$max-range0$min+1),
                           pulse=rep(range0$pulse,range0$max-range0$min+1),
                           mmSL=unlist(mapply(seq,range0$min,range0$max)))
 
 # Add to age 1 length data
 glimpse(length)
-glimpse(pulse_assign1)
+glimpse(pulse_assign0)
 length0<-length%>%
   filter(age==0)%>%
   select(-pulse)
@@ -34,7 +33,6 @@ length_pulse<-left_join(length0,pulse_assign0)
 View(length_pulse)
 length_pulse$date<-ymd(paste(length_pulse$year,length_pulse$month,length_pulse$day,sep="-"))
 length_pulse<-length_pulse%>%
-  select(-cohort)%>%
   mutate(cohort=year)
 
 
@@ -53,7 +51,7 @@ length_pulse<-length_pulse%>%
 cohort.graph<-function(length_pulse,na.rm=FALSE, ...){
   
   cohort_list<-rev(unique(length_pulse$cohort))
-  pdf("coloured-pulse-plot.pdf")
+  #pdf("coloured-pulse-plot.pdf")
   for (i in seq_along(cohort_list)) {
     plot<-ggplot(subset(length_pulse,length_pulse$cohort==cohort_list[i]),
                  aes(x=date,y=mmSL,group=cohort,colour=factor(pulse)))+
@@ -62,9 +60,9 @@ cohort.graph<-function(length_pulse,na.rm=FALSE, ...){
       ylim(c(25,222))+
       ggtitle(paste(cohort_list[i], "Cohort"))+
       xlab("Date")+ylab("Standard length (mm)")+
-      scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
+      scale_color_manual(values=c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
     print(plot)
   }
-  #dev.off()
 }
 cohort.graph(length_pulse)
+
