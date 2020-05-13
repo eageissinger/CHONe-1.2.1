@@ -11,6 +11,8 @@ length<-read.csv("./data/data-working/newman-length.csv")
 
 str(pulserange)
 
+# adjust pulse range to accomodate missing fish
+
 mydata<-pulserange%>%
   rename(pulse=dummy_pulse)%>%
   mutate(cohort=year-1)%>%
@@ -268,7 +270,7 @@ final<-pulse.length%>%
   mutate(pulse=replace(pulse,cohort==2007 & is.na(pulse),3))%>%
   mutate(pulse=replace(pulse,cohort==2008 & is.na(pulse),6))%>%
   mutate(pulse=replace(pulse,cohort==2008 & trip==13 & mmSL>85,4))%>%
-  mutate(pulse=replace(pulse,cohort==2008 & trip==16,4))%>% # Bob needs to check this year
+  mutate(pulse=replace(pulse,cohort==2008 & trip==16,4))%>% 
   mutate(pulse=replace(pulse,cohort==2008 & trip ==17,4))%>%
   mutate(pulse=replace(pulse,cohort==2008 & mmSL>155,4))%>% # 2008 was difficult to assign
   mutate(pulse=replace(pulse,cohort==2008 & mmSL>199,2))%>%
@@ -279,7 +281,7 @@ final<-pulse.length%>%
   mutate(pulse=replace(pulse,cohort==2009 & trip == 16,4))%>%
   mutate(pulse=replace(pulse,cohort==2009 & trip == 16 & mmSL>110,3))%>%
   mutate(pulse=replace(pulse,cohort==2009 & trip == 18 & mmSL<100,4))%>%
-  mutate(pulse=replace(pulse,cohort==2009 & is.na(pulse),2))%>% # 2009 needs a double chekc
+  mutate(pulse=replace(pulse,cohort==2009 & is.na(pulse),2))%>% 
   mutate(pulse=replace(pulse,cohort==2010 & trip == 13 & pulse ==1,2))%>%
   mutate(pulse=replace(pulse,cohort==2010 & trip == 13 & pulse == 2 & mmSL<99,3))%>%
   mutate(pulse=replace(pulse,cohort==2010 & trip == 15 & mmSL>114,2))%>%
@@ -428,16 +430,16 @@ final<-pulse.length%>%
 cohort.graph<-function(length_pulse,na.rm=FALSE, ...){
   length_pulse$date<-ymd(paste(length_pulse$year,length_pulse$month,length_pulse$day))
   cohort_list<-rev(unique(length_pulse$cohort))
-  #pdf("age1-full-test.pdf")
+  pdf("age1-full-test.pdf")
   for (i in seq_along(cohort_list)) {
     plot<-ggplot(subset(length_pulse,length_pulse$cohort==cohort_list[i]),
                  aes(x=date,y=mmSL,group=cohort,colour=factor(pulse)))+
-      geom_jitter(size=1)+
+      geom_jitter(size=1,alpha=0.5)+
       theme_bw()+
       ylim(c(25,250))+
       ggtitle(paste(cohort_list[i], "Cohort"))+
       xlab("Date")+ylab("Standard length (mm)")+
-      scale_color_manual(values=c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
+      scale_color_manual(values=c("#009E73","#E69F00", "#0072B2","#CC79A7","#56B4E9","#F0E442","#D55E00"))
     print(plot)
   }
 }
@@ -445,10 +447,28 @@ cohort.graph(final)
 
 final<-final%>%
   mutate(date=ymd(paste(year,month,day,sep="-")))
+
+append<-data.frame(year=c(2001,2001,2001,2005,2012),
+                   cohort=c(2000,2000,2000,2004,2011),
+                   trip=c(16,17,18,17,20),
+                   pulse=c(3,3,3,1,4),
+                   min=c(82,98,100,150,124),
+                   max=c(119,129,139,175,159))
+
 final_range<-final%>%
-  group_by(year,cohort,date,trip,pulse)%>%
+  group_by(year,cohort,trip,pulse)%>%
   summarise(min=min(mmSL),max=max(mmSL))%>%
-  filter(!is.na(pulse))
+  filter(!is.na(pulse))%>% # fill in missing/NA pulses
+  mutate(min=replace(min,year==2000 & trip == 22 & pulse == 3,120))%>%
+  mutate(min=replace(min,year==2000 & trip == 21 & pulse == 3,105))%>%
+  mutate(min=replace(min,year==2000 & trip == 20 & pulse == 3,105))%>%
+  mutate(min=replace(min,year==2000 & trip == 19 & pulse == 3,105))%>%
+  mutate(max=replace(max,year==2005 & trip == 21 & pulse == 1,200))%>%
+  mutate(max=replace(max,year==2005 & trip == 20 & pulse == 1,205))%>%
+  mutate(max=replace(max,year==2005 & trip == 19 & pulse == 1,200))%>%
+  mutate(max=replace(max,year==2005 & trip == 18 & pulse == 1,176))%>%
+  bind_rows(append)
+  
 
 # complete
 write.csv(final_range,"./data/output/pulse_range_age1_final.csv",row.names = FALSE)
