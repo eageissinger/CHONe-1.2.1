@@ -10,6 +10,7 @@ mayfish<-read.csv("../data/data-working/may-cod-pulses.csv")
 library(tidyverse)
 library(ggplot2)
 library(lubridate)
+library(ggpubr)
 
 # ----check data ----
 str(multi)
@@ -168,3 +169,139 @@ octfish%>%
   ggplot()+geom_histogram(aes(x=sl,fill=factor(pulse)),binwidth=3)+
   facet_wrap(~date)
 
+# ----- Manuscript Figures -----
+# Fig 1
+Fig1a<-octfish%>%
+  filter(id<1 & !is.na(sl))%>%
+  filter(date=="2016-10-14")%>%
+  mutate(pulse=as.factor(pulse))%>%
+  mutate(pulse=factor(pulse,levels=c(1,2,3)))%>%
+  ggplot()+
+  geom_histogram(aes(x=sl,fill=pulse),colour='black',binwidth = 3)+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  scale_fill_manual(values=c('grey25','grey64','grey85'),drop=FALSE)+
+  scale_y_continuous(expand = c(0,0))+
+  geom_text(aes(x=40,y=7.5,label="stretch it"),vjust=-1)+
+  labs(x="Standard Length (mm)",
+       y="Count",
+       fill="Pulse")+
+  theme(axis.title.x= element_text(size=14,margin = margin(t=10)))+
+  theme(axis.title.y= element_text(size=14,margin = margin(r=10)))+
+  theme(legend.title = element_text(size=12,face='bold'),
+        legend.key.size = unit(1.5,'lines'))+
+  theme(axis.text = element_text(size=12))+
+  theme(plot.margin = unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  xlim(40,95)
+  
+
+Fig1b<-octfish%>%
+  filter(id<1 & !is.na(sl))%>%
+  filter(date=="2016-10-19")%>%
+  mutate(pulse=as.factor(pulse))%>%
+  ggplot()+
+  geom_histogram(aes(x=sl,fill=pulse),colour='black',binwidth = 3)+
+  scale_fill_manual(values=c('grey20','grey45','grey80','grey95'))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  scale_y_continuous(expand = c(0,0))+
+  geom_text(aes(x=40,y=7.5,label="stretch it"),vjust=-1)+
+  labs(x="Standard Length (mm)",
+       y="Count",
+       fill="Pulse")+
+  theme(axis.title.x= element_text(size=14,margin = margin(t=10)))+
+  theme(axis.title.y= element_text(size=14,margin = margin(r=10)))+
+  theme(legend.title = element_text(size=12,face='bold'),
+        legend.key.size = unit(1.5,'lines'))+
+  theme(axis.text = element_text(size=12))+
+  theme(plot.margin = unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  xlim(40,95)
+
+
+Fig1<-annotate_figure(ggarrange(Fig1a+theme(axis.title.x=element_text(colour='white')),
+          Fig1b+
+            theme(axis.title.y = element_text(colour="white"))+
+            theme(axis.title.x=element_text(colour='white')),
+          labels=c("a","b"),ncol=2,nrow=1,
+          common.legend = TRUE),
+          bottom=text_grob("Standard Length (mm)",size=14,vjust=-1))
+
+Fig2a<-mayfish%>%
+  filter(id>2 & date == '2017-05-24' & age == 1)%>%
+  filter(site=="NB")%>%
+  mutate(pulse=as.factor(pulse))%>%
+  ggplot()+
+  geom_histogram(aes(x=sl,fill=pulse),binwidth = 3,colour='black')+
+  scale_fill_manual(values=c('grey20','grey45','grey95'))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  scale_y_continuous(expand = c(0,0))+
+  geom_text(aes(x=0,y=22,label="stretch it"),vjust=-1)+
+  labs(x="Standard Length (mm)",
+       y="Count",
+       fill="Pulse")+
+  theme(axis.title.x= element_text(size=14,margin = margin(t=10)))+
+  theme(axis.title.y= element_text(size=14,margin = margin(r=10)))+
+  theme(legend.title = element_text(size=12,face='bold'),
+        legend.key.size = unit(1.5,'lines'))+
+  theme(axis.text = element_text(size=12))+
+  xlim(30,155)+
+  theme(plot.margin = unit(c(0.5,0.5,0.5,0.5),"cm"))
+
+Fig2b<-mayfish%>%
+    filter(id>2 & date == '2017-05-24' & age == 1)%>%
+    filter(site=="MI")%>%
+    mutate(pulse=as.factor(pulse))%>%
+    ggplot()+
+    geom_histogram(aes(x=sl,fill=pulse),binwidth = 3,colour='black')+
+    scale_fill_manual(values=c('grey20','grey45','grey95'))+
+    theme_bw()+
+    theme(panel.grid=element_blank())+
+    scale_y_continuous(expand = c(0,0))+
+  geom_text(aes(x=0,y=22,label="stretch it"),vjust=-1)+
+  labs(x="Standard Length (mm)",
+       y="Count",
+       fill="Pulse")+
+  theme(axis.title.x= element_text(size=14,margin = margin(t=10)))+
+  theme(axis.title.y= element_text(size=14,margin = margin(r=10)))+
+  theme(legend.title = element_text(size=12,face='bold'),
+        legend.key.size = unit(1.5,'lines'))+
+  theme(axis.text = element_text(size=12))+
+  xlim(30,155)+
+  theme(plot.margin = unit(c(0.5,0.5,0.5,0.5),"cm"))
+
+Fig2c<-mayfish%>%
+  filter(id>2 & date == '2017-05-24' & age == 1)%>%
+  filter(site=="CC")%>%
+  mutate(pulse=as.factor(pulse))%>%
+  ggplot()+
+  geom_histogram(aes(x=sl,fill=pulse),binwidth = 3,colour='black')+
+  scale_fill_manual(values=c('grey20','grey45','grey95'))+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  scale_y_continuous(expand = c(0,0))+
+  geom_text(aes(x=0,y=22,label="stretch it"),vjust=-1)+
+  labs(x="Standard Length (mm)",
+       y="Count",
+       fill="Pulse")+
+  theme(axis.title.x= element_text(size=14,margin = margin(t=10)))+
+  theme(axis.title.y= element_text(size=14,margin = margin(r=10)))+
+  theme(legend.title = element_text(size=12,face='bold'),
+        legend.key.size = unit(1.5,'lines'))+
+  theme(axis.text = element_text(size=12))+
+  xlim(30,155)+
+  theme(plot.margin = unit(c(0.5,0.5,0.5,0.5),"cm"))
+
+Fig2<-annotate_figure(ggarrange(Fig2a+
+                            theme(axis.title.x=element_text(colour='white')),
+                                Fig2b+
+                                  theme(axis.title.y = element_text(colour="white"))+
+                                  theme(axis.title.x=element_text(colour='white')),
+                          Fig2c+
+                            theme(axis.title = element_text(colour="white")),
+                                labels=c("a","b","c"),ncol=3,nrow=1,
+                                common.legend = TRUE),
+                      bottom=text_grob("Standard Length (mm)",size=14,vjust=-1))
+
+ggsave(file="./output/Fig1.png",plot=Fig1,width=168,height=84,units="mm")
+ggsave(file="./output/Fig2.png",plot=Fig2,width=168,height=84,units="mm")

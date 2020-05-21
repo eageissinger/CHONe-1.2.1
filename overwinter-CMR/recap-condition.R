@@ -119,9 +119,58 @@ data2%>%
 # determine where the 62 mm fish fit
 ggplot(data2,aes(x=site,y=sl,colour=factor(pulse)))+geom_point()
 
+
+Fig5<-ggplot(data2)+geom_boxplot(aes(y=HSI,x=factor(pulse)),fill='grey64',outlier.color = 'grey74')+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  labs(x="Pulse",
+       y="Hepatosomatic index")+
+  theme(axis.title.x= element_text(size=14,margin = margin(t=10)))+
+  theme(axis.title.y= element_text(size=14,margin = margin(r=10)))+
+  theme(axis.text = element_text(size=12))+
+  theme(plot.margin = unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  annotate(geom="segment",y=seq(0,3,.25),yend=seq(0,3,.25),x=-.01,xend=0.01)
+
+
+
 # Evaluate recapture data
 recap%>%
   filter(recap!=0)
 
-data2%>%
-  filter(recap!=0)
+marks<-data2%>%
+  filter(recap!=0)%>%
+  group_by(site,pulse)%>%
+  summarise(mark=n())%>%
+  ungroup()%>%
+  add_row(site="MI",pulse=1,mark=0)%>%
+  add_row(site="CC",pulse=1,mark=0)%>%
+  add_row(site="CC",pulse=2,mark=0)%>%
+  as.data.frame()%>%
+  mutate(site2="Newbridge")%>%
+  mutate(site2=replace(site2,site=="MI","Mistaken"))%>%
+  mutate(site2=replace(site2,site=="CC","Canning's"))%>%
+  mutate(site2=factor(site2))%>%
+  mutate(site2=relevel(site2,"Mistaken"))%>%
+  mutate(site2=relevel(site2,"Newbridge"))
+Fig4<-ggplot(marks)+
+  geom_bar(aes(x=site2,y=mark,fill=factor(pulse)),stat="identity",position='dodge',colour='black')+
+  scale_y_continuous(expand=c(0,0),breaks = c(0,5,10,15,20,25))+
+  geom_text(aes(x=0,y=28,label="stretch it"),vjust=-10,hjust=1)+
+  geom_hline(yintercept =0)+
+  scale_fill_manual(values=c("grey25","grey64"))+
+  theme_bw()+
+  theme(panel.grid = element_blank())+
+  annotate(geom="segment",y=seq(0,27,1),yend=seq(0,27,1),x=-.01,xend=0.01)+
+  labs(x="Standard Length (mm)",
+       y="Count",
+       fill="Pulse")+
+  theme(axis.title.x= element_text(size=14,margin = margin(t=10)))+
+  theme(axis.title.y= element_text(size=14,margin = margin(r=10)))+
+  theme(legend.title = element_text(size=12),
+        legend.key.size = unit(1.5,'lines'))+
+  theme(axis.text = element_text(size=12))+
+  theme(axis.text.x=element_text(angle = 40,hjust = 1))+
+  theme(plot.margin = unit(c(0.5,0.5,0.5,0.5),"cm"))
+
+ggsave(file="./output/Fig4.png",plot=Fig4,width=84,height=84,units="mm")
+ggsave(file="./output/Fig5.png",plot=Fig5,width=84,height=84,units="mm")
