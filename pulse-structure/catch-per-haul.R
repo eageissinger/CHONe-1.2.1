@@ -1,9 +1,9 @@
 # ---- Calculate catch/haul -----
 
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # ---- load data ----
-length<-read.csv("./data/data-working/newman-length-all.csv")
+length<-read.csv("./data/data-working/newman-length-updated.csv")
 count<-read.csv("./data/data-working/newman-catch.csv")
 hauls<-read.csv("./data/data-working/hauls.csv")
 
@@ -44,7 +44,7 @@ count$date<-ymd(paste(count$year,count$month,count$day,sep="-"))
 
 # create trips df that can be joined to hauls
 trips<-count%>%
-  select(year,julian.date,trip)
+  dplyr::select(year,julian.date,trip)
 hauls<-left_join(hauls,trips)
 
 # ---- Calculate extrapolated catch/haul -----
@@ -106,4 +106,4 @@ testextrap%>%
 # but everything else matches
 
 # --- export data ----
-write.csv(extrap,"./data/data-working/catch_haul.csv",row.names = FALSE)
+write.csv(extrap,"./data/output/catch_haul.csv",row.names = FALSE)
