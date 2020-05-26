@@ -20,6 +20,7 @@ count.data<-read.csv("../data/data-working/newman-catch.csv")
 SLfull<-read.csv("../data/data-working/newman-length-updated.csv")
 pulse0<-read.csv("../data/output/pulse_range_0_final.csv")
 pulse1<-read.csv("../data/output/pulse_range_age1_final.csv")
+settlement<-read.csv("../data/output/settlement-day.csv")
 str(catch_haul)
 
 # ---- SL data -----
@@ -385,5 +386,11 @@ alldata<-alldata%>%
 
 head(alldata)
 
+# add cohort to settlement
+settle<-settlement%>%
+  mutate(cohort=year)
+
+alldata2<-left_join(alldata,settle)
+
 #Save data in output file
-write.csv(alldata,"../data/output/condition-field-formatted.csv",row.names = FALSE)
+write.csv(alldata2,"../data/output/condition-field-formatted.csv",row.names = FALSE)
