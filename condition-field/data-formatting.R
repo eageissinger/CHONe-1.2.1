@@ -262,6 +262,12 @@ na.frame<-condition3%>%
   filter(month==10 | month == 11 | month == 5 | month ==7)%>%
   filter(year!=1998)
 
+
+# address outliers
+condition3%>%
+  filter(fulton>1.5)
+#clean condition data frame
+write.csv(condition3,"../data/output/condition-field-clean.csv",row.names=FALSE)
 # ---- Winter Data ----
 dim(winter)
 names(winter)
@@ -347,18 +353,19 @@ pre.count<-testpre%>%
 preWinter<-right_join(testpre,post.count)%>%distinct()
 postWinter<-right_join(testpost,pre.count)%>%distinct()
 
-
+cond_all_test<-cond_all%>%
+  filter(fulton<1.76)
 #cond_all<-cond_all%>%
 # filter(!is.na(pulse))
 # creat pre and post condition, and initial and final abundance
-df.fall.all<-cond_all%>%
+df.fall.all<-cond_all_test%>%
   filter(month==10)%>%
   group_by(cohort,pulse,days_below_1,mean_temp)%>%
   summarise(preK=mean(fulton),preCount=ceiling(mean(count)))%>%
   ungroup()%>%
   as.data.frame()
 
-df.spring.K<-cond_all%>%
+df.spring.K<-cond_all_test%>%
   filter(month==5)%>%
   select(-month,-date,-count)%>%
   mutate(season="spring")%>%
@@ -367,7 +374,7 @@ df.spring.K<-cond_all%>%
   ungroup()%>%
   as.data.frame()
 
-df.spring.count<-cond_all%>%
+df.spring.count<-cond_all_test%>%
   filter(month==7)%>%
   mutate(season="spring")%>%
   group_by(cohort,pulse,season,days_below_1,mean_temp)%>%
@@ -393,4 +400,4 @@ settle<-settlement%>%
 alldata2<-left_join(alldata,settle)
 
 #Save data in output file
-write.csv(alldata2,"../data/output/condition-field-formatted.csv",row.names = FALSE)
+write.csv(alldata2,"../data/output/condition-field-formatted_outlier.csv",row.names = FALSE)

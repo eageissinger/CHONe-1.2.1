@@ -20,15 +20,38 @@ library(sjmisc)
 library(MASS)
 #library(lubridate)
 library(tidyverse)
+library(ggpubr)
 
 # ---- data ----
-alldata<-read.csv("../data/output/condition-field-formatted.csv")
+#data<-read.csv("../data/output/condition-field-formatted.csv")
 SLfull<-read.csv("../data/data-working/newman-length-updated.csv")
+condition<-read.csv("../data/output/condition-field-clean.csv")
+data<-read.csv("../data/output/condition-field-formatted_outlier.csv")
 
-head(alldata)
-str(alldata)
+head(data)
+str(data)
 
-# ---- model ----
+# ---- Graphical model ----
+alldata<-data%>%filter(pulse<5)
+alldata$pulse<-as.factor(alldata$pulse)
+alldata$pulse<-droplevels(alldata$pulse)
+# Survival vs. preK for all pulses
+ggplot(alldata)+geom_point(aes(y=postCount/preCount,x=preK))+
+  facet_grid(~pulse)+
+  ylim(0,17)
+# Survival vs. postK for all pulses
+ggplot(alldata)+geom_point(aes(y=postCount/preCount,x=postK))+
+  facet_grid(~pulse)+
+  ylim(0,15)
+# Survival vs. degree days for all pulses
+ggplot(alldata)+geom_point(aes(y=postCount/preCount,x=days_below_1))+
+  facet_grid(~pulse)+
+  ylim(0,17)
+# Survival vs. year for all pulses
+ggplot(alldata)+geom_point(aes(y=postCount/preCount,x=year))+
+  facet_grid(~pulse)+
+  ylim(0,17)
+# ---- model attempts ----
 # October and July model
 summary(alldata)
 str(alldata)
@@ -55,7 +78,7 @@ plot_model(m0)
 
 
 
-m1<-glm(cbind(postCount,preCount)~pulse.f+preK+postK+days_below_1+days_below_1,
+m1<-glm(cbind(postCount,preCount)~pulse.f+preK+postK+days_below_1+days_below_1+year,
     data=alldata,family=binomial)
 plot(m1)
 hist(resid(m1))
@@ -81,35 +104,53 @@ summary(m3)
 Anova(m3,type="III")
 
 
-#GLMM binomial
-alldata<-alldata%>%filter(pulse<5)
-alldata$pulse<-as.factor(alldata$pulse)
-alldata$pulse<-droplevels(alldata$pulse)
+# ---- GLMM binomial -----
+
 
 m4<-glmer(cbind(postCount,preCount)~pulse+preK+postK+scale(days_below_1)+
             (1|cohort),data=alldata,family=binomial)
-# convergence warning
-model.fit.all<-lme4::allFit(m4)
-ss<-summary(model.fit.all)
+#convergence warning
+#model.fit.all<-lme4::allFit(m4)
+#ss<-summary(model.fit.all)
 #try different optimizers
-m4.1<-glmer(cbind(postCount,preCount)~pulse+preK+postK+scale(days_below_1)+
-              (1|cohort),data=alldata,family=binomial,control = glmerControl(optimizer = "nlminbwrap"))
+#m4<-glmer(cbind(postCount,preCount)~pulse+preK+postK+scale(days_below_1)+
+#              (1|cohort),data=alldata,family=binomial,control = glmerControl(optimizer = "nlminbwrap"))
 
-plot(m4.1)
-fit<-fitted(m4.1)
-res<-resid(m4.1)
+plot(m4)
+fit<-fitted(m4)
+res<-resid(m4)
 plot(x=fit,y=res)
-hist(resid(m4.1))
-qqnorm(resid(m4.1))
-qqline(resid(m4.1),col='red')
-summary(m4.1)
+hist(resid(m4))
+qqnorm(resid(m4))
+qqline(resid(m4),col='red')
+summary(m4)
 
-Anova(m4.1,type="III")
-A<-Anova(m4.1,type="III")
+Anova(m4,type="III")
+A<-Anova(m4,type="III")
 A%>%
   mutate(LR=exp(Chisq/2))
-plot(allEffects(m4.1))
+plot(allEffects(m4))
 
+# ---- Model with Settlement day -----
+
+m5<-glmer(cbind(postCount,preCount)~pulse+preK+postK+scale(days_below_1)+scale(settle.day)+
+            (1|cohort),data=alldata,family=binomial,control = glmerControl(optimizer = "nlminbwrap"))
+plot(m5)
+hist(resid(m5))
+qqnorm(resid(m5))
+qqline(resid(m5))
+summary(m5)
+Anova(m5,type="III")
+m6<- glmer(cbind(postCount,preCount)~preK+postK+scale(days_below_1)+scale(settle.day)+
+             (1|cohort),data=alldata,family=binomial)
+plot(m6)
+hist(resid(m6))
+qqnorm(resid(m6))
+qqline(resid(m6))
+summary(m6)
+Anova(m6,type="III")
+
+# ----- Model 4 ------
 ggplot(data=alldata,aes(x=cohort,y=postCount/preCount))+geom_point()+
   geom_smooth(method="lm")+
   facet_wrap(~pulse)
@@ -132,14 +173,14 @@ ggplot(alldata,aes(x=days_below_1,y=postCount))+geom_point()+
 ggplot(alldata,aes(x=pulse,y=postCount/preCount))+geom_point()+
   geom_boxplot(outlier.shape = NA)
 
-plot_model(m4.1)
-plot_model(m4.1,show.intercept=TRUE,order.terms = c(1,2,3,4,5,6))
-plot_model(m4.1,type="std")
-plot_model(m4.1,show.intercept = TRUE)
-plot_model(m4.1,transform = "plogis",show.intercept = TRUE)
+plot_model(m4)
+plot_model(m4,show.intercept=TRUE,order.terms = c(1,2,3,4,5,6))
+plot_model(m4,type="std")
+plot_model(m4,show.intercept = TRUE)
+plot_model(m4,transform = "plogis",show.intercept = TRUE)
 
 plot_model(
-  m4.1, 
+  m4, 
   type="std",
   title = "Survival",
   colors = "black", 
@@ -150,6 +191,8 @@ plot_model(
   line.size = 1.5,
   vline.color = "#a8ddb5"
 )
+
+
 # ---- predictions ----
 # predict values
 output.m4<-data.frame(pulse=rep(seq(c(1:4)),18),
@@ -201,7 +244,7 @@ ggplot(alldata,aes(y=postCount/preCount,x=days_below_1,colour=pulse))+geom_point
 alldata%>%
   mutate(survival=postCount/preCount)%>%
   ggplot(aes(x=factor(pulse),y=survival))+geom_boxplot(outlier.shape = NA)+
-  ylim(0,3)
+  ylim(0,1)
 
 alldata%>%
   mutate(survival=postCount/preCount)%>%
@@ -241,19 +284,6 @@ alldata%>%
 
 
 # pulse 1-3
-alldata%>%
-  mutate(survival=postCount/preCount)%>%
-  filter(pulse==1 | pulse ==2 | pulse ==3)%>%
-  ggplot(aes(x=postK,y=survival,colour=pulse))+geom_point()
-alldata%>%
-  mutate(survival=postCount/preCount)%>%
-  filter(pulse==1 | pulse ==2 | pulse ==3)%>%
-  ggplot(aes(x=preK,y=survival,colour=pulse))+geom_point()
-alldata%>%
-  mutate(survival=postCount/preCount)%>%
-  filter(pulse==1 | pulse ==2 | pulse ==3)%>%
-  ggplot(aes(x=days_below_1,y=survival,colour=pulse))+geom_point()
-
 pulse123<-alldata%>%
   filter(pulse==1 | pulse ==2 | pulse ==3)
 
@@ -267,6 +297,7 @@ summary(m5)
 Anova(m5,type="III")
 plot(allEffects(m5))
 
+#no pulse
 m6<-glmer(cbind(postCount,preCount)~postK+preK+scale(days_below_1)+
             (1|cohort),data=alldata,family=binomial)
 plot(m6)
@@ -277,6 +308,7 @@ summary(m6)
 Anova(m6,type="III")
 plot(allEffects(m6))
 
+# no post K
 m7<-glmer(cbind(postCount,preCount)~pulse+preK+scale(days_below_1)+
             (1|cohort),data=alldata,family=binomial)
 
@@ -291,7 +323,7 @@ summary(m7)
 Anova(m7,type="III")
 plot(allEffects(m7))
 
-
+#stick with model 4 (full)
 # ---- pulse 1 only -----
 p1<-alldata%>%
   filter(pulse==1)
@@ -346,15 +378,86 @@ plot(allEffects(pm4))
 
 
 # ---- Odds -----
-summary(m4.1)
-estimates<-c(5.9221,1.5839,2.5897,5.1648,13.9663,-29.5806,1.4354)
+summary(m4)
+estimates<-c(11.6029,1.6686,2.9090,5.5253,15.8653,-39.6424,1.6552)
+std.error<-c(11.0987,1.8674,1.8860,2.2990,6.2025,14.6772,0.7468)
 odds<-exp(estimates)
-prob<-odds/(1+odds)
-prob
+odds.error<-exp(std.error)
+#prob<-odds/(1+odds)
 source<-c("Intercept","pulse2","pulse3","pulse4","preK","postK","scale(days_below_1)")
-prob.coeff<-as.data.frame(cbind(source,odds,prob))
-
+effect.size<-as.data.frame(cbind(source,odds,odds.error))
+effect.size
 
 # summary: attempted predictions - doesn't seem to work
 # must look at additional info for visualizing ANCOVA model..... Split up into four pulses maybe??
 
+# ---- what is the evidence -----
+null<-glmer(cbind(postCount,preCount)~1+
+              (1|cohort),data=alldata,family=binomial)
+deviance(null)
+deviance(m4)
+deviance(null)-deviance(m4)
+exp(259.1085/2)
+Anova(m4,type="III")
+
+# ---- goodness of fit measure-----
+## ?????
+
+
+# post analysis
+# evaluate trends in high vs low abundance years
+abund<-alldata%>%
+  group_by(cohort)%>%
+  summarise(preAbund=sum(preCount),postAbund=sum(postCount))%>%
+  mutate(surv=postAbund/preAbund)%>%
+  filter(surv!='Inf')
+summary(abund)
+# high abundance years
+# 1999
+# 2014
+# 2013
+# 2012
+# 2015
+
+high<-alldata%>%
+  filter(year == 2013 | year == 2014 | year == 1999 | year == 2012 | year == 2015)
+summary(high)
+summary(alldata)
+
+# high survival years
+high.surv<-alldata%>%
+  filter(cohort==2008 | cohort == 2001 | cohort == 2006 | cohort == 2009 | cohort== 2016 | cohort == 2000)
+
+summary(high.surv)
+
+# low survival years
+low.surv<-alldata%>%
+  filter(cohort!=2008 | cohort != 2001 | cohort != 2006 | cohort != 2009 | cohort!= 2016 | cohort != 2000)
+summary(low.surv)
+plot(allEffects(m4))
+
+
+# --- pre analysis figures -----
+# number of pulses per year
+
+ggplot(data)+geom_(aes(y=pulse,x=year))
+SLfull%>%
+  filter(age==1)%>%
+  ggplot()+geom_point(aes(y=pulse,x=year))
+# winter temperature ranges and degree days
+# condition pre/post by pulse
+
+# tie it all together!
+SLfull%>%
+  filter(age==0 & pulse == 6)%>%
+  distinct(year)
+
+# pre and post K
+summary(condition)
+precond<-condition%>%
+  filter(month==10 & age==0)%>%
+  filter(fulton<1.76)
+postcond<-condition%>%
+  filter(month==5 & age ==1)
+summary(precond)
+summary(postcond)
