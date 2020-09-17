@@ -358,11 +358,20 @@ cond_all_test<-cond_all%>%
 #cond_all<-cond_all%>%
 # filter(!is.na(pulse))
 # creat pre and post condition, and initial and final abundance
-df.fall.all<-cond_all_test%>%
+df.fall.K<-cond_all_test%>%
+  filter(month==11)%>%
+  group_by(cohort,pulse,days_below_1,mean_temp)%>%
+  summarise(preK=mean(fulton))%>%
+  ungroup()%>%
+  mutate(season="fall")%>%
+  as.data.frame()
+
+df.fall.count<-cond_all_test%>%
   filter(month==10)%>%
   group_by(cohort,pulse,days_below_1,mean_temp)%>%
-  summarise(preK=mean(fulton),preCount=ceiling(mean(count)))%>%
+  summarise(preCount=ceiling(mean(count)))%>%
   ungroup()%>%
+  mutate(season="fall")%>%
   as.data.frame()
 
 df.spring.K<-cond_all_test%>%
@@ -384,7 +393,8 @@ df.spring.count<-cond_all_test%>%
 
 df.spring.all<-full_join(df.spring.count,df.spring.K)%>%
   select(-season)
-
+df.fall.all<-full_join(df.fall.count,df.fall.K)%>%
+  select(-season)
 
 alldata<-full_join(df.fall.all,df.spring.all, by=c("cohort","pulse","days_below_1","mean_temp"))
 alldata<-alldata%>%
