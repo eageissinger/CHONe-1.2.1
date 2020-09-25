@@ -1,81 +1,70 @@
 # ----- Data Updates ------
 # update/add new data to length and count files
 
+# ---- packages -----
+library(tidyverse)
+library(lubridate)
+
 # ----- set working directory -----
 setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # ----- load data ------
-ac0length<-read.csv("./data/data-working/newman-AC0-length.csv")
-ac0length2018<-read.csv("./data/data-working/newman-AC0-length-2018.csv")
-ac0count<-read.csv("./data/data-working/newman-AC0-catch.csv")
-ac0count2018<-read.csv("./data/data-working/newman-AC0-catch-2018.csv")
-ac1length<-read.csv("./data/data-working/newman-AC1-length.csv")
-ac1length2018<-read.csv("./data/data-working/newman-AC1-length-2018.csv")
-ac1count<-read.csv("./data/data-working/newman-AC1-catch.csv")
-ac1count2018<-read.csv("./data/data-working/newman-AC1-catch-2018.csv")
-trip.dates<-read.csv("./data/data-working/trip-dates-newman.csv")
-# ---- load packages ----
-library(tidyverse)
-library(lubridate)
+# ----- Length data -----
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/data/TNNP Revised Data/TNNP/output/temp/")
+file_list<-list.files(path="C:/Users/user/Documents/Research/CHONe-1.2.1/data/TNNP Revised Data/TNNP/output/temp")
+length<-lapply(file_list,read.csv)
 
-# ---- check data -----
-summary(ac0length)
-summary(ac0count)
-summary(ac0length2018)
-summary(ac0count2018)
-summary(ac1length)
-summary(ac1count)
-summary(ac1length2018)
-summary(ac1count2018)
-summary(trip.dates)
+length.all<-bind_rows(length)
 
-glimpse(ac0length)
-glimpse(ac0count)
-glimpse(ac0length2018)
-glimpse(ac0count2018)
-glimpse(ac1length)
-glimpse(ac1count)
-glimpse(ac1length2018)
-glimpse(ac1count2018)
-glimpse(trip.dates)
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/data/TNNP Revised Data/TNNP/output/lab-measured/")
 
-# ---- combine years ----
-# age 0 and age 1 length
-ac1length$Pulse<-as.character(ac1length$Pulse)
-ac0length$Pulse<-as.character(ac0length$Pulse)
-ac1length2018$Pulse<-as.character(ac1length2018$Pulse)
-ac0length2018$Pulse<-as.character(ac0length2018$Pulse)
-length<-bind_rows(ac0length,ac1length,ac0length2018,ac1length2018)
-# age 0 and age 1 count
-count<-bind_rows(ac0count,ac1count,ac0count2018,ac1count2018)
+file_list2<-list.files(path="C:/Users/user/Documents/Research/CHONe-1.2.1/data/TNNP Revised Data/TNNP/output/lab-measured/")
+lab<-lapply(file_list2,read.csv)
+
+lab.all<-bind_rows(lab)
+
+
+length.full<-bind_rows(lab.all,length.all)
+
+# --- check data ----
+head(length.full)
+glimpse(length.full)
+
 
 # ---- fix date on new data -----
 # length
-length1<-length%>%
+length1<-length.full%>%
   mutate(month=as.numeric(str_sub(Date,start=5,end=6)),
          day=as.numeric(str_sub(Date,start=7,end=8)))%>%
   rename(year=Year,julian.date=Julian.Date,site=Site,species=Species,
          age=Age,trip=Trip,pulse=Pulse,notes=Notes)%>%
-  select(-Time,-Date)
-# catch
-count1<-count%>%
-  mutate(month=as.numeric(str_sub(Date,start=5,end=6)),
-         day=as.numeric(str_sub(Date,start=7,end=8)))%>%
-  rename(year=Year,julian.date=Julian.Date,site=Site,species=Species,age=Age,
-         count=Count,notes=Notes,trip=Trip)%>%
-  select(-Date)
-#trips
-trip1<-trip.dates%>%
-  mutate(year=as.numeric(str_sub(Date,start=1,end=4)),
-         month=as.numeric(str_sub(Date,start=5,end=6)),
-         day=as.numeric(str_sub(Date,start=7,end=8)))%>%
-  rename(trip=Trip)%>%
-  select(-Date)
+  select(-Time,-Date,-Weighting,-Wt...g.,-Month,-Day)%>%
+  select(year,month,day,julian.date,trip,site,species,age,mmSL,pulse,notes)
 
-View(length1)
-View(count1)
-View(trip1)
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
+write.csv(length1,"./data/data-working/newman-length-updated.csv",row.names=FALSE)
+#write.csv(catch1,"./data/data-working/newman-count-updated.csv",row.names = FALSE)
 
-write.csv(length1,"./data/data-working/newman-length.csv",row.names=FALSE)
-write.csv(count1,"./data/data-working/newman-catch.csv",row.names=FALSE)
-write.csv(trip1,"./data/data-working/newman-trips.csv",row.names=FALSE)
+
+# ---- temperature ----
+temp1<-read.csv("./data/data-working/daily-temp-corrected-newman.csv")
+temp17<-read.csv("./data/data-working/temperature-2017.csv")
+
+head(temp1)
+head(temp17)
+
+#format 2017 data
+temp17.2<-temp17%>%
+  rename(date=ï..Date,daily_temp_C=MeanTemp..C.)%>%
+  mutate(year=as.integer(str_sub(date,start=1,end = 4)),
+         month=as.integer(str_sub(date,start=5,end=6)),
+         day=as.integer(str_sub(date,start=7,end=8)))%>%
+  select(year,month,day,daily_temp_C)
+temp1.2<-temp1%>%
+  select(-date)
+
+temp.full<-left_join(temp1.2,temp17.2)
+summary(temp.full)
+glimpse(temp.full)
+
+write.csv(temp.full,"./data/data-working/newman-temp-to-2017.csv",row.names = FALSE)
