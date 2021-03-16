@@ -1,36 +1,45 @@
 # Settlement days
+# determine settlement day for each pulse
+# use methods from Ings et al. 2008
 
-setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/condition-field/")
+# set working directory
+setwd("C:/Users/emili/Documents/Research/CHONe-1.2.1/condition-field/")
 
-# packages 
+# load packages 
 library(tidyverse)
 library(car)
-# data
+
+# read in data
 SL<-read.csv("../data/data-working/newman-length-updated.csv")
 
+# check data
 head(SL)
 
+# select age-0 Atlantic cod
 cod<-SL%>%
   filter(species=="AC")%>%
   filter(age==0)
 
+# regression analysis
 m1<-lm(mmSL~julian.date+factor(pulse)+factor(year),data=cod)
 plot(m1)
 hist(resid(m1))
 summary(m1)
 Anova(m1,type="III")
 
+# minimum length by year and pulse
 size<-cod%>%
   group_by(year,trip,pulse)%>%
   summarise(min=min(mmSL),max=max(mmSL),mean=mean(mmSL))%>%
   ungroup()%>%
   group_by(year,pulse)%>%
   summarise(min=min(min))
-
+# summary of length by year, trip, and pulse.
 size.all<-cod%>%
   group_by(year,trip,pulse)%>%
   summarise(min=min(mmSL),max=max(mmSL),mean=mean(mmSL))
 
+# dataframe of the first trip each pulse settled with length stats
 size2<-left_join(size,size.all)%>%
   select(year,trip,pulse,min,max,mean)
 
@@ -68,6 +77,20 @@ full<-bind_cols(pulses,years)%>%
 View(full)
 
 settlement<-full%>%
-  mutate(settle.day=round(settle))%>%
-  select(year,pulse,settle.day)
+  mutate(settle.yday=round(settle))%>%
+  select(year,pulse,settle.yday)%>%
+  mutate(year=as.integer(year))%>%
+  mutate(leap=leap_year(year))%>%
+  mutate(days.in.year=365)%>%
+  mutate(days.in.year=replace(days.in.year,leap==TRUE,366))%>%
+  mutate(decimal.day=settle.yday/days.in.year)%>%
+  mutate(decimal.date=year+decimal.day)%>%
+  mutate(date=date_decimal(decimal.date))%>%
+  mutate(settle.year=str_sub(date,start=1,end=4),
+         settle.month=str_sub(date,start=6,end=7),
+         settle.day=str_sub(date,start=9,end=10))%>%
+  mutate(settle.week=week(date))%>%
+  select(year,pulse,settle.yday,settle.year,settle.month,settle.day,settle.week)
+  
+  
 write.csv(settlement,"../data/output/settlement-day.csv",row.names=FALSE)

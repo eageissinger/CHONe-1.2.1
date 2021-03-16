@@ -1,7 +1,8 @@
-#Temperature expoloratory analysis for Condition paper
+#Temperature exploratory analysis for Condition paper
+# output of code is winter summary statistics for condition analysis
 
 # --- set working directory ----
-setwd("C:/Users/geissingere/Documents/CHONe-1.2.1-office/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/condition-field/")
 
 # --- load packages ----
 library(tidyverse)
@@ -9,8 +10,8 @@ library(lubridate)
 library(gridExtra)
 
 # --- load data -----
-temp<-read.csv("./data/data-working/daily-temp-corrected-newman.csv")
-temp17<-read.csv("./data/data-working/temperature-2017.csv")
+temp<-read.csv("../data/data-working/daily-temp-corrected-newman.csv") 
+temp17<-read.csv("../data/data-working/temperature-2017.csv")
 
 # ---data check -----
 summary(temp)
@@ -57,53 +58,6 @@ monthly<-temp%>%
   group_by(month,year)%>%
   summarise(mean_temp=mean(daily_temp_C),stdev=sd(daily_temp_C),sterror=stdev/sqrt(n()))
 
-#----- Modeling attempts-----
-#monthly$month<-as.factor(monthly$month)
-#m1<-lm(mean_temp~month,data=monthly)
-#m1
-#summary(m1)
-
-#check residuals
-#e1<-resid(m1)
-#f1<-fitted(m1)
-
-#ggplot()+
- # geom_point(aes(x=f1,y=e1))+
-  #geom_hline(yintercept=0,linetype='dashed',col='blue')+
-  #theme_classic()+ylab("Residuals")+xlab("Fitted values")
-
-
-#pretty close, but will incorporate year as well
-
-#m2<-lm(mean_temp~month*year,data=monthly)
-#m2
-#summary(m2)
-
-#check residuals
-#e2<-resid(m2)
-#f2<-fitted(m2)
-
-#ggplot()+
-  #geom_point(aes(x=f2,y=e2))+
- # geom_hline(yintercept=0,linetype='dashed',col='blue')+
- # theme_classic()+ylab("Residuals")+xlab("Fitted values")
-
-#looks much better
-#check without interaction
-#m3<-lm(mean_temp~month+year,data=monthly)
-#m3
-#summary(m3)
-
-#check residuals
-#e3<-resid(m3)
-#f3<-fitted(m3)
-
-#ggplot()+
- # geom_point(aes(x=f3,y=e3))+
- # geom_hline(yintercept=0,linetype='dashed',col='blue')+
- # theme_classic()+ylab("Residuals")+xlab("Fitted values")
-
-
 sumstats<-monthly%>%
   filter(month%in%c(1,2,3,4))%>%
   group_by(year)%>%
@@ -118,9 +72,17 @@ tempplot<-ggplot(monthly,aes(x=month,y=mean_temp))+
 
 tempplot
 
-#Can't remember what the point of this was....
-
 #-----Determine winter duration by year-----
+# steps for each year:
+# 1. create a dataframe for the specified eyar
+# 2. plot data
+# 3. determine days below 1 degree
+# 4. select start and end of winter. More than 3 consecutive days above 1 = end of winter
+# 5. Using the start and end dates, calculate the average temperature of winter
+# 6. Using the start and end dates, calculate number of days below 1 degree Celsius
+# 7. repeat for each year
+
+
 summary(temp)
 
 #----1995-----
@@ -148,7 +110,10 @@ temp%>%
 avg95<-temp%>%
   filter(date>="1995-01-04")%>%
   filter(date<"1995-06-20")%>%
-  summarise(cohort=1994,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=1994,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 days95<-temp%>%
@@ -193,7 +158,10 @@ days96<-yr96%>%
 avg96<-yr96%>%
   filter(date>="1996-1-1")%>%
   filter(date<"1996-4-1")%>%
-  summarise(cohort=1995,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=1995,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr96%>%
@@ -229,7 +197,10 @@ days97<-yr97%>%
 avg97<-yr97%>%
   filter(date>="1997-1-4")%>%
   filter(date<"1997-5-15")%>%
-  summarise(cohort=1996,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=1996,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr97%>%
@@ -282,7 +253,10 @@ days99<-yr99%>%
 avg99<-yr99%>%
   filter(date>="1999-1-1")%>%
   filter(date<"1999-3-26")%>%
-  summarise(cohort=1998,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=1998,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr99%>%
@@ -318,7 +292,10 @@ days00<-yr00%>%
 avg00<-yr00%>%
   filter(date>="1999-12-29")%>%
   filter(date<"2000-4-13")%>%
-  summarise(cohort=1999,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=1999,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr00%>%
@@ -354,7 +331,10 @@ days01<-yr01%>%
 avg01<-yr01%>%
   filter(date>="2001-1-13")%>%
   filter(date<"2001-5-20")%>%
-  summarise(cohort=2000,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2000,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr01%>%
@@ -390,7 +370,10 @@ days02<-yr02%>%
 avg02<-yr02%>%
   filter(date>="2002-1-5")%>%
   filter(date<"2002-4-15")%>%
-  summarise(cohort=2001,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2001,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr02%>%
@@ -426,7 +409,10 @@ days03<-yr03%>%
 avg03<-yr03%>%
   filter(date>="2003-1-2")%>%
   filter(date<"2003-5-3")%>%
-  summarise(cohort=2002,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2002,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr03%>%
@@ -462,7 +448,10 @@ days04<-yr04%>%
 avg04<-yr04%>%
   filter(date>="2004-1-9")%>%
   filter(date<"2004-4-3")%>%
-  summarise(cohort=2003,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2003,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr04%>%
@@ -498,7 +487,10 @@ days05<-yr05%>%
 avg05<-yr05%>%
   filter(date>="2005-1-5")%>%
   filter(date<"2005-4-28")%>%
-  summarise(cohort=2004,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2004,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr05%>%
@@ -535,7 +527,10 @@ days06<-yr06%>%
 avg06<-yr06%>%
   filter(date>="2006-1-11")%>%
   filter(date<"2006-4-1")%>%
-  summarise(cohort=2005,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2005,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr06%>%
@@ -572,7 +567,10 @@ days07<-yr07%>%
 avg07<-yr07%>%
   filter(date>="2007-1-15")%>%
   filter(date<"2007-4-20")%>%
-  summarise(cohort=2006,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2006,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
   
 yr07%>%
@@ -608,7 +606,10 @@ days08<-yr08%>%
 avg08<-yr08%>%
   filter(date>="2007-12-14")%>%
   filter(date<"2008-4-23")%>%
-  summarise(cohort=2007,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2007,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr08%>%
@@ -645,7 +646,10 @@ days09<-yr09%>%
 avg09<-yr09%>%
   filter(date>="2009-1-13")%>%
   filter(date<"2009-4-21")%>%
-  summarise(cohort=2008,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2008,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr09%>%
@@ -681,7 +685,10 @@ days10<-yr10%>%
 avg10<-yr10%>%
   filter(date>="2010-1-10")%>%
   filter(date<"2010-3-26")%>%
-  summarise(cohort=2009,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2009,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr10%>%
@@ -717,7 +724,10 @@ days11<-yr11%>%
 avg11<-yr11%>%
   filter(date>="2011-1-26")%>%
   filter(date<"2011-4-1")%>%
-  summarise(cohort=2010,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2010,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr11%>%
@@ -753,7 +763,10 @@ days12<-yr12%>%
 avg12<-yr12%>%
   filter(date>="2012-1-11")%>%
   filter(date<"2012-4-9")%>%
-  summarise(cohort=2011,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2011,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr12%>%
@@ -789,7 +802,10 @@ days13<-yr13%>%
 avg13<-yr13%>%
   filter(date>="2013-1-3")%>%
   filter(date<"2013-4-14")%>%
-  summarise(cohort=2012,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2012,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr13%>%
@@ -825,7 +841,10 @@ days14<-yr14%>%
 avg14<-yr14%>%
   filter(date>="2013-12-22")%>%
   filter(date<"2014-4-22")%>%
-  summarise(cohort=2013,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2013,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr14%>%
@@ -862,7 +881,10 @@ days15<-yr15%>%
 avg15<-yr15%>%
   filter(date>="2015-1-1")%>%
   filter(date<"2015-4-25")%>%
-  summarise(cohort=2014,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2014,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr15%>%
@@ -899,7 +921,10 @@ days16<-yr16%>%
 avg16<-yr16%>%
   filter(date>="2015-12-28")%>%
   filter(date<"2016-4-16")%>%
-  summarise(cohort=2015,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2015,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr16%>%
@@ -936,7 +961,10 @@ days17<-yr17%>%
 avg17<-yr17%>%
   filter(date>="2017-01-03")%>%
   filter(date<"2017-05-06")%>%
-  summarise(cohort=2016,mean_temp=mean(daily_temp_C))%>%
+  summarise(cohort=2016,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
   data.frame()
 
 yr17%>%
@@ -959,7 +987,7 @@ min.max%>%
   rename(mintemp='min(daily_temp_C)',maxtemp='max(daily_temp_C)')%>%
   summarise(min(mintemp),max(maxtemp))
 # ----- load winter duration data ------
-winterlength<-read.csv("./data/data-working/newman-winter-duration.csv",header=TRUE,sep=",")
+winterlength<-read.csv("../data/data-working/newman-winter-duration.csv",header=TRUE,sep=",")
 
 #check data
 summary(winterlength)
@@ -988,7 +1016,7 @@ winter_data<-left_join(winterdays,meantemp)
 winter_data<-left_join(duration,winter_data)
 
 #save summary file
-write.csv(winter_data,file="./data/data-working/newman-winter-summary.csv",row.names=FALSE)
+write.csv(winter_data,file="../data/output/newman-winter-summary.csv",row.names=FALSE)
 
 # ----- Organize graphs onto one page ------
 #use gridExtra
@@ -997,3 +1025,4 @@ page1<-grid.arrange(plot95,plot96,plot97,plot98,plot99,plot00)
 page2<-grid.arrange(plot01,plot02,plot03,plot04,plot05,plot06)
 page3<-grid.arrange(plot07,plot08,plot09,plot10,plot11, plot12)
 page4<-grid.arrange(plot13,plot14,plot15,plot16,plot17)
+

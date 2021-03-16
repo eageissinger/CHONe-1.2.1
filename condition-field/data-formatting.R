@@ -1,44 +1,45 @@
 # Survival and Pre- and post-winter condition
 # Part 1: Data organization
 # Purpose: Organize raw data for analysis
-# files: condition-newman; newman-length; newman-catch; hauls; temperature; age1-pulse-range; trip dates
-# and age1_dummypulse (for now)
 
 # ----- set working directory -----
-setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/condition-field/")
+setwd("C:/Users/emili/Documents/Research/CHONe-1.2.1/condition-field/")
 
 
 # ---- load packages ----
 library(lubridate)
 library(tidyverse)
+library(janitor)
 
 # ---- load data ----
-condition<-read.csv("../data/data-working/condition-newman.csv")
-winter<-read.csv("../data/data-working/newman-winter-summary.csv")
-catch_haul<-read.csv("../data/output/catch_haul.csv")
-count.data<-read.csv("../data/data-working/newman-catch.csv")
-SLfull<-read.csv("../data/data-working/newman-length-updated.csv")
-pulse0<-read.csv("../data/output/pulse_range_0_final.csv")
-pulse1<-read.csv("../data/output/pulse_range_age1_final.csv")
-settlement<-read.csv("../data/output/settlement-day.csv")
+condition<-read.csv("../data/data-working/condition-newman.csv") # condition data for newman sound
+winter<-read.csv("../data/data-working/newman-winter-summary.csv") # winter stats
+catch_haul<-read.csv("../data/output/catch_haul.csv") # catch per haul data
+count.data<-read.csv("../data/data-working/newman-catch.csv") # abundance data
+SLfull<-read.csv("../data/data-working/newman-length-updated.csv") # length data
+pulse0<-read.csv("../data/output/pulse_range_0_final.csv") # pulse range for age 0
+pulse1<-read.csv("../data/output/pulse_range_age1_final.csv") # pulse range for age 1
+settlement<-read.csv("../data/output/settlement-day.csv") # settlement day for each pulse across all years
 str(catch_haul)
 
 # ---- SL data -----
 names(SLfull)
 
-SLfull$date<-ymd(paste(SLfull$year,SLfull$month,SLfull$day,sep="-"))
-
+#create date column
+SLfull<-SLfull%>%
+  mutate(date=ymd(paste(year,month,day,sep="-")))%>%
+  filter(!is.na(mmSL))#remove the rows that contain only notes
 
 # ----- abundance data -----
 abund<-catch_haul%>%
   dplyr::select(year,trip,age,total_catch,total_measured,julian.date,extrap_1,
-                extrap_2,extrap_3,extrap_4,extrap_5,extrap_6)%>%
+                extrap_2,extrap_3,extrap_4,extrap_5,extrap_6)%>% # select columns to work with
   gather(key="pulse1",value="extrap",-year,-trip,-age,-total_catch,-total_measured,
-         -julian.date)%>%
-  mutate(pulse=str_sub(pulse1,start=8,end=8))%>%
-  mutate(pulse=replace(pulse,pulse=='u',NA))%>%
-  dplyr::select(-pulse1)%>%
-  mutate(count=ceiling(extrap))
+         -julian.date)%>% # group by pulse and catch per haul abundance
+  mutate(pulse=str_sub(pulse1,start=8,end=8))%>% # create new column with pulse values
+  mutate(pulse=replace(pulse,pulse=='u',NA))%>% # replace unknown pulse with NA
+  dplyr::select(-pulse1)%>% # get rid of temp column
+  mutate(count=ceiling(extrap)) # round up to the nearest whole value (to represent whole fish)
 
 # ----- condition data -----
 
@@ -64,20 +65,21 @@ condition$weight<-as.numeric(condition$weight)
 str(condition)
 
 # fix age
-unique(condition$age)
-condition$age<-as.character(condition$age)
+unique(condition$age) # check what the different age assignments are
+condition$age<-as.character(condition$age) # convert to character vector
 condition<-condition%>%
-  mutate(age=replace(age,age=="0+","0"))%>%
-  mutate(age=replace(age,age=="0+ ","0"))%>%
-  mutate(age=replace(age,age=="1+","1"))%>%
-  mutate(age=replace(age,age=="0+/1+?",NA))%>%
-  mutate(age=replace(age,age=="0+/1+",NA))# go back and figure out what proper age assignments are using min and max from revised data
+  mutate(age=replace(age,age=="0+","0"))%>% # replace '0+' with '0'
+  mutate(age=replace(age,age=="0+ ","0"))%>% # replace '0+ ' with '0'
+  mutate(age=replace(age,age=="1+","1"))%>% # replace '1+' with 1
+  mutate(age=replace(age,age=="0+/1+?",NA))%>% # replace unknown age with NA
+  mutate(age=replace(age,age=="0+/1+",NA))# these NAs are part of expansion, not applicable to this analysis
 unique(condition$age)
 typeof(condition$age)
 condition$age<-as.integer(condition$age)
 str(condition)
 
 # fix date
+# date was rearranged due to excel formatting for the following specified dates.
 condition<-condition%>%
   mutate(month=replace(month,month==3 & day == 10 & year == 2017 & age ==0,10))%>%
   mutate(day=replace(day,month==10 & day == 10 & year == 2017 & age ==0,3))
@@ -95,19 +97,28 @@ trips<-SLfull%>%
   dplyr::select(year,month,day,julian.date,trip,date)%>%
   bind_rows(trips2)%>%
   distinct()%>%
-  select(-date)
+  dplyr::select(-date)
 
 condition2<-condition%>%
-  mutate(ID=seq(1:4235))%>%
-  left_join(trips,by=c('year','month','day'))%>%
-  distinct(ID, .keep_all = TRUE)%>%
-  mutate(fulton=(weight/((mmSL*.1)^3))*100)
+  mutate(ID=seq(1:4235))%>% # assign row numbers
+  left_join(trips,by=c('year','month','day')) #join trips by date
+
+# check for the duplicates
+condition2%>%get_dupes(ID)->check
+# trip 13 and 14 in 2001 are the same date
+# trip 18 and 17 in 2013 have same date but different julian date
+
+# reduce dulplicates, but must come back with corrected trip dates ASAP
+condition2<-condition2%>%
+  distinct(ID, .keep_all = TRUE)%>% # get rid of duplicates
+  mutate(fulton=(weight/((mmSL*.1)^3))*100) # calculate fultons K
+
 SLfull%>%
   filter(species=="AC" & year == 2013 & month ==7 &  age ==0)%>%
   group_by(pulse,age)%>%
   summarise(min(mmSL),max(mmSL),mean(mmSL))
 # need to deal with the following years:
-# check the lab fish
+# check the field books
 ## 2001
 ## 2013
 
@@ -258,7 +269,7 @@ condition3<-condition2%>%
 #Deal with unassinged fish
 na.frame<-condition3%>%
   filter(is.na(pulse))%>%
-  select(-notes,-site)%>%
+  dplyr::select(-notes,-site)%>%
   filter(month==10 | month == 11 | month == 5 | month ==7)%>%
   filter(year!=1998)
 
@@ -266,8 +277,12 @@ na.frame<-condition3%>%
 # address outliers
 condition3%>%
   filter(fulton>1.5)
+condition3%>%
+  filter(fulton<0.4)
 #clean condition data frame
 write.csv(condition3,"../data/output/condition-field-clean.csv",row.names=FALSE)
+
+
 # ---- Winter Data ----
 dim(winter)
 names(winter)
@@ -286,32 +301,40 @@ summary(condition3)
 summary(winter)
 # start with 1999 cohort, end with 2016
 cond<-condition3%>%
-  filter(cohort<2017)%>%
+  filter(cohort<2017)%>% # dont use 2017 and onwards
   select(-ID)%>%
-  mutate(ID=seq(1:3813))
+  mutate(ID=seq(1:3813)) # reassign unique ID for row number
 
-winter<-winter%>% filter(cohort>1998 & cohort < 2017)
+winter<-winter%>% filter(cohort>1998 & cohort < 2017) # select winter years to match condition years
 
+# add a cohort column to the abundance data
+# abundance of age 0 fish
 abund0<-abund%>%
   filter(age==0)%>%
   mutate(cohort=year)
+# abundance of age 1 fish
 abund1<-abund%>%
   filter(age==1)%>%
   mutate(cohort=year-1)
+# abundance of fish with unknown age (NA)
 abundNA<-abund%>%
   filter(is.na(age))%>%
   mutate(cohort=NA)
+# abundance of age 2 fish
 abund2<-abund%>%
   filter(age==2)%>%
   mutate(cohort=year-2)
+# abundance of age 3 fish
 abund3<-abund%>%
   filter(age==3)%>%
   mutate(cohort=year-3)
+
+# combine all years together into one file
 abund<-bind_rows(abund0,abund1,abundNA,abund2,abund3)
 
 abundance<-abund%>%
-  filter(cohort>1998 & cohort<2017)%>%
-  dplyr::select(year,trip,age,pulse,count,cohort)%>%
+  filter(cohort>1998 & cohort<2017)%>% # select years for analysis
+  dplyr::select(year,trip,age,pulse,count,cohort)%>% # select necessary columns
   distinct()
 nrow(cond)
 nrow(winter)
@@ -320,15 +343,13 @@ summary(abundance)
 
 str(abundance)
 str(cond)
-abundance$pulse<-as.integer(abundance$pulse)
+abundance$pulse<-as.integer(abundance$pulse) # set pulse as an integer
+# join condition and abundance data together
 cond_all1<-right_join(cond,abundance,by=c('year','trip','age','pulse','cohort'))%>%
   distinct(ID,.keep_all = TRUE)%>%
   filter(!is.na(ID))
-
-
-
 # compare old condition with new condition
-head(cond_all)
+head(cond_all1)
 head(cond)
 
 # use test for now
@@ -337,36 +358,20 @@ names(cond_all)
 head(cond_all)
 str(cond_all)
 
-testpre<-cond_all%>%
-  filter(month==10 | month == 11)%>%
-  rename(preK=fulton,preCount=count,preMonth=month)%>%
-  dplyr::select(cohort,preMonth,pulse,days_below_1,mean_temp,preK,preCount)
-
-testpost<-cond_all%>%
-  filter(month == 5 | month == 7)%>%
-  rename(postK=fulton,postCount=count,postMonth=month)%>%
-  select(cohort,postMonth,pulse,days_below_1,mean_temp,postK,postCount)
-post.count<-testpost%>%
-  select(cohort,pulse,postCount)
-pre.count<-testpre%>%
-  select(cohort,pulse,preCount)
-preWinter<-right_join(testpre,post.count)%>%distinct()
-postWinter<-right_join(testpost,pre.count)%>%distinct()
-
-cond_all_test<-cond_all%>%
+cond_all_working<-cond_all%>%
   filter(fulton<1.76)
 #cond_all<-cond_all%>%
 # filter(!is.na(pulse))
 # creat pre and post condition, and initial and final abundance
-df.fall.K<-cond_all_test%>%
-  filter(month==11)%>%
+df.fall.K<-cond_all_working%>%
+  filter(month==10)%>%
   group_by(cohort,pulse,days_below_1,mean_temp)%>%
   summarise(preK=mean(fulton))%>%
   ungroup()%>%
   mutate(season="fall")%>%
   as.data.frame()
 
-df.fall.count<-cond_all_test%>%
+df.fall.count<-cond_all_working%>%
   filter(month==10)%>%
   group_by(cohort,pulse,days_below_1,mean_temp)%>%
   summarise(preCount=ceiling(mean(count)))%>%
@@ -374,7 +379,7 @@ df.fall.count<-cond_all_test%>%
   mutate(season="fall")%>%
   as.data.frame()
 
-df.spring.K<-cond_all_test%>%
+df.spring.K<-cond_all_working%>%
   filter(month==5)%>%
   select(-month,-date,-count)%>%
   mutate(season="spring")%>%
@@ -383,7 +388,7 @@ df.spring.K<-cond_all_test%>%
   ungroup()%>%
   as.data.frame()
 
-df.spring.count<-cond_all_test%>%
+df.spring.count<-cond_all_working%>%
   filter(month==7)%>%
   mutate(season="spring")%>%
   group_by(cohort,pulse,season,days_below_1,mean_temp)%>%
@@ -405,7 +410,8 @@ head(alldata)
 
 # add cohort to settlement
 settle<-settlement%>%
-  mutate(cohort=year)
+  mutate(cohort=year)%>%
+  select(cohort,pulse,settle.yday,settle.week,settle.year)
 
 alldata2<-left_join(alldata,settle)
 
