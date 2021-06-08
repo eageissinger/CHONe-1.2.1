@@ -47,7 +47,7 @@ cmr%>%
   summarise(n())
 
 
-/<-data%>%
+data%>%
   filter(month!=5 & mark == 1 & age ==1)%>%
   left_join(pulse.assign,by=c("sl","age"))%>%
   mutate(fish_num=as.integer(str_sub(animal_id,start=6)))%>%

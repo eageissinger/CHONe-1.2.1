@@ -1,7 +1,7 @@
 ### Mark-recapture ###
 
 # ---- set working directory ----
-setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/overwinter-CMR/")
+setwd("C:/Users/emili/Documents/Research/CHONe-1.2.1/overwinter-CMR/")
 
 # ---- load required packages ----
 
@@ -16,7 +16,7 @@ source("../pulse-structure/pulse_range_fct.R")
 # ---- load data ----
 data<-read.csv("../data/data-working/CMR-field-MAY-captures.csv")
 allCMR<-read.csv("../data/data-working/CMR-field-adj.csv")
-CMRpulse<-read.csv("../data/data-working/CMR-0pulses.csv")
+CMRpulse<-read.csv("../data/data-working/CMR-pulses.csv")
 pulse0<-read.csv("../data/data-working/pulse_range_age0_final2019-12-06.csv")
 pulse1<-read.csv("../data/data-working/pulse_range_age1_final2019-12-6.csv")
 trips<-read.csv("../data/data-working/newman-trips.csv")
@@ -45,54 +45,101 @@ data<-left_join(data,trips)
                 
 
 # Pulse assignments
+glimpse(CMRpulse)
+summary(CMRpulse)
+str(CMRpulse)
 
+pulse.assign<-data.frame(trip=rep(CMRpulse$trip,CMRpulse$max-CMRpulse$min+1),
+                          year=rep(CMRpulse$year,CMRpulse$max-CMRpulse$min+1),
+                          pulse=rep(CMRpulse$pulse,CMRpulse$max-CMRpulse$min+1),
+                          age=rep(CMRpulse$age,CMRpulse$max-CMRpulse$min+1),
+                          mmSL=unlist(mapply(seq,CMRpulse$min,CMRpulse$max)))
+
+# assign pulse to fall fish
+pulse.size0<-allCMR%>%
+  filter(site=="NB")%>%
+  mutate(id=as.numeric(str_sub(animal_id,start=4)))%>%
+  filter(id<2 & status==1 | id<1)%>%
+  left_join(trips)%>%
+  rename(mmSL=sl)%>%
+  distinct()%>%
+  filter(age==0)%>%
+  left_join(pulse.assign)
+
+# assign pulse to ALL fish
+pulse.size1<-data%>%
+  mutate(id=as.numeric(str_sub(animal_id,start=4)))%>%
+  filter(id>2 & month == 5)%>%
+  left_join(trips)%>%
+  rename(mmSL=sl)%>%
+  left_join(pulse.assign)
+
+# assign pulses to 
 # set up age 1 pulses
-glimpse(pulse1)
-summary(pulse1)
-str(pulse1)
-pulse1<-pulse1%>%
-  filter(!is.na(min) | !is.na(max))
+# glimpse(pulse1)
+# summary(pulse1)
+# str(pulse1)
+# pulse1<-pulse1%>%
+#   filter(!is.na(min) | !is.na(max))
+# 
+# 
+# pulse.assign1<-data.frame(trip=rep(pulse1$trip,pulse1$max-pulse1$min+1),
+#                          year=rep(pulse1$year,pulse1$max-pulse1$min+1),
+#                          pulse=rep(pulse1$pulse,pulse1$max-pulse1$min+1),
+#                          age=rep(pulse1$age,pulse1$max-pulse1$min+1),
+#                          mmSL=unlist(mapply(seq,pulse1$min,pulse1$max)))
+# 
+# glimpse(pulse.assign1)
+# glimpse(pulse0)
+# pulse.assign0<-data.frame(trip=rep(pulse0$trip,pulse0$max-pulse0$min+1),
+#                           year=rep(pulse0$year,pulse0$max-pulse0$min+1),
+#                           pulse=rep(pulse0$pulse,pulse0$max-pulse0$min+1),
+#                           age=rep(pulse0$age,pulse0$max-pulse0$min+1),
+#                           mmSL=unlist(mapply(seq,pulse0$min,pulse0$max)))
+# pulses<-bind_rows(pulse.assign0,pulse.assign1)%>%
+#   rename(sl=mmSL)%>%
+#   filter(year>=2016)
 
 
-pulse.assign1<-data.frame(trip=rep(pulse1$trip,pulse1$max-pulse1$min+1),
-                         year=rep(pulse1$year,pulse1$max-pulse1$min+1),
-                         pulse=rep(pulse1$pulse,pulse1$max-pulse1$min+1),
-                         age=rep(pulse1$age,pulse1$max-pulse1$min+1),
-                         mmSL=unlist(mapply(seq,pulse1$min,pulse1$max)))
+# create dataframe with all fish and status=1 or status 0 and id<1
+# allCMR<-left_join(allCMR,trips)%>%
+#   mutate(id=as.numeric(str_sub(animal_id,start=4)))
+# pulse.size<-allCMR%>%
+#   filter(!is.na(trip))%>%
+#   filter(status==1 | id<=1)
 
-glimpse(pulse.assign1)
-glimpse(pulse0)
-pulse.assign0<-data.frame(trip=rep(pulse0$trip,pulse0$max-pulse0$min+1),
-                          year=rep(pulse0$year,pulse0$max-pulse0$min+1),
-                          pulse=rep(pulse0$pulse,pulse0$max-pulse0$min+1),
-                          age=rep(pulse0$age,pulse0$max-pulse0$min+1),
-                          mmSL=unlist(mapply(seq,pulse0$min,pulse0$max)))
-pulses<-bind_rows(pulse.assign0,pulse.assign1)%>%
-  rename(sl=mmSL)%>%
-  filter(year>=2016)
-
-
-# create dataframe with all fish with a trip, and status=1 or status 0 and id<1
-allCMR<-left_join(allCMR,trips)%>%
-  mutate(id=as.numeric(str_sub(animal_id,start=4)))
-pulse.size<-allCMR%>%
-  filter(!is.na(trip))%>%
-  filter(status==1 | id<=1)
-
-pulse.size1<-left_join(pulse.size,pulses)%>%
+cod.id<-bind_rows(pulse.size0,pulse.size1)%>%
   select(animal_id,pulse)
 
 # assign pulses to fish during the no trip week
-notrip<-allCMR%>%
-  filter(is.na(trip))%>%
-  filter(status==1 | id<=1)
+# notrip<-allCMR%>%
+#   filter(is.na(trip))%>%
+#   filter(status==1 | id<=1)
 
-pulse.size2<-left_join(notrip,CMRpulse)%>%
-  select(animal_id,pulse)
+# pulse.size2<-left_join(notrip,CMRpulse)%>%
+#   select(animal_id,pulse)
 
 # pulse.size and pulses.notrip
 # take out october no trip from pulse.size, then re-add pulses.notrip
-cod.id<-bind_rows(pulse.size1,pulse.size2)
+# cod.id<-bind_rows(pulse.size1,pulse.size2)
+
+# summary statistics on size breakdown for fall and spring
+
+cod.id%>%
+  separate(animal_id,into= c("Site", "ID"),sep="_")%>%
+  mutate(ID=as.numeric(ID))%>%
+  filter(Site=="NB")%>%
+  filter(ID<2)%>%
+  group_by(pulse)%>%
+  summarise(n())
+
+cod.id%>%
+  separate(animal_id,into= c("Site", "ID"),sep="_")%>%
+  mutate(ID=as.numeric(ID))%>%
+  filter(Site=="NB")%>%
+  filter(ID>=2)%>%
+  group_by(pulse)%>%
+  summarise(n())
 
 # check if each fish has pulse assignment
 allCMR%>%
@@ -103,9 +150,13 @@ final<-left_join(data,cod.id)
 
 
 final%>%
-  filter(month!=5)%>%
+  filter(month!=5 & age!=2)%>%
   ggplot(aes(y=sl,x=date,colour=factor(pulse)))+
   geom_jitter()
+
+final%>%filter(month!=5 & age!=2)%>%
+  filter(is.na(pulse) & !is.na(sl))
+
 
  # ---- mark analysis ----
 
@@ -119,9 +170,9 @@ mrkdata<-final%>%
 mrkdata%>%
   filter(!is.na(sl))%>%
   filter(is.na(pulse))
-mrkdata<-mrkdata%>%
-  mutate(pulse=replace(pulse,is.na(pulse) & sl<=62,4))%>%
-  mutate(pulse=replace(pulse,is.na(pulse) & sl>135,1))
+# mrkdata<-mrkdata%>%
+#   mutate(pulse=replace(pulse,is.na(pulse) & sl<=62,4))%>%
+#   mutate(pulse=replace(pulse,is.na(pulse) & sl>135,1))
 #<=62,4
 #>135,1
 # Determine time-steps
@@ -143,7 +194,7 @@ collection.dates
 # ---- format for RMark ----
 
 mrkdata1<-mrkdata%>%
-  select(-year,-month,-day)
+  select(-year,-month)
 
 # melt then cast, equivalent to gather then spread
 
@@ -158,6 +209,62 @@ duplicated(mrkdata3$animal_id)
 cod<-mrkdata3
 
 View(cod)
+
+# 
+# determine the proportion of fish caught (100 and 010) for each pulse for entire sound and apply the ratio to the unmeasured fish
+# week 1
+cod%>%filter(ch=="100")%>%
+  filter(!is.na(sl))%>%
+  group_by(pulse)%>%
+  summarise(N=n())%>%
+  mutate(ratio=N/52)
+
+W1<-cod%>%filter(ch=="100")%>%
+  filter(is.na(sl))%>% #88 unassigned fish
+  select(-pulse)%>% # remove current pulse column
+  add_column(pulse=c(rep(1, each=39),rep(2,each=46),rep(3,each=3))) # assign pulses to unmeasured fish based on ratio
+
+88*0.442 # pulse 1
+88*0.519 # pulse 2
+88*0.0385 # pulse 3
+39+46+3
+
+#week 2
+cod%>%filter(ch=="010")%>%
+  filter(!is.na(sl))%>%
+  group_by(pulse)%>%
+  summarise(N=n())%>%
+  mutate(ratio=N/29)
+
+W2<-cod%>%filter(ch=="010")%>%
+  filter(is.na(sl))%>% #49 unassigned fish
+  select(-pulse)%>% # remove current pulse column
+  add_column(pulse=c(rep(1, each=24),rep(2,each=25))) # assign pulses to unmeasured fish based on ratio
+
+49*0.483 # pulse 1
+49*0.517 # pulse 2
+24+25
+
+non.SL<-bind_rows(W1,W2)
+
+#add full pulse structure to dataset
+cod<-cod%>%
+  filter(!is.na(pulse))%>%
+  bind_rows(non.SL)
+
+# size summary data from recaptures
+head(cod)
+cod%>%
+  separate(animal_id,into= c("Site", "ID"),sep="_")%>%
+  mutate(ID=as.numeric(ID))%>%
+  filter(ch=="011" | ch == "101" | ch == "111")%>%
+  group_by(Site,pulse)%>%
+  summarise(n())
+cod%>%
+  separate(animal_id,into= c("Site", "ID"),sep="_")%>%
+  mutate(ID=as.numeric(ID))%>%
+  filter(ch == "111")
+
 
 # ---- CJS Run ----
 # Newbridge only
@@ -197,7 +304,7 @@ nb.results[[2]]
 # all four could biologically be a possibility
 # may want to run bootstrap GOF analysis on each model to see
 # what one to go with
-release.gof(nb.processed,invisible = TRUE,title = "Release-gof",view=TRUE)
+#release.gof(nb.processed,invisible = TRUE,title = "Release-gof",view=TRUE)
 
 
 # ---- CJS survival by pulse ----
@@ -236,14 +343,15 @@ pulse.results<-pulse.model()
 nb.processed<-process.data(nb.pulse,time.intervals = c(5,217),
                            groups="pulse")
 pulse.results
-summary(pulse.results[[15]])
-c.hat<-pulse.results[[15]]$results$deviance/pulse.results[[15]]$results$deviance.df
+summary(pulse.results[[12]])
+pulse.results[[12]]
+c.hat<-pulse.results[[12]]$results$deviance/pulse.results[[12]]$results$deviance.df
 c.hat
 tail(nb.pulse)
 
 PIMS(pulse.results[[15]],"p")
 
-release.gof(nb.processed,invisible = TRUE,title="release-gof",view=TRUE)
+#release.gof(nb.processed,invisible = TRUE,title="release-gof",view=TRUE)
 summary(pulse.results[[15]])
 pulse.results[[15]]
 pulse.results[[15]]$design.data
@@ -282,8 +390,8 @@ early.pulse.model<-function()
   # define models for p
   p.dot<-list(formula=~1)
   p.time<-list(formula=~time)
-  p.pulse<-list(formula=~pulse)
-  p.timepluspulse<-list(formula=~time+pulse)
+  #p.pulse<-list(formula=~pulse) # biologically is moot, we know that we can capture all pulses in our net if they are present
+  #p.timepluspulse<-list(formula=~time+pulse)
   # create model list
   cml<-create.model.list("CJS")
   # run and return models
@@ -291,7 +399,7 @@ early.pulse.model<-function()
 }
 early.pulse.results<-early.pulse.model()
 early.pulse.results
-early.pulse.results[[15]]
+early.pulse.results[[8]]
 
 
 # rerun only model 15 Phi(~time + pulse) p(~time)
@@ -310,9 +418,9 @@ summary(model15)
 #adjust.chat(0.80,early.pulse.results)
 nb.processed<-process.data(nb13,time.intervals = c(5,217),
                            groups="pulse")
-summary(early.pulse.results[[15]])
-early.pulse.results[[15]]
-c.hat<-early.pulse.results[[15]]$results$deviance/early.pulse.results[[15]]$results$deviance.df
+summary(early.pulse.results[[8]])
+early.pulse.results[[8]]
+c.hat<-early.pulse.results[[8]]$results$deviance/early.pulse.results[[8]]$results$deviance.df
 c.hat
 tail(nb.pulse)
 
@@ -325,7 +433,7 @@ round(early.pulse.results$Phi.timepluspulse.p.time$results$real[,1:4],4)
 # ---- format for Mstrata ----
 
 mstrata1<-mrkdata%>%
-  select(-year,-month,-day)%>%
+  select(-year,-month)%>%
   mutate(site=str_sub(animal_id,start=1,end=2))%>%
   mutate(state="A")%>%
   mutate(state=replace(state,site=="MI","B"))%>%
@@ -390,10 +498,10 @@ run.mstrata=function()
   p.dot=list(formula=~1)
   S.dot=list(formula=~1)
   Psi.pulse=list(formula=~pulse)
-  p.pulse=list(formula=~pulse)
+  #p.pulse=list(formula=~pulse)
   S.pulse=list(formula=~pulse)
   Psi.pulse.stratum=list(formula=~1+stratum:tostratum+pulse)
-  p.pulse.time=list(formula=~pulse+time)
+  #p.pulse.time=list(formula=~pulse+time)
   S.pulse.time=list(formula=~pulse+time)
   #add time after this run
   model.list=create.model.list("Multistrata")
@@ -402,9 +510,9 @@ run.mstrata=function()
 }
 mstrata.results=run.mstrata()
 mstrata.results
-summary(mstrata.results[[32]])
-mstrata.results[[32]]
-mstrata.results[[2]]$design.matrix
+summary(mstrata.results[[15]])
+mstrata.results[[15]]
+mstrata.results[[15]]$design.matrix
 
 # ---- take out pulse 4 for mulit-state ----
 mcod13<-mcod%>%
@@ -438,10 +546,10 @@ run.mstrata=function()
   p.dot=list(formula=~1)
   S.dot=list(formula=~1)
   Psi.pulse=list(formula=~pulse)
-  p.pulse=list(formula=~pulse)
+  #p.pulse=list(formula=~pulse)
   S.pulse=list(formula=~pulse)
   Psi.pulse.stratum=list(formula=~1+stratum:tostratum+pulse)
-  p.pulse.time=list(formula=~pulse+time)
+  #p.pulse.time=list(formula=~pulse+time)
   S.pulse.time=list(formula=~pulse+time)
   #add time after this run
   model.list=create.model.list("Multistrata")
@@ -450,8 +558,8 @@ run.mstrata=function()
 }
 mstrata.results=run.mstrata()
 mstrata.results
-mstrata.results[[33]]
-summary(mstrata.results[[33]])
+mstrata.results[[15]]
+summary(mstrata.results[[15]])
 #write.csv(mstrata.results[[33]]$results$real,"../data/output/multistrata.csv",row.names=FALSE)
 mstrata.processed=process.data(mcod13,model="Multistrata",time.intervals = c(5,217),
                                groups="pulse")
