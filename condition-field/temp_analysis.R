@@ -2,7 +2,7 @@
 # output of code is winter summary statistics for condition analysis
 
 # --- set working directory ----
-setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/condition-field/")
+setwd("C:/Users/emili/Documents/Research/CHONe-1.2.1/condition-field/")
 
 # --- load packages ----
 library(tidyverse)
@@ -10,8 +10,7 @@ library(lubridate)
 library(gridExtra)
 
 # --- load data -----
-temp<-read.csv("../data/data-working/daily-temp-corrected-newman.csv") 
-temp17<-read.csv("../data/data-working/temperature-2017.csv")
+temp<-read.csv("../data/data-working/newman-temp-to-2019.csv")
 
 # ---data check -----
 summary(temp)
@@ -21,33 +20,11 @@ str(temp)
 head(temp)
 tail(temp)
 
-summary(temp17)
-names(temp17)
-dim(temp17)
-str(temp17)
-head(temp17)
-tail(temp17)
 
 #----Fix dates -----
 temp<-temp%>%
-  select(year,month,day,daily_temp_C)
-temp$date<-ymd(paste(temp$year,temp$month,temp$day,sep="-"))
+  mutate(date=ymd(paste(year,month,day,sep="-")))
 
-temp17<-temp17%>%
-  rename(date=ï..Date)%>%
-  mutate(year=as.numeric(str_sub(date,start=1,end = 4)),
-         month=as.numeric(str_sub(date,start=5,end=6)),
-         day=as.numeric(str_sub(date,start=7,end=8)))
-temp17$date<-ymd(paste(temp17$year,temp17$month,temp17$day,sep="-"))
-
-#---- combine 2017 with all data -----
-
-names(temp)
-names(temp17)
-temp17<-temp17%>%
-  rename(daily_temp_C=MeanTemp..C.)%>%
-  select(year, month, day, daily_temp_C, date)
-temp<-bind_rows(temp,temp17)
 
 #----Visualize data -----
 ggplot(temp,aes(x=date,y=daily_temp_C))+
@@ -974,18 +951,102 @@ yr17%>%
   mutate(year=2017)%>%
   bind_rows(min.max)->min.max
 
+# ----- 2018 ------
+yr18<-temp%>%
+  filter(date>="2017-10-1")%>%
+  filter(date<="2018-9-30")%>%
+  data.frame()
+
+plot18<-ggplot(yr18,aes(x=date,y=daily_temp_C))+
+  geom_point()+
+  geom_hline(yintercept=1,linetype='dashed',col='red')+
+  ggtitle("2018")+
+  theme_classic()
+plot18
+
+filter(yr18,daily_temp_C<1)
+# winter start = 27 December 2017
+# winter end = 28 April 2018
+
+days18<-yr18%>%
+  filter(date>="2017-12-27")%>%
+  filter(date<"2018-04-28")%>%
+  filter(daily_temp_C<1)%>%
+  summarise(cohort=2017,days_below_1=n())%>%
+  data.frame()
+
+avg18<-yr18%>%
+  filter(date>="2017-12-27")%>%
+  filter(date<"2018-04-28")%>%
+  summarise(cohort=2017,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
+  data.frame()
+
+yr18%>%
+  filter(date>="2017-12-27")%>%
+  filter(date<"2018-04-28")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2018)%>%
+  bind_rows(min.max)->min.max
+
+# ----- 2019 ------
+yr19<-temp%>%
+  filter(date>="2018-10-1")%>%
+  filter(date<="2019-9-30")%>%
+  data.frame()
+
+plot19<-ggplot(yr19,aes(x=date,y=daily_temp_C))+
+  geom_point()+
+  geom_hline(yintercept=1,linetype='dashed',col='red')+
+  ggtitle("2019")+
+  theme_classic()
+plot19
+
+filter(yr19,daily_temp_C<1)
+# winter start = 25 December 2018
+# winter end = 5 May 2019
+
+days19<-yr19%>%
+  filter(date>="2018-12-25")%>%
+  filter(date<"2019-05-05")%>%
+  filter(daily_temp_C<1)%>%
+  summarise(cohort=2018,days_below_1=n())%>%
+  data.frame()
+
+avg19<-yr19%>%
+  filter(date>="2018-12-25")%>%
+  filter(date<"2019-05-05")%>%
+  summarise(cohort=2018,mean_temp=mean(daily_temp_C),
+            sd_temp=sd(daily_temp_C),
+            min=min(daily_temp_C),
+            max=max(daily_temp_C))%>%
+  data.frame()
+
+yr19%>%
+  filter(date>="2018-12-25")%>%
+  filter(date<"2019-05-05")%>%
+  summarise(min(daily_temp_C),max(daily_temp_C))%>%
+  mutate(year=2019)%>%
+  bind_rows(min.max)->min.max
+
+
+
+
 # ----- create winter summary tables------
 winterdays<-bind_rows(days95,days96,days97,days99,days00,days01,days02,
                       days03,days04,days05,days06,days07,days08,days09,
-                      days10,days11,days12,days13,days14,days15,days16,days17)
+                      days10,days11,days12,days13,days14,days15,days16,days17,days18,days19)
 
 meantemp<-bind_rows(avg95,avg96,avg97,avg99,avg00,avg01,avg02,avg03,
                     avg04,avg05,avg06,avg07,avg08,avg09,avg10,avg11,avg12,
-                    avg13,avg14,avg15,avg16,avg17)
+                    avg13,avg14,avg15,avg16,avg17,avg18,avg19)
 
 min.max%>%
   rename(mintemp='min(daily_temp_C)',maxtemp='max(daily_temp_C)')%>%
   summarise(min(mintemp),max(maxtemp))
+
 # ----- load winter duration data ------
 winterlength<-read.csv("../data/data-working/newman-winter-duration.csv",header=TRUE,sep=",")
 

@@ -1,5 +1,5 @@
  # set working directory 
-setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/emili/Documents/Research/CHONe-1.2.1/")
 
 # ---- load packages ----
 library(tidyverse)
@@ -292,7 +292,7 @@ final<-pulse.length%>%
 
 final$date<-ymd(paste(final$year,final$month,final$day,sep="-"))
 final%>%
-  filter(year==2018 & age ==0)%>%
+  filter(year==2016 & age ==0)%>%
   ggplot(aes(x=date,y=mmSL,colour=factor(pulse)))+geom_jitter(size=1)
 
 final_range<-final%>%

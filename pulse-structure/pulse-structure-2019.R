@@ -1,8 +1,5 @@
 ## Pulse structure for 2019 AC Newman Sound
 
-# ----- set working directory ----
-setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
-
 # load source functions
 source("./pulse-structure/pulse_range_fct.R")
 
@@ -12,7 +9,7 @@ library(lubridate)
 library(mixdist)
 
 #load data
-length<-read.csv("./data/TNNP/TNNP19_length.csv")
+length<-read.csv("./data//TNNP2019/TNNP19_length.csv")
 length2018<-read.csv("./data/TNNP Revised Data/TNNP/output/length/revised_TNNP2018a.csv")
 
 # ---- check data structure ----
@@ -64,7 +61,7 @@ T9.1<-cod%>%
 qplot(mmSL,data=T9.1,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T9group<-select(T9.1,mmSL)
+T9group<-dplyr::select(T9.1,mmSL)
 
 # min and max sl
 summarise(T9.1,min(mmSL),max(mmSL),n())
@@ -117,7 +114,7 @@ cod%>%
 qplot(mmSL,data=T12.1,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T12group<-select(T12.1,mmSL)
+T12group<-dplyr::select(T12.1,mmSL)
 
 # min and max sl
 summarise(T12.1,min(mmSL),max(mmSL),n())
@@ -163,7 +160,7 @@ cod%>%
 qplot(mmSL,data=T13.1,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T13group<-select(T13.1,mmSL)
+T13group<-dplyr::select(T13.1,mmSL)
 
 # min and max sl
 summarise(T13.1,min(mmSL),max(mmSL),n())
@@ -204,7 +201,7 @@ cod%>%
 qplot(mmSL,data=T14.0,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T14group<-select(T14.0,mmSL)
+T14group<-dplyr::select(T14.0,mmSL)
 
 # min and max sl
 summarise(T14.0,min(mmSL),max(mmSL),n())
@@ -235,7 +232,7 @@ cod%>%
 qplot(mmSL,data=T14.1,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T14group<-select(T14.1,mmSL)
+T14group<-dplyr::select(T14.1,mmSL)
 
 # min and max sl
 summarise(T14.1,min(mmSL),max(mmSL),n())
@@ -276,7 +273,7 @@ cod%>%
 qplot(mmSL,data=T15.0,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T15group<-select(T15.0,mmSL)
+T15group<-dplyr::select(T15.0,mmSL)
 
 # min and max sl
 summarise(T15.0,min(mmSL),max(mmSL),n())
@@ -307,7 +304,7 @@ cod%>%
 qplot(mmSL,data=T15.1,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T15group<-select(T15.1,mmSL)
+T15group<-dplyr::select(T15.1,mmSL)
 
 # min and max sl
 summarise(T15.1,min(mmSL),max(mmSL),n())
@@ -358,7 +355,7 @@ cod%>%
 qplot(mmSL,data=T16.0,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T16group<-select(T16.0,mmSL)
+T16group<-dplyr::select(T16.0,mmSL)
 
 # min and max sl
 summarise(T16.0,min(mmSL),max(mmSL),n())
@@ -411,7 +408,7 @@ cod%>%
 qplot(mmSL,data=T17.0,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T17group<-select(T17.0,mmSL)
+T17group<-dplyr::select(T17.0,mmSL)
 
 # min and max sl
 summarise(T17.0,min(mmSL),max(mmSL),n())
@@ -454,7 +451,7 @@ cod%>%
 qplot(mmSL,data=T17.1,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T17group<-select(T17.1,mmSL)
+T17group<-dplyr::select(T17.1,mmSL)
 
 # min and max sl
 summarise(T17.1,min(mmSL),max(mmSL),n())
@@ -496,7 +493,7 @@ cod%>%
 qplot(mmSL,data=T18.0,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T18group<-select(T18.0,mmSL)
+T18group<-dplyr::select(T18.0,mmSL)
 
 # min and max sl
 summarise(T18.0,min(mmSL),max(mmSL),n())
@@ -546,7 +543,7 @@ cod%>%
 qplot(mmSL,data=T18.1,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T18group<-select(T18.1,mmSL)
+T18group<-dplyr::select(T18.1,mmSL)
 
 # min and max sl
 summarise(T18.1,min(mmSL),max(mmSL),n())
@@ -598,7 +595,7 @@ cod%>%
 qplot(mmSL,data=T19.0,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T19group<-select(T19.0,mmSL)
+T19group<-dplyr::select(T19.0,mmSL)
 
 # min and max sl
 summarise(T19.0,min(mmSL),max(mmSL),n())
@@ -648,7 +645,7 @@ cod%>%
 qplot(mmSL,data=T19.1,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T19group<-select(T19.1,mmSL)
+T19group<-dplyr::select(T19.1,mmSL)
 
 # min and max sl
 summarise(T19.1,min(mmSL),max(mmSL),n())
@@ -690,7 +687,7 @@ cod%>%
 qplot(mmSL,data=T20.0,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T20group<-select(T20.0,mmSL)
+T20group<-dplyr::select(T20.0,mmSL)
 
 # min and max sl
 summarise(T20.0,min(mmSL),max(mmSL),n())
@@ -741,7 +738,7 @@ cod%>%
 qplot(mmSL,data=T20.1,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T20group<-select(T20.1,mmSL)
+T20group<-dplyr::select(T20.1,mmSL)
 
 # min and max sl
 summarise(T20.1,min(mmSL),max(mmSL),n())
@@ -796,7 +793,7 @@ cod%>%
 qplot(mmSL,data=T21.0,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T21group<-select(T21.0,mmSL)
+T21group<-dplyr::select(T21.0,mmSL)
 
 # min and max sl
 summarise(T21.0,min(mmSL),max(mmSL),n())
@@ -863,7 +860,7 @@ cod%>%
 qplot(mmSL,data=T22.0,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T22group<-select(T22.0,mmSL)
+T22group<-dplyr::select(T22.0,mmSL)
 
 # min and max sl
 summarise(T22.0,min(mmSL),max(mmSL),n())
@@ -911,7 +908,7 @@ cod%>%
 qplot(mmSL,data=T23.0,binwidth=5)+theme_classic()
 
 #create dataframe with only mmSL
-T23group<-select(T23.0,mmSL)
+T23group<-dplyr::select(T23.0,mmSL)
 
 # min and max sl
 summarise(T23.0,min(mmSL),max(mmSL),n())
@@ -953,18 +950,18 @@ View(mixtures)
 
 # add 'cohort', 'age' to mixtures df
 # ---- Final mixtures DF -----
-write.csv(mixtures,"./data/output/AC-mixture-dist-2019.csv",row.names = FALSE)
+# write.csv(mixtures,"../data/output/AC-mixture-dist-2019.csv",row.names = FALSE)
 
 
 # ---- Part 2: Estimating pulses ----
 cod.pulse<-mixtures%>%
   rename(mean=mu,pulse = dummy_pulse)%>%
   mutate(min=mean-sigma,max=mean+sigma)%>%
-  select(-sigma,-sigma.se,-mu.se,-pi,-pi.se)
+  dplyr::select(-sigma,-sigma.se,-mu.se,-pi,-pi.se)
 
 # Add dates to trips
 tripdates<-cod%>%
-  select(Trip,Year,Month,Day)%>%
+  dplyr::select(Trip,Year,Month,Day)%>%
   rename(trip=Trip,year=Year,month=Month,day=Day)%>%
   distinct()%>%
   group_by(trip,year,month)%>%
@@ -1018,7 +1015,7 @@ cohort.2018<-bind_rows(cod,cod18)%>%
   mutate(Date2=Date+5)
 
 tripdates18<-cod18%>%
-  select(Trip,Year,Month,Day)%>%
+  dplyr::select(Trip,Year,Month,Day)%>%
   distinct()%>%
   group_by(Trip,Year,Month)%>%
   summarise(Day=min(Day))
@@ -1066,7 +1063,7 @@ glimpse(pulse.assign)
 
 # assign pulses to length data
 length.pulse<-cod%>%
-  select(-Pulse)%>%
+  dplyr::select(-Pulse)%>%
   filter(Age<2)%>%
   rename(age=Age,trip=Trip,year=Year)%>%
   left_join(pulse.assign)
@@ -1122,7 +1119,7 @@ pulse_assign2<-data.frame(age=rep(mydata$age,mydata$max-mydata$min+1),
                           pulse=rep(mydata$pulse,mydata$max-mydata$min+1),
                           mmSL=unlist(mapply(seq,mydata$min,mydata$max)))
 cod2<-cod%>%
-  select(-Pulse)%>%
+  dplyr::select(-Pulse)%>%
   rename(trip=Trip,age=Age,year=Year)%>%
   left_join(pulse_assign2)
 
@@ -1162,7 +1159,14 @@ final<-cod2%>%
   mutate(age=replace(age, age ==0 & is.na(pulse)& mmSL>83,1))%>%
   mutate(pulse=replace(pulse,age==0 & is.na(pulse),1))%>%
   mutate(pulse=replace(pulse,age==1 & is.na(pulse),5))%>%
-  mutate(pulse=replace(pulse,age==0 & trip == 18 & pulse == 2,1))
+  mutate(pulse=replace(pulse,age==0 & trip == 18 & pulse == 2,1))%>%
+  mutate(pulse=replace(pulse,age==0 & trip == 19 & pulse == 1 & mmSL<60,2))%>%
+  mutate(pulse=replace(pulse,age==0 & trip == 20 & pulse == 1 & mmSL<70,2))%>%
+  mutate(pulse=replace(pulse,age==0 & trip == 22 & pulse == 3 & mmSL>63,2))%>%
+  mutate(pulse=replace(pulse,age==0 & trip == 21 & pulse == 3 & mmSL<38,4))%>%
+  mutate(pulse=replace(pulse,age==0 & trip == 22 & pulse == 3 & mmSL<44,4))%>%
+  mutate(pulse=replace(pulse,age==0 & trip == 23 & pulse == 3 & mmSL>65,2))%>%
+  mutate(pulse=replace(pulse,age==0 & trip == 23 & pulse == 3 & mmSL<46,4))
   
 pulse.range2019<-final%>%
   group_by(age,year,trip,pulse)%>%
@@ -1170,15 +1174,19 @@ pulse.range2019<-final%>%
   filter(age!=2)%>%
   ungroup()%>%
   left_join(tripdates)%>%
-  mutate(date=ymd(paste(year,month,day,sep="-")))
-write.csv(pulse.range2019,"data/output/pulse_range2019.csv",row.names = FALSE)  
+  mutate(Year=year)%>%
+  #unite(Date,year,month,day,sep="")%>%
+  rename(Age=age,Trip=trip, Pulse=pulse,meanSL=mean)%>%
+  mutate(date=ymd(paste(Year,month,day,sep="-")))%>%
+  dplyr::select(Year,Age,Trip,Pulse,meanSL,minSL,maxSL,date)
+# write.csv(pulse.range2019,"../data/output/pulse_range2019.csv",row.names = FALSE)  
 
 final%>%
   filter(age<2)%>%
   mutate(Date2=Date+3)%>%
   ggplot()+
   geom_jitter(aes(x=Date2,y=mmSL,colour=as.character(age)),alpha=0.25,size=1)+
-  geom_point(data=pulse.range2019,aes(x=date,y=mean,shape=factor(pulse),fill=as.character(age)),size=2)+
+  geom_point(data=pulse.range2019,aes(x=date,y=meanSL,shape=factor(Pulse),fill=as.character(Age)),size=2)+
   geom_errorbar(data=pulse.range2019,aes(x=date,ymin=minSL,ymax=maxSL),width=0)+
   theme_bw()+
   ggtitle("2019 Newman Sound Atlantic cod")+
@@ -1192,7 +1200,7 @@ final%>%
   filter(age==0)%>%
   mutate(Date2=Date+3)%>%
   ggplot()+
-  geom_jitter(aes(x=Date2,y=mmSL,colour=as.character(pulse)),alpha=0.25,size=1)+
+  geom_jitter(aes(x=Date2,y=mmSL,colour=as.character(pulse)),alpha=0.5,size=1)+
   geom_point(data=filter(pulse.range2019,age==0),aes(x=date,y=mean,shape=factor(pulse),fill=as.character(age)),size=2)+
   geom_errorbar(data=filter(pulse.range2019,age==0),aes(x=date,ymin=minSL,ymax=maxSL),width=0)+
   theme_bw()+
@@ -1206,9 +1214,9 @@ final%>%
   filter(age==1)%>%
   mutate(Date2=Date+3)%>%
   ggplot()+
-  geom_jitter(aes(x=Date2,y=mmSL,colour=as.character(pulse)),alpha=0.25,size=1)+
-  geom_point(data=filter(pulse.range2019,age==1),aes(x=date,y=mean,shape=factor(pulse),fill=as.character(age)),size=2)+
-  geom_errorbar(data=filter(pulse.range2019,age==1),aes(x=date,ymin=minSL,ymax=maxSL),width=0)+
+  geom_jitter(aes(x=Date2,y=mmSL,colour=as.character(pulse)),alpha=0.5,size=1)+
+  geom_point(data=filter(pulse.range2019,Age==1),aes(x=date,y=meanSL,shape=factor(Pulse),fill=as.character(Age)),size=2)+
+  geom_errorbar(data=filter(pulse.range2019,Age==1),aes(x=date,ymin=minSL,ymax=maxSL),width=0)+
   theme_bw()+
   ggtitle("2019 Newman Sound Atlantic cod: Age 1")+
   xlab("Date")+ylab("Standard length (mm)")+
@@ -1231,10 +1239,10 @@ final2<-final%>%
   rename(Age2=age)
 
 # use min and max for each pulse to then create a dataframe with all length possibilities per pulse
-pulse.assign<-data.frame(trip=rep(pulse.range2019$trip,pulse.range2019$maxSL-pulse.range2019$minSL+1),
-                         age=rep(pulse.range2019$age,pulse.range2019$maxSL-pulse.range2019$minSL+1),
-                         year=rep(pulse.range2019$year,pulse.range2019$maxSL-pulse.range2019$minSL+1),
-                         pulse=rep(pulse.range2019$pulse,pulse.range2019$maxSL-pulse.range2019$minSL+1),
+pulse.assign<-data.frame(trip=rep(pulse.range2019$Trip,pulse.range2019$maxSL-pulse.range2019$minSL+1),
+                         age=rep(pulse.range2019$Age,pulse.range2019$maxSL-pulse.range2019$minSL+1),
+                         year=rep(pulse.range2019$Year,pulse.range2019$maxSL-pulse.range2019$minSL+1),
+                         pulse=rep(pulse.range2019$Pulse,pulse.range2019$maxSL-pulse.range2019$minSL+1),
                          mmSL=unlist(mapply(seq,pulse.range2019$minSL,pulse.range2019$maxSL)))
 pulsefinal<-pulse.assign%>%
   mutate(Species="AC")%>%
@@ -1242,7 +1250,7 @@ pulsefinal<-pulse.assign%>%
   
 length3<-length%>%
   mutate(Year=as.integer(str_sub(Date,start=1,end=4)))%>%
-  select(-Pulse)
+  dplyr::select(-Pulse)
 
 final2<-left_join(length3,pulsefinal)
 
@@ -1255,8 +1263,19 @@ final3<-final2%>%
   mutate(Age=replace(Age, Species == "AC" &is.na(Pulse) & Age == 0 & Trip == 16,1))%>%
   mutate(Age=replace(Age, Species == "AC" &is.na(Pulse) & Age == 0 & Trip == 18,1))%>%
   mutate(Age=replace(Age, Species == "AC" &is.na(Pulse) & Age == 0 & Trip >=20,1))%>%
-  select(-Pulse)%>%
-  left_join(pulsefinal)
+  dplyr::select(-Pulse)%>%
+  left_join(pulsefinal)%>%
+  mutate(month=as.integer(str_sub(Date,start=5,end=6)))%>%
+  mutate(Day=as.integer(str_sub(Date,start=7,end=8)))%>%
+  mutate(Month="MAY")%>%
+  mutate(Month=replace(Month,month==7,"JUL"))%>%
+  mutate(Month=replace(Month,month==8,"AUG"))%>%
+  mutate(Month=replace(Month,month==9,"SEP"))%>%
+  mutate(Month=replace(Month,month==10,"OCT"))%>%
+  mutate(Month=replace(Month,month==11, "NOV"))%>%
+  mutate(Month=replace(Month,month==12, "DEC"))%>%
+  rename("Julian Date" = "Julian.Date")%>%
+  dplyr::select(Year, Month, Day, Date, 'Julian Date', Trip, Time, Site, Species, mmSL, Age, Pulse, Notes)
 
 final3%>%filter(Species=="AC" & is.na(Pulse))
 
@@ -1264,9 +1283,10 @@ summary(final3)
 dim(final3)
 dim(length)
 
-write.csv(final3, "./data/TNNP/TNNP19_length_revised_2020-03-19.csv",row.names = FALSE)
+# write.csv(final3, "../data/TNNP2019/TNNP19_length_revised_2021-04-15.csv",row.names = FALSE,na= "")
 
 final3%>%
   filter(Age==0)%>%
   filter(Species=="AC")%>%
   ggplot(aes(x=Julian.Date,y=mmSL,colour=as.character(Pulse)))+geom_point()
+

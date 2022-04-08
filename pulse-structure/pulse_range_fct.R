@@ -14,14 +14,14 @@ pulse_range<-function(mixtures) {
     mutate(max1=replace(max_final,lagmin==max_final,1))%>% # any point where lagmin and lagmax match, put in a 1
     mutate(max1=replace(max1,max1==max_final,0))%>% # 0 for all others
     mutate(max_final2=max_final-max1)%>% # subtract 1 from max final (gets rid of any remaining overlap)
-    select(-diff,-plusmax,-minusmin,-max_final,-lagmin,-max1)%>% #get rid of useless columns
+    dplyr::select(-diff,-plusmax,-minusmin,-max_final,-lagmin,-max1)%>% #get rid of useless columns
     mutate(adjustmax=ceiling(2*sd))%>% # adjust maximum value to be 2 SDs for pulse 1
     mutate(adjustmax=replace(adjustmax,dummy_pulse!=1,0))%>% # applies the above function to only pulse 1
     mutate(adjustmin=ceiling(2*sd))%>% # adjust maximum value to be 2 SDs for last pulse
     mutate(adjustmin=replace(adjustmin,dummy_pulse!=max(dummy_pulse),0))%>% # applies above function to last pulse only
     mutate(max_final3=adjustmax+max_final2,
            min_final3=min_final-adjustmin)%>% # create final max and min columns
-    select(age,year,trip,dummy_pulse,min_final3,max_final3)%>% # select final columns
+    dplyr::select(age,year,trip,dummy_pulse,min_final3,max_final3)%>% # select final columns
     rename(min=min_final3,max=max_final3)%>%
     ungroup()
   return(ranges)

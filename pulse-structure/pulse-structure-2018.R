@@ -1,8 +1,5 @@
 ## Pulse structure for 2018 AC Newman Sound
 
-# ----- set working directory ----
-setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
-
 # load source functions
 source("./pulse-structure/pulse_range_fct.R")
 
@@ -55,7 +52,7 @@ T9.1<-cod%>%
 qplot(mmSL, data=T9.1, binwidth=5)
 
 # create dataframe with SL only
-T9group<-select(T9.1,mmSL)
+T9group<-dplyr::select(T9.1,mmSL)
 
 # # detremine max and min SL
 summarise(T9.1,min(mmSL),max(mmSL))
@@ -95,7 +92,7 @@ T13.1<-cod%>%
 qplot(mmSL, data=T13.1, binwidth=5)
 
 # create dataframe with SL only
-T13group<-select(T13.1,mmSL)
+T13group<-dplyr::select(T13.1,mmSL)
 
 # # detremine max and min SL
 summarise(T13.1,min(mmSL),max(mmSL))
@@ -134,7 +131,7 @@ T14.1<-cod%>%
 qplot(mmSL, data=T14.1, binwidth=5)
 
 # create dataframe with SL only
-T14group<-select(T14.1,mmSL)
+T14group<-dplyr::select(T14.1,mmSL)
 
 # # detremine max and min SL
 summarise(T14.1,min(mmSL),max(mmSL))
@@ -174,7 +171,7 @@ T15.0<-cod%>%
 qplot(mmSL, data = T15.0, binwidth = 5)
 
 # create dataframe with SL only 
-T15group <- select(T15.0, mmSL)
+T15group <- dplyr::select(T15.0, mmSL)
 
 # determine min and max
 summarise(T15.0, min(mmSL), max(mmSL))
@@ -204,7 +201,7 @@ T15.1<-cod%>%
 qplot(mmSL, data=T15.1, binwidth=5)
 
 # create dataframe with SL only
-T15group<-select(T15.1,mmSL)
+T15group<-dplyr::select(T15.1,mmSL)
 
 # # detremine max and min SL
 summarise(T15.1,min(mmSL),max(mmSL))
@@ -244,7 +241,7 @@ T16.0<-cod%>%
 qplot(mmSL, data = T16.0, binwidth = 5)
 
 # create dataframe with SL only
-T16group <- select(T16.0, mmSL)
+T16group <- dplyr::select(T16.0, mmSL)
 
 # determine min and max
 summarise(T16.0, min(mmSL), max(mmSL))
@@ -279,7 +276,7 @@ mixtures<-bind_rows(mixtures,trip16.age0)
  qplot(mmSL, data = T17.0, binwidth = 5)
  
  # create dataframe with SL only
- T17group <- select(T17.0, mmSL)
+ T17group <- dplyr::select(T17.0, mmSL)
  
  # determine min and max
  summarise(T17.0, min(mmSL), max(mmSL))
@@ -307,7 +304,7 @@ mixtures<-bind_rows(mixtures,trip16.age0)
  qplot(mmSL, data=T17.1, binwidth=5)
  
  # create dataframe with SL only
- T17group<-select(T17.1,mmSL)
+ T17group<-dplyr::select(T17.1,mmSL)
  
  # # detremine max and min SL
  summarise(T17.1,min(mmSL),max(mmSL))
@@ -348,7 +345,7 @@ mixtures<-bind_rows(mixtures,trip16.age0)
  qplot(mmSL, data = T18.0, binwidth = 5)
  
  # --- create dataframe with SL only ----
- T18group <- select(T18.0, mmSL)
+ T18group <- dplyr::select(T18.0, mmSL)
  
  # ---- determine min and max ----
  summarise(T18.0, min(mmSL), max(mmSL))
@@ -376,7 +373,7 @@ mixtures<-bind_rows(mixtures,trip16.age0)
  qplot(mmSL, data=T18.1, binwidth=5)
  
  # create dataframe with SL only
- T18group<-select(T18.1,mmSL)
+ T18group<-dplyr::select(T18.1,mmSL)
  
  # # detremine max and min SL
  summarise(T18.1,min(mmSL),max(mmSL))
@@ -414,7 +411,7 @@ mixtures<-bind_rows(mixtures,trip16.age0)
  qplot(mmSL, data = T19.0, binwidth = 5)
  
  # create dataframe with SL only
- T19group <- select(T19.0, mmSL)
+ T19group <- dplyr::select(T19.0, mmSL)
  
  #determine min and max
  summarise(T19.0, min(mmSL), max(mmSL))
@@ -440,7 +437,7 @@ T19.1<-cod%>%
 qplot(mmSL, data=T19.1, binwidth=5)
 
 # create dataframe with SL only
-T19group<-select(T19.1,mmSL)
+T19group<-dplyr::select(T19.1,mmSL)
 
 # # detremine max and min SL
 summarise(T19.1,min(mmSL),max(mmSL))
@@ -479,7 +476,7 @@ T20.0<-cod%>%
 qplot(mmSL, data = T20.0, binwidth = 5)
 
 # create dataframe with SL only
-T20group <- select(T20.0, mmSL)
+T20group <- dplyr::select(T20.0, mmSL)
 
 # determine min and max 
 summarise(T20.0, min(mmSL), max(mmSL))
@@ -518,7 +515,7 @@ T20.1<-cod%>%
 qplot(mmSL, data=T20.1, binwidth=5)
 
 # create dataframe with SL only
-T20group<-select(T20.1,mmSL)
+T20group<-dplyr::select(T20.1,mmSL)
 
 # # detremine max and min SL
 summarise(T20.1,min(mmSL),max(mmSL))
@@ -558,7 +555,7 @@ T21.0<-cod%>%
 qplot(mmSL, data = T21.0, binwidth = 5)
 
 # create dataframe with SL only
-T21group <- select(T21.0, mmSL)
+T21group <- dplyr::select(T21.0, mmSL)
 
 # ---- determine min and max ----
 summarise(T21.0, min(mmSL), max(mmSL))
@@ -604,7 +601,7 @@ T22.0<-cod%>%
 qplot(mmSL, data = T22.0, binwidth = 5)
 
 # create dataframe with SL only
-T22group <- select(T22.0, mmSL)
+T22group <- dplyr::select(T22.0, mmSL)
 
 # determine min and max
 summarise(T22.0, min(mmSL), max(mmSL))
@@ -648,7 +645,7 @@ T23.0<-cod%>%
 qplot(mmSL, data = T23.0, binwidth = 5)
 
 # create dataframe with SL only 
-T23group <- select(T23.0, mmSL)
+T23group <- dplyr::select(T23.0, mmSL)
 
 # determine min and max 
 summarise(T23.0, min(mmSL), max(mmSL))
@@ -685,17 +682,17 @@ cod%>%
 # not enough fish
 
 # ---- Final mixtures DF -----
-write.csv(mixutres, "./data/output/AC-mixture-dist-2018.csv",row.names = FALSE)
+# write.csv(mixtures, "./data/output/AC-mixture-dist-2018.csv",row.names = FALSE)
 
 # ----- Part 2: Estimating Pulses ------
 cod.pulse<-mixtures%>%
   rename(mean=mu,pulse = dummy_pulse)%>%
   mutate(min=mean-sigma,max=mean+sigma)%>%
-  select(-sigma,-sigma.se,-mu.se,-pi,-pi.se)
+  dplyr::select(-sigma,-sigma.se,-mu.se,-pi,-pi.se)
 
 # Add dates to trips
 tripdates<-cod%>%
-  select(Trip,Year,Month,Day)%>%
+  dplyr::select(Trip,Year,Month,Day)%>%
   rename(trip=Trip,year=Year,month=Month,day=Day)%>%
   distinct()%>%
   group_by(trip,year,month)%>%
@@ -749,7 +746,7 @@ cohort.2017<-bind_rows(cod,cod17)%>%
   mutate(Date2=Date+5)
 
 tripdates17<-cod17%>%
-  select(Trip,Year,Month,Day)%>%
+  dplyr::select(Trip,Year,Month,Day)%>%
   distinct()%>%
   group_by(Trip,Year,Month)%>%
   summarise(Day=min(Day))
@@ -791,7 +788,7 @@ glimpse(pulse.assign)
 
 # assign pulses to length data
 length.pulse<-cod%>%
-  select(-Pulse)%>%
+  dplyr::select(-Pulse)%>%
   filter(Age<2)%>%
   rename(age=Age,trip=Trip,year=Year)%>%
   left_join(pulse.assign)
@@ -847,7 +844,7 @@ pulse_assign2<-data.frame(age=rep(mydata$age,mydata$max-mydata$min+1),
                           pulse=rep(mydata$pulse,mydata$max-mydata$min+1),
                           mmSL=unlist(mapply(seq,mydata$min,mydata$max)))
 cod2<-cod%>%
-  select(-Pulse)%>%
+  dplyr::select(-Pulse)%>%
   rename(trip=Trip,age=Age,year=Year)%>%
   left_join(pulse_assign2)
 
@@ -945,3 +942,4 @@ final%>%
   scale_x_date(date_breaks="1 month",
                date_labels="%b")+
   theme(axis.text.x=element_text(angle=40))
+

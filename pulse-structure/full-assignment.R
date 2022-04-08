@@ -1,11 +1,12 @@
 # Full Pulse Assignment
-# 1995-2018
+# 1995-2017
+# updated 2021-06-07 from 2020-05-31
 
 library(lubridate)
 library(tidyverse)
 
 
-setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/emili/Documents/Research/CHONe-1.2.1/")
 pulses0<-read.csv("./data/output/pulse_range_0_final.csv")
 pulses1<-read.csv("./data/output/pulse_range_age1_final.csv")
 
@@ -30,29 +31,30 @@ pulse.assign2<-pulse.assign%>%
   distinct()
 
 # --- Field Fish ----
-files<-list.files(path="C:/Users/user/Documents/Research/CHONe-1.2.1/data/TNNP Revised Data/TNNP/length",
+files<-list.files(path="C:/Users/emili/Documents/Research/CHONe-1.2.1/data/TNNP Revised Data/TNNP/length",
                   full.names = FALSE, include.dirs = FALSE)
 head(files)
-file_names<-list.files(path="C:/Users/user/Documents/Research/CHONe-1.2.1/data/TNNP Revised Data/TNNP/length")
+file_names<-list.files(path="C:/Users/emili/Documents/Research/CHONe-1.2.1/data/TNNP Revised Data/TNNP/length")
 head(file_names)
 
 for(i in 1:length(file_names)){
-  setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/data/TNNP Revised Data/TNNP/length/")
+  setwd("C:/Users/emili/Documents/Research/CHONe-1.2.1/data/TNNP Revised Data/TNNP/length/")
   length<-read.csv(files[i])
   length1<-length%>%
     dplyr::select(1:14)%>%
     mutate(Species=replace(Species,Species=="AC ","AC"))%>%
-    #dplyr::select(-Time)%>%
     dplyr::select(-Pulse)%>%
     left_join(pulse.assign2)%>%
-    dplyr::select(1:11,Pulse,12:13)
+    dplyr::select(1:11,Pulse,12:13)%>%
+    rename('Julian Date' = Julian.Date)%>%
+    mutate(Time=as.integer(Time))
     
-  setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/data/TNNP Revised Data/TNNP/output/length/") #writenewfilestohere
+  setwd("C:/Users/emili/Documents/Research/CHONe-1.2.1/data/TNNP/length/") #writenewfilestohere
   write.csv(x=length1,row.names=FALSE, file = paste("revised",file_names[i],sep = "_"),na="")
 } 
 
 # ---- Lab Fish -----
-setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/data/TNNP Revised Data/TNNP/")
+setwd("C:/Users/emili/Documents/Research/CHONe-1.2.1/data/TNNP Revised Data/TNNP/")
 lab1<-read.csv("./lab-measured/TNNP1996a.csv")
 lab2<-read.csv("./lab-measured/TNNP1998a.csv")
 lab3<-read.csv("./lab-measured/TNNP1999a.csv")
@@ -61,16 +63,22 @@ lab33<-lab3%>%
   dplyr::select(-Time)%>%
   rename(Time=Time.1)%>%
   dplyr::select(-Pulse)%>%
-  left_join(pulse.assign2)
+  left_join(pulse.assign2)%>%
+  rename('Julian Date' = Julian.Date)%>%
+  mutate(Time=as.integer(Time))
 lab22<-lab2%>%
   dplyr::select(-Pulse)%>%
-  left_join(pulse.assign2)
+  left_join(pulse.assign2)%>%
+  rename('Julian Date' = Julian.Date)%>%
+  mutate(Time=as.integer(Time))
 lab11<-lab1%>%
   dplyr::select(-Pulse)%>%
-  left_join(pulse.assign2)
-write.csv(lab11,"./output/lab-measured/revised_TNNP1996a.csv",row.names = FALSE)
-write.csv(lab22, "./output/lab-measured/revised_TNNP1998a.csv",row.names=FALSE)
-write.csv(lab33, "./output/lab-measured/revised_TNNP1999a.csv",row.names=FALSE)
+  left_join(pulse.assign2)%>%
+  rename('Julian Date' = Julian.Date)%>%
+  mutate(Time=as.integer(Time))
+write.csv(lab11,"./output/lab-measured/revised_TNNP1996a.csv",row.names = FALSE,na="")
+write.csv(lab22, "./output/lab-measured/revised_TNNP1998a.csv",row.names=FALSE,na="")
+write.csv(lab33, "./output/lab-measured/revised_TNNP1999a.csv",row.names=FALSE,na="")
 
 # ---- Quality check -----
 setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/data/TNNP Revised Data/TNNP/output/temp/")

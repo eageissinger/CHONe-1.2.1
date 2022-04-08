@@ -1,7 +1,7 @@
 ### Pulse Determination for Age 1 ###
 
 # ---- set working directory ----
-setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/emili/Documents/Research/CHONe-1.2.1/")
 
 # ---- load packages ----
 library(lubridate)
