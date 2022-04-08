@@ -1,7 +1,7 @@
 ### Mark-recapture ###
 
 # ---- set working directory ----
-setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/emili/Documents/Research/CHONe-1.2.1/overwinter-CMR/")
 
 # ---- load required packages ----
 
@@ -11,16 +11,12 @@ library(mixdist)
 library(tidyverse)
 library(RMark)
 
-source("./misc/pulse_range_fct.R")
 
 # ---- load data ----
-data<-read.csv("./data/data-working/CMR-field-OCTOBER.csv")
-fallcatch<-read.csv("./data/data-working/CMR-field-adj.csv")
+data<-read.csv("../data/data-working/CMR/mark-history-october.csv")
 #subsample<-read.csv("./data/data-working/subsample_wk1-2-field.csv")
-pulse0<-read.csv("./data/data-working/CMR-0pulses.csv")
-#pulse1<-read.csv("./data/data-working/pulse_range_age1_final.csv")
-trips<-read.csv("./data/data-working/newman-trips.csv")
-
+CMRpulse<-read.csv("../data/data-working/CMR/CMR-pulses.csv")
+trips<-read.csv("../data/data-working/newman-trips.csv")
 # ---- check data ----
 names(data)
 str(data)
@@ -38,147 +34,44 @@ data$date<-ymd(paste(data$year,data$month,data$day,sep="-"))
 #subsample$date<-ymd(paste(subsample$Year,subsample$Month,subsample$Day,sep="-"))
 
 trips$date<-ymd(paste(trips$year,trips$month,trips$day,sep="-"))
-fallcatch$date<-ymd(paste(fallcatch$year,fallcatch$month,fallcatch$day,sep="-"))
-fallcatch<-fallcatch%>%filter(day==19 & status==1)
 
 data$site<-str_sub(data$animal_id,start = 1,end = 2)
 data$id<-as.numeric(str_sub(data$animal_id,start=4))
-data.recap<-left_join(data,trips)%>%
-  filter(status==1)
-
-data.release<-left_join(data,trips)%>%
-  filter(id<1)%>%
-  filter(!is.na(sl))
+october<-left_join(data,trips)
 
 
-# Pulse assignments
 
-# set up age 1 pulses
-#glimpse(pulse1)
-#summary(pulse1)
-#pulse1<-pulse1%>%
-#  mutate(pulse=replace(pulse,pulse==3,2),
-#         pulse=replace(pulse,pulse==5,3))%>%
-#  filter(!is.na(min))
-#pulse.assign1<-data.frame(trip=rep(pulse1$trip,pulse1$max-pulse1$min+1),
-#                          year=rep(pulse1$year,pulse1$max-pulse1$min+1),
-#                          pulse=rep(pulse1$pulse,pulse1$max-pulse1$min+1),
-#                          mmSL=unlist(mapply(seq,pulse1$min,pulse1$max)))
-
-#glimpse(pulse.assign1)
-#pulse.assign1<-pulse.assign1%>%
-#  mutate(age=1)
-glimpse(pulse0)
-pulses<-pulse0%>%
-  mutate(year=cohort, age=0)%>%
-  select(-cohort)%>%
-  rename(sl=mmSL)%>%
-  filter(year==2016)
-
-#pulses<-bind_rows(pulse0,pulse.assign1)%>%
-#  rename(sl=mmSL)%>%
-#  filter(year>=2016)
 
 # ----- pulse assign ----
-october<-bind_rows(data.recap,data.release)
-# assign fall fish
+# Pulse assignments
+# Pulse assignments
+glimpse(october)
+summary(october)
+str(october)
 
-fall.pulses<-left_join(october,pulses,by=c('trip','sl'))
+pulse.assign<-data.frame(trip=rep(CMRpulse$trip,CMRpulse$max-CMRpulse$min+1),
+                         year=rep(CMRpulse$year,CMRpulse$max-CMRpulse$min+1),
+                         pulse=rep(CMRpulse$pulse,CMRpulse$max-CMRpulse$min+1),
+                         age=rep(CMRpulse$age,CMRpulse$max-CMRpulse$min+1),
+                         mmSL=unlist(mapply(seq,CMRpulse$min,CMRpulse$max)))
 
-#may.pulses<-pulses%>%
-#  filter(year==2017 & age==1 & trip ==10)%>%
-#  select(-trip,-year)
-#spring.fish<-data%>%
-#  filter(id>1)
-
-#spring.pulses<-left_join(spring.fish,may.pulses)
-
-#pulse.size<-bind_rows(fall.pulses,spring.pulses)
-
-# fill in missing pulses
+# assign pulse to fall fish
+fall.pulses<-october%>%
+  mutate(id=as.numeric(str_sub(animal_id,start=4)))%>%
+  left_join(trips)%>%
+  rename(mmSL=sl)%>%
+  distinct()%>%
+  filter(age==0)%>%
+  left_join(pulse.assign)
 
 fall.pulses%>%
-  ggplot(aes(x=date,y=sl,colour=factor(pulse)))+geom_point()
+  ggplot(aes(x=date,y=mmSL,colour=factor(pulse)))+geom_point()
 #ggplot(pulse.size,aes(x=date,y=sl,colour=factor(pulse)))+geom_point()
 
 
-oct.notrip<-fall.pulses%>%filter(day == 19)%>%
-  filter(!is.na(sl))
-oct<-bind_rows(oct.notrip,fallcatch)%>%# include captured fish
-  select(-pulse,-status)
-
-qplot(sl,data=oct,binwidth=5)
-SL<-select(oct,sl)
-summarise(SL,min(sl),max(sl))
-group.oct<-mixgroup(SL,breaks= c(0,seq(50,95,5),97),
-                    xname=NULL,k=NULL,usecondit=FALSE)
-plot(group.oct)
-
-# ---- set initial parameters ----
-par<-mixparam(c(60,80),c(5),pi=NULL)
-plot(group.oct,par,"gamma")
-
-# fit mixture
-fit1<-mix(group.oct,par, dist="gamma",mixconstr(consigma = "CCV"),
-          emsteps = 15, usecondit = FALSE)
-
-summary(fit1)
-plot(fit1)
-plot(fit1,root=T)
-
-par2<-mixparam(c(52,62,80),c(5),pi=NULL)
-plot(group.oct,par2,"gamma")
-
-fit2<-mix(group.oct,par2,dist="gamma",mixconstr(consigma = "CCV"),
-          emsteps = 15, usecondit = FALSE)
-summary(fit2)
-plot(fit2)
-plot(fit2,root=T)
-
-head(oct)
-notrip<-bind_cols(fit2$parameters, fit2$se)%>%
-  mutate(trip=1,year=2016,month=10,day=19,cohort=2016)
-notrip<-mutate(notrip,dummy_pulse=rev(seq(1:nrow(notrip))))
-
-pulse.range<-pulse_range(notrip)
-
-# use min and max for each pulse to then create a dataframe with all length possibilities per pulse
-pulse.assign<-data.frame(trip=rep(pulse.range$trip,pulse.range$max-pulse.range$min+1),
-                         cohort=rep(pulse.range$cohort,pulse.range$max-pulse.range$min+1),
-                         pulse=rep(pulse.range$dummy_pulse,pulse.range$max-pulse.range$min+1),
-                         sl=unlist(mapply(seq,pulse.range$min,pulse.range$max)))
-
-pulse.assign<-pulse.assign%>%
-  mutate(year=cohort)%>%
-  select(-cohort,-trip,-year)
-
-oct.notrip<-oct.notrip%>%
-  select(-pulse)
-
-pulses.notrip<-left_join(oct.notrip,pulse.assign)
-
-# combine
-# pulse.size and pulses.notrip
-# take out october no trip from fall.pulses, then re-add pulses.notrip
-
-final1<-fall.pulses[1:136,]
-
-final<-bind_rows(final1,pulses.notrip)
-
-
-final%>%
-  ggplot(aes(y=sl,x=date,colour=factor(pulse)))+
-  geom_jitter()
-
-final<-final%>%
-  select(animal_id,pulse)
-
-oct.cod<-left_join(data,final)
-dim(data)
-dim(oct.cod)
-
 # --- format data ----
-mrkdata<-oct.cod%>%
+mrkdata<-fall.pulses%>%
+  rename(sl=mmSL)%>%
   select(date,year,month,animal_id,sl,mark,pulse)%>%
   data.frame()
 
@@ -191,7 +84,7 @@ collection.dates$julian<-yday(collection.dates$date)
 # ---- format for RMark ----
 
 mrkdata1<-mrkdata%>%
-  select(-year,-month,-day)
+  select(-year,-month)
 
 # melt then cast, equivalent to gather then spread
 
@@ -199,52 +92,80 @@ mrkdata2<-spread(mrkdata1,date,mark,fill=0)
 
 mrkdata3<-unite(mrkdata2,ch,c("2016-10-14","2016-10-19","2016-10-28"),
                 sep="",remove=TRUE)
-View(mrkdata3)
+head(mrkdata3)
 unique(mrkdata3$ch)
 str(mrkdata3)
 duplicated(mrkdata3$animal_id)
-cod<-mrkdata3
+cod<-mrkdata3%>%
+  filter(ch!="000")
 
-View(cod)
+head(cod)
 
+# determine the proportion of fish caught (100 and 010) for each pulse for entire sound and apply the ratio to the unmeasured fish
+# week 1
+cod%>%filter(ch=="100")%>%
+  filter(!is.na(sl))%>%
+  group_by(pulse)%>%
+  summarise(N=n())%>%
+  mutate(ratio=N/52)
+
+W1<-cod%>%filter(ch=="100")%>%
+  filter(is.na(sl))%>% #88 unassigned fish
+  select(-pulse)%>% # remove current pulse column
+  add_column(pulse=c(rep(1, each=54),rep(2,each=58))) # assign pulses to unmeasured fish based on ratio
+
+# summary of week 1
+W1%>%
+  group_by(pulse)%>%
+  summarise(n())
+cod%>%filter(ch=="100")%>%
+  filter(!is.na(sl))%>%
+  group_by(pulse)%>%
+  summarise(min(sl),max(sl),mean(sl), sd(sl))
+
+116*0.0192 # pulse 1
+116*0.0577 # pulse 2
+
+2+7
+
+#week 2
+cod%>%filter(ch=="010")%>%
+  filter(!is.na(sl))%>%
+  group_by(pulse)%>%
+  summarise(N=n())%>%
+  mutate(ratio=N/29)
+
+W2<-cod%>%filter(ch=="010")%>%
+  filter(is.na(sl))%>% #49 unassigned fish
+  select(-pulse)%>% # remove current pulse column
+  add_column(pulse=c(rep(1, each=4),rep(2,each=9))) # assign pulses to unmeasured fish based on ratio
+#summary of week 2
+W2%>%
+  group_by(pulse)%>%
+  summarise(n())
+cod%>%filter(ch=="010")%>%
+  filter(!is.na(sl))%>%
+  group_by(pulse)%>%
+  summarise(min(sl),max(sl),mean(sl), sd(sl))
+49*0.483 # pulse 1
+49*0.517 # pulse 2
+24+25
+
+non.SL<-bind_rows(W1,W2)
+
+#add full pulse structure to dataset
+cod<-cod%>%
+  filter(!is.na(pulse))%>%
+  bind_rows(non.SL)
 # ---- CJS Run ----
 # Newbridge only
 # time and dependent - no length yet
 
 cod$sl<-as.numeric(cod$sl)
-nb.all<-cod%>%
-  select(ch)%>%
-  filter(ch!="000")%>%
-  data.frame()
-
-nb.model<-function()
-{
-  # process data for CJS model and make default design data
-  nb.processed<-process.data(nb.all,time.intervals = c(5,9))
-  nb.ddl<-make.design.data(nb.processed)
-  # define models for Phi
-  Phi.dot<-list(formula=~1)
-  Phi.time<-list(formula=~time)
-  # define models for p
-  p.dot<-list(formula=~1)
-  p.time<-list(formula=~time)
-  # create model list
-  cml<-create.model.list("CJS")
-  # run and return models
-  return(mark.wrapper(cml,data=nb.processed,ddl=nb.ddl))
-  
-}
-nb.results<-nb.model()
-nb.results
-summary(nb.results[[2]])
-
 nb.pulse<-cod%>%
   select(ch,pulse)%>%
-  filter(ch!="000")%>%
+  filter(pulse!=3)%>%
   data.frame()
-unique(nb.pulse$pulse)
-nb.pulse$pulse<-as.factor(nb.pulse$pulse)
-str(nb.pulse)
 
 pulse.model<-function()
 {
@@ -260,9 +181,9 @@ pulse.model<-function()
   
   # define models for p
   p.dot<-list(formula=~1)
-  p.time<-list(formula=~time)
-  p.pulse<-list(formula=~pulse)
-  p.timepluspulse<-list(formula=~time+pulse)
+  #p.time<-list(formula=~time)
+  #p.pulse<-list(formula=~pulse)
+  #p.timepluspulse<-list(formula=~time+pulse)
   # create model list
   cml<-create.model.list("CJS")
   # run and return models
@@ -271,3 +192,4 @@ pulse.model<-function()
 pulse.results<-pulse.model()
 
 pulse.results
+pulse.results[[4]]
