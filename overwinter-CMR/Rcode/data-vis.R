@@ -1,17 +1,18 @@
 #---- CMR Visualization ----
-setwd("C:/Users/emili/Documents/Research/CHONe-1.2.1/overwinter-CMR/")
 
 # ---- load data ----
-NB<-read.csv("../data/output/CMR-pulse.csv")
-multi<-read.csv("../data/output/multistrata.csv")
-octfish<-read.csv("../data/data-working/oct-cod-pulses.csv")
-mayfish<-read.csv("../data/data-working/may-cod-pulses.csv")
+NB<-read.csv("./data/output/CMR-pulse.csv")
+multi<-read.csv("./data/output/multistrata.csv")
+octfish<-read.csv("./data/data-working/oct-cod-pulses.csv")
+mayfish<-read.csv("./data/data-working/may-cod-pulses.csv")
+CMRpulse<-read.csv("./data/data-working/CMR/CMR-pulses.csv")
 # ---- load packages ----
 library(tidyverse)
 library(ggplot2)
 library(lubridate)
 library(ggpubr)
 library(RColorBrewer)
+
 
 # ----check data ----
 str(multi)
@@ -171,9 +172,25 @@ octfish%>%
   facet_wrap(~date)
 
 # ----- Manuscript Figures -----
+
+# add pulse assignments to fall data
+tripdates<-read.csv("./data/data-working/newman-trips.csv")
+pulse.assign<-data.frame(trip=rep(CMRpulse$trip,CMRpulse$max-CMRpulse$min+1),
+                         year=rep(CMRpulse$year,CMRpulse$max-CMRpulse$min+1),
+                         pulse=rep(CMRpulse$pulse,CMRpulse$max-CMRpulse$min+1),
+                         sl=unlist(mapply(seq,CMRpulse$min,CMRpulse$max)))
+octfish2<-octfish%>%
+  dplyr::select(-pulse)%>%
+  left_join(tripdates)%>%
+  left_join(pulse.assign)
+
+mayfish2<-mayfish%>%
+  dplyr::select(-pulse)%>%
+  left_join(tripdates)%>%
+  left_join(pulse.assign)
 # Fig 2
 
-Fig2a<-octfish%>%
+Fig2a<-octfish2%>%
   filter(id<1 & !is.na(sl))%>%
   filter(date=="2016-10-14")%>%
   mutate(pulse=as.factor(pulse))%>%
@@ -182,8 +199,8 @@ Fig2a<-octfish%>%
   geom_histogram(aes(x=sl,fill=pulse),colour='black',binwidth = 3)+
   theme_bw()+
   theme(panel.grid=element_blank())+
-  scale_fill_brewer(palette = "Dark2",drop=FALSE)+
-  #scale_fill_manual(values=c('grey25','grey64','grey85'),drop=FALSE)+
+  #scale_fill_brewer(palette = "Dark2",drop=FALSE)+
+  scale_fill_manual(values=c('grey10','grey50','grey90'),drop=FALSE)+
   scale_y_continuous(expand = c(0,0))+
   geom_text(aes(x=40,y=7.5,label="stretch it"),vjust=-1)+
   labs(x="Standard Length (mm)",
@@ -191,22 +208,48 @@ Fig2a<-octfish%>%
        fill="Pulse")+
   theme(axis.title.x= element_text(size=14,margin = margin(t=10)))+
   theme(axis.title.y= element_text(size=14,margin = margin(r=10)))+
-  theme(legend.title = element_text(size=12,face='bold'),
+  theme(legend.title = element_text(size=12),
+        legend.key.size = unit(1.5,'lines'))+
+  theme(axis.text = element_text(size=12))+
+  theme(plot.margin = unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  xlim(40,95)+
+  ggtitle("a. 14 October 2016")+
+  theme(plot.title = element_text(size=14))
+
+octfish%>%
+  filter(id<1 & !is.na(sl))%>%
+  filter(date=="2016-10-14")%>%
+  mutate(pulse=as.factor(pulse))%>%
+  mutate(pulse=factor(pulse,levels=c(1,2,3)))%>%
+  ggplot()+
+  geom_histogram_pattern(aes(x=sl,fill=pulse),colour='black',binwidth = 3)+
+  theme_bw()+
+  theme(panel.grid=element_blank())+
+  #scale_fill_brewer(palette = "Dark2",drop=FALSE)+
+  scale_fill_manual(values=c('grey10','grey50','grey90'),drop=FALSE)+
+  scale_y_continuous(expand = c(0,0))+
+  geom_text(aes(x=40,y=7.5,label="stretch it"),vjust=-1)+
+  labs(x="Standard Length (mm)",
+       y="Count",
+       fill="Pulse")+
+  theme(axis.title.x= element_text(size=14,margin = margin(t=10)))+
+  theme(axis.title.y= element_text(size=14,margin = margin(r=10)))+
+  theme(legend.title = element_text(size=12),
         legend.key.size = unit(1.5,'lines'))+
   theme(axis.text = element_text(size=12))+
   theme(plot.margin = unit(c(0.5,0.5,0.5,0.5),"cm"))+
   xlim(40,95)+
   guides(fill=guide_legend(reverse=TRUE))
-  
 
-Fig2b<-octfish%>%
+
+Fig2b<-octfish2%>%
   filter(id<1 & !is.na(sl))%>%
   filter(date=="2016-10-19")%>%
   mutate(pulse=as.factor(pulse))%>%
   ggplot()+
   geom_histogram(aes(x=sl,fill=pulse),colour='black',binwidth = 3)+
-  scale_fill_brewer(palette = "Dark2",drop=FALSE)+
-  #scale_fill_manual(values=c('grey20','grey45','grey80','grey95'))+
+  #scale_fill_brewer(palette = "Dark2",drop=FALSE)+
+  scale_fill_manual(values=c('grey10','grey50','grey90'),drop=FALSE)+
   theme_bw()+
   theme(panel.grid=element_blank())+
   scale_y_continuous(expand = c(0,0))+
@@ -216,33 +259,34 @@ Fig2b<-octfish%>%
        fill="Pulse")+
   theme(axis.title.x= element_text(size=14,margin = margin(t=10)))+
   theme(axis.title.y= element_text(size=14,margin = margin(r=10)))+
-  theme(legend.title = element_text(size=12,face='bold'),
+  theme(legend.title = element_text(size=12),
         legend.key.size = unit(1.5,'lines'))+
   theme(axis.text = element_text(size=12))+
   theme(plot.margin = unit(c(0.5,0.5,0.5,0.5),"cm"))+
   xlim(40,95)+
-  guides(fill=guide_legend(reverse=TRUE))
+  ggtitle("b. 19 October 2016")+
+  theme(plot.title = element_text(size=14))
 
 
 Fig2<-annotate_figure(ggarrange(Fig2a+theme(axis.title.x=element_text(colour='white')),
           Fig2b+
             theme(axis.title.y = element_text(colour="white"))+
             theme(axis.title.x=element_text(colour='white')),
-          labels=c("a","b"),ncol=2,nrow=1,
-          common.legend = TRUE),
-          bottom=text_grob("Standard Length (mm)",size=14,vjust=-1))
+          ncol=2,nrow=1,
+          common.legend = TRUE,legend = 'bottom'),
+          bottom=text_grob("Standard Length (mm)",size=14,vjust=-5))
 
 
 brewer.pal(6,"Dark2")
 clrs<- c("1" = '#1B9E77', "2" = '#D95F02', "3" = '#7570B3', "4" = '#E6AB02')
+greys<-c("1"='grey10',"2"='grey50',"3"='grey80',"4"='white')
 
-Fig3a<-mayfish%>%
+Fig3a<-mayfish2%>%
   filter(id>2 & date == '2017-05-24' & age == 1)%>%
   filter(site=="NB")%>%
   mutate(pulse=as.factor(pulse))%>%
   ggplot()+
-  geom_histogram(aes(x=sl,fill=pulse,colour=pulse),binwidth = 3)+
-  #scale_fill_manual(values=c('grey20','grey45','grey95'))+
+  geom_histogram(aes(x=sl,fill=pulse),colour='black',binwidth = 3)+
   #scale_fill_brewer(palette = "Dark2",drop=FALSE)+
   theme_bw()+
   theme(panel.grid=element_blank())+
@@ -258,24 +302,25 @@ Fig3a<-mayfish%>%
         legend.key.size = unit(1.5,'lines'))+
   theme(axis.text = element_text(size=12))+
   xlim(30,155)+
-  guides(fill=guide_legend(reverse=TRUE),
-         colour=guide_legend(reverse = TRUE))+
-  theme(plot.margin = unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  scale_fill_manual(values= clrs,
+  theme(plot.margin = unit(c(0.25,0.25,0.25,0.25),"cm"))+
+  scale_fill_manual(values= greys,
                     limits = c("1", "2", "3", "4"),
                     labels = c("1", "2", "3", "4"))+
-  scale_colour_manual(values= clrs,
-                    limits = c("1", "2", "3", "4"),
-                    labels = c("1", "2", "3", "4"))
+  theme(axis.title.y = element_blank())+
+  theme(axis.title.x=element_text(colour='white'))
+  # scale_colour_manual(values= clrs,
+  #                   limits = c("1", "2", "3", "4"),
+  #                   labels = c("1", "2", "3", "4"))
 
-Fig3b<-mayfish%>%
+Fig3b<-mayfish2%>%
     filter(id>2 & date == '2017-05-24' & age == 1)%>%
     filter(site=="MI")%>%
     mutate(pulse=as.factor(pulse))%>%
     ggplot()+
-    geom_histogram(aes(x=sl,fill=pulse,colour=pulse),binwidth = 3)+
+    geom_histogram(aes(x=sl,fill=pulse),colour='black',binwidth = 3)+
     #scale_fill_manual(values=c('grey20','grey45','grey95'))+
   #scale_fill_brewer(palette = "Dark2",drop=FALSE)+
+  #scale_fill_manual(values=c('grey10','grey50','grey90','white'),drop=FALSE)+
     theme_bw()+
     theme(panel.grid=element_blank())+
     scale_y_continuous(expand = c(0,0))+
@@ -290,22 +335,23 @@ Fig3b<-mayfish%>%
         legend.key.size = unit(1.5,'lines'))+
   theme(axis.text = element_text(size=12))+
   xlim(30,155)+
-  guides(fill=guide_legend(reverse=TRUE),
-         colour=guide_legend(reverse = TRUE))+
-  theme(plot.margin = unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  scale_fill_manual(values= clrs,
+  theme(plot.margin = unit(c(0.25,0.25,0.25,0.25),"cm"))+
+  scale_fill_manual(values= greys,
                     limits = c("1", "2", "3", "4"),
                     labels = c("1", "2", "3", "4"))+
-  scale_colour_manual(values= clrs,
-                    limits = c("1", "2", "3", "4"),
-                    labels = c("1", "2", "3", "4"))
+  theme(axis.title.y = element_blank())+
+  theme(axis.title.x=element_text(colour='white'))
+  # scale_colour_manual(values= clrs,
+  #                   limits = c("1", "2", "3", "4"),
+  #                   labels = c("1", "2", "3", "4"))
 
-Fig3c<-mayfish%>%
+Fig3c<-mayfish2%>%
   filter(id>2 & date == '2017-05-24' & age == 1)%>%
   filter(site=="CC")%>%
   mutate(pulse=as.factor(pulse))%>%
   ggplot()+
-  geom_histogram(aes(x=sl,fill=pulse,colour=pulse),binwidth = 3)+
+  geom_histogram(aes(x=sl,fill=pulse),colour='black',binwidth = 3)+
+  #scale_fill_manual(values=c('grey10','grey50','grey90','white'),drop=FALSE)+
   #scale_fill_manual(values=c('grey20','grey45','grey95'))+
   #scale_fill_brewer(palette = "Dark2",drop=FALSE)+
   theme_bw()+
@@ -322,26 +368,30 @@ Fig3c<-mayfish%>%
         legend.key.size = unit(1.5,'lines'))+
   theme(axis.text = element_text(size=12))+
   xlim(30,155)+
-  guides(fill=guide_legend(reverse=TRUE),
-         colour=guide_legend(reverse = TRUE))+
-  theme(plot.margin = unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  scale_fill_manual(values= clrs,
+  theme(plot.margin = unit(c(0.25,0.25,0.25,0.25),"cm"))+
+  scale_fill_manual(values= greys,
                     limits = c("1", "2", "3", "4"),
                     labels = c("1", "2", "3", "4"))+
-  scale_colour_manual(values= clrs,
-                    limits = c("1", "2", "3", "4"),
-                    labels = c("1", "2", "3", "4"))
+  theme(axis.title.y = element_blank())+
+  theme(axis.title.x=element_text(colour='white'))
+  # scale_colour_manual(values= clrs,
+  #                   limits = c("1", "2", "3", "4"),
+  #                   labels = c("1", "2", "3", "4"))
 
 Fig3<-annotate_figure(ggarrange(Fig3a+
-                            theme(axis.title.x=element_text(colour='white')),
+                              ggtitle("a. Newbridge")+theme(plot.title = element_text(size=14)),
                                 Fig3b+
-                                  theme(axis.title.y = element_text(colour="white"))+
-                                  theme(axis.title.x=element_text(colour='white')),
+                              ggtitle("b. Mistaken")+theme(plot.title = element_text(size=14)),
                           Fig3c+
-                            theme(axis.title = element_text(colour="white")),
-                                labels=c("a","b","c"),ncol=3,nrow=1,
-                                common.legend = TRUE),
+                            ggtitle("c. Canning's")+theme(plot.title = element_text(size=14)),
+                                #labels=c("a","b","c"),
+                          ncol=1,nrow=3,
+                                common.legend = TRUE,legend = 'right'),
+                      left = text_grob("Count", size=14,rot=90),
                       bottom=text_grob("Standard Length (mm)",size=14,vjust=-1))
 
-ggsave(file="./output/Fig2.png",plot=Fig2,width=168,height=84,units="mm")
-ggsave(file="./output/Fig3.png",plot=Fig3,width=168,height=84,units="mm")
+ggsave(file="./overwinter-CMR/output/Fig2.png",plot=Fig2,width=168,height=84,units="mm")
+ggsave(file="./overwinter-CMR/output/Fig3.png",plot=Fig3,width=100,height=168,units="mm")
+
+ggsave(file="./overwinter-CMR/output/Fig2.jpg",plot=Fig2,width=170,height=85,units="mm",dpi=500)
+ggsave(file="./overwinter-CMR/output/Fig3.jpg",plot=Fig3,width=85,height=170,units="mm", dpi = 500)

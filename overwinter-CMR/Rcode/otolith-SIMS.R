@@ -1,11 +1,8 @@
-setwd("C:/Users/emili/Documents/Research/CHONe-1.2.1/overwinter-CMR/")
-
-
-data<-read.csv("../SIMS/Cod Otolith Data June 2020.csv")
-ID<-read.csv("../SIMS/SIMS-ID.csv")
-pulse1<-read.csv("../data/data-working/pulse_range_age1_final2019-12-6.csv")
-temp.field<-read.csv("../data/data-working/newman-temp-to-2017.csv")
-temp.exp<-read.csv("../data/data-working/temperature-exp.csv")
+data<-read.csv("./SIMS/Cod Otolith Data June 2020.csv")
+ID<-read.csv("./SIMS/SIMS-ID.csv")
+pulse1<-read.csv("./data/data-working/pulse_range_age1_final2019-12-6.csv")
+temp.field<-read.csv("./data/data-working/newman-temp-to-2017.csv")
+temp.exp<-read.csv("./data/condition-exp/CHONE121_tanktemperature_20179424.csv")
 
 head(data)
 summary(data)
@@ -25,7 +22,7 @@ library(lubridate)
 library(car)
 library(lme4)
 library(ggpubr)
-source("../pulse-structure/pulse_range_fct.R")
+source("./pulse-structure/pulse_range_fct.R")
 
 #---- Clean data----
 data2<-data%>%
@@ -42,7 +39,7 @@ str(data2)
 summary(data2)
 
 ID2<-ID%>%
-  rename(File.name=ï..File.name)%>% # fix heading name
+  rename(File.name=Ã¯..File.name)%>% # fix heading name
   filter(!is.na(SL)) # get rid of empty rows
 
 
@@ -119,7 +116,7 @@ p1Mg<-lab%>%
   scale_shape_manual(values = shps,
                      limits = c("73", "80", "102", "103"),
                      labels = c("73", "80", "102", "103"))+
-  theme(axis.text.x = element_text(colour='white'))+
+  #theme(axis.text.x = element_text(colour='white'))+
   theme(axis.title = element_text(size=14))+
   theme(axis.text.y = element_text(size=12))+
   theme(legend.title = element_text(size=14))+
@@ -129,7 +126,8 @@ p2Mg<-lab%>%
   filter(pulse==2)%>%
   ggplot()+
   geom_point(aes(x=point,y=Mg.mmol,fill=factor(SL),shape=factor(SL)),size=2)+
-  scale_x_reverse()+
+  scale_x_reverse(limits=c(13,0),
+                  breaks=seq(12,0, by=-2))+
   ylim(0.05,0.50)+
   labs(x="Numerical sequence from the core to the edge",
        y="Mg (mmol)",
@@ -143,7 +141,7 @@ p2Mg<-lab%>%
   scale_shape_manual(values = shps,
                      limits = c("73", "80", "102", "103"),
                      labels = c("73", "80", "102", "103"))+
-  theme(axis.text.x = element_text(colour='white'))+
+  #theme(axis.text.x = element_text(colour='white'))+
   theme(axis.title = element_text(size=14))+
   theme(axis.text.y = element_text(size=12))+
   theme(axis.title.y = element_text(colour='white'))+
@@ -168,7 +166,7 @@ p1Sr<-lab%>%filter(pulse==1)%>%
   scale_shape_manual(values = shps,
                      limits = c("73", "80", "102", "103"),
                      labels = c("73", "80", "102", "103"))+
-  theme(axis.text.x = element_text(colour='white'))+
+  #theme(axis.text.x = element_text(colour='white'))+
   theme(axis.title = element_text(size=14))+
   theme(axis.text.y = element_text(size=12))+
   theme(axis.title.x = element_text(colour='white'))+
@@ -180,7 +178,8 @@ p2Sr<-lab%>%
   filter(pulse==2)%>%
   ggplot()+
   geom_point(aes(x=point,y=Sr.mmol,fill=factor(SL),shape=factor(SL)),size=2)+
-  scale_x_reverse()+
+  scale_x_reverse(limits=c(13,0),
+                  breaks=seq(12,0, by=-2))+
   ylim(1.2,3.75)+
   labs(x="Numerical sequence from the core to the edge",
        y="Sr (mmol)",
@@ -194,7 +193,7 @@ p2Sr<-lab%>%
   scale_shape_manual(values = shps,
                      limits = c("73", "80", "102", "103"),
                      labels = c("73", "80", "102", "103"))+
-  theme(axis.text.x = element_text(colour='white'))+
+  #theme(axis.text.x = element_text(colour='white'))+
   theme(axis.title = element_text(size=14))+
   theme(axis.text.y = element_text(size=12))+
   theme(axis.title.x = element_text(colour='white'))+
@@ -221,7 +220,7 @@ p1Ba<-lab%>%filter(pulse==1)%>%
   scale_shape_manual(values = shps,
                      limits = c("73", "80", "102", "103"),
                      labels = c("73", "80", "102", "103"))+
-  theme(axis.text.x = element_text(colour='white'))+
+  #theme(axis.text.x = element_text(colour='white'))+
   theme(axis.title = element_text(size=14))+
   theme(axis.text.y = element_text(size=12))+
   theme(axis.title.x = element_text(colour='white'))+
@@ -234,7 +233,8 @@ p2Ba<-lab%>%
   filter(pulse==2)%>%
   ggplot()+
   geom_point(aes(x=point,y=Ba.mmol,fill=factor(SL),shape=factor(SL)),size=2)+
-  scale_x_reverse()+
+  scale_x_reverse(limits=c(13,0),
+                  breaks=seq(12,0, by=-2))+
   ylim(0,0.015)+
   labs(x="Numerical sequence from the core to the edge",
        y="Ba (mmol)",
@@ -248,7 +248,7 @@ p2Ba<-lab%>%
   scale_shape_manual(values = shps,
                      limits = c("73", "80", "102", "103"),
                      labels = c("73", "80", "102", "103"))+
-  theme(axis.text.x = element_text(colour='white'))+
+  #theme(axis.text.x = element_text(colour='white'))+
   theme(axis.title = element_text(size=14))+
   theme(axis.text.y = element_text(size=12))+
   theme(axis.title.x = element_text(colour='white'))+
@@ -277,22 +277,103 @@ Anova(lm3,type="III")
 
 
 # Field fish
-
+#summary
 data3%>%
   filter(section!="cross")%>%
-  ggplot(aes(x=section,y=Sr.mmol,colour=factor(pulse)))+
-  geom_jitter(width=0.25)
+  distinct(fish.ID,pulse,SL,mark)%>%
+  group_by(pulse,mark)%>%
+  summarise(n=n(),min=min(SL),max=max(SL))
+  
+  
+#figures
 
-data3%>%
+names2<-as.factor(c("1","2"))
+clrs2<- c("1" = 'gray5',"2" = 'gray55')
+shps2 <- c("1" = 21, "2" = 23)
+
+
+Sr<-data3%>%
+  filter(section!="cross")%>%
+  mutate(section=replace(section,section=="fall","Fall"),
+         section=replace(section,section=="winter","Winter"))%>%
+  ggplot()+
+  geom_boxplot(aes(x=section,y=Sr.mmol))+
+  geom_jitter(aes(x=section,y=Sr.mmol,fill=factor(pulse),shape=factor(pulse)),width=0.25,alpha=0.7)+
+  labs(x="Section",
+       y="Sr (mmol)",
+       fill="Pulse",
+       shape="Pulse")+
+  theme_bw()+
+  theme(panel.grid = element_blank())+
+  scale_fill_manual(values= clrs2,
+                    limits = c("1", "2"),
+                    labels = c("1","2"))+
+  scale_shape_manual(values = shps2,
+                     limits = c("1", "2"),
+                     labels = c("1","2"))+
+  theme(axis.text.x = element_text(size=12,face='bold'))+
+  theme(axis.title.y = element_text(size=14,margin = margin(r=10)))+
+  theme(axis.title.x = element_text(size=14,margin = margin(t=10)))+
+  theme(axis.text.y = element_text(size=12))+
+  theme(legend.title = element_text(size=14))+
+  theme(legend.text = element_text(size=12))
+Mg<-data3%>%
   filter(section!="cross")%>%
   filter(Mg.mmol<4)%>%
-  ggplot(aes(x=section,y=Mg.mmol,colour=factor(pulse)))+
-  geom_jitter(width=0.25)
-
-data3%>%
+  mutate(section=replace(section,section=="fall","Fall"),
+         section=replace(section,section=="winter","Winter"))%>%
+  ggplot()+
+  geom_boxplot(aes(x=section,y=Mg.mmol))+
+  geom_jitter(aes(x=section,y=Mg.mmol,fill=factor(pulse),shape=factor(pulse)),width=0.25,alpha=0.7)+
+  labs(x="Section",
+       y="Mg (mmol)",
+       fill="Pulse",
+       shape="Pulse")+
+  theme_bw()+
+  theme(panel.grid = element_blank())+
+  scale_fill_manual(values= clrs2,
+                    limits = c("1", "2"),
+                    labels = c("1","2"))+
+  scale_shape_manual(values = shps2,
+                     limits = c("1", "2"),
+                     labels = c("1","2"))+
+  theme(axis.text.x = element_text(size=12,face='bold'))+
+  theme(axis.title.y = element_text(size=14,margin = margin(r=10)))+
+  theme(axis.title.x = element_text(size=14,margin = margin(t=10)))+
+  theme(axis.text.y = element_text(size=12))+
+  theme(legend.title = element_text(size=14))+
+  theme(legend.text = element_text(size=12))
+Ba<-data3%>%
   filter(section!="cross")%>%
-  ggplot(aes(x=section,y=Ba.mmol,colour=factor(pulse)))+
-  geom_jitter(width=0.25)
+  mutate(section=replace(section,section=="fall","Fall"),
+         section=replace(section,section=="winter","Winter"))%>%
+  ggplot()+
+  geom_boxplot(aes(x=section,y=Ba.mmol))+
+  geom_jitter(aes(x=section,y=Ba.mmol,fill=factor(pulse),shape=factor(pulse)),width=0.25,alpha=0.7)+
+  labs(x="Section",
+       y="Ba (mmol)",
+       fill="Pulse",
+       shape="Pulse")+
+  theme_bw()+
+  theme(panel.grid = element_blank())+
+  scale_fill_manual(values= clrs2,
+                    limits = c("1", "2"),
+                    labels = c("1","2"))+
+  scale_shape_manual(values = shps2,
+                     limits = c("1", "2"),
+                     labels = c("1","2"))+
+  theme(axis.text.x = element_text(size=12,face='bold'))+
+  theme(axis.title.y = element_text(size=14,margin = margin(r=10)))+
+  theme(axis.title.x = element_text(size=14,margin = margin(t=10)))+
+  theme(axis.text.y = element_text(size=12))+
+  theme(legend.title = element_text(size=14))+
+  theme(legend.text = element_text(size=12))
+
+Fig6<-ggarrange(Sr,Mg,Ba,ncol=3,nrow=1,
+          common.legend = TRUE,
+          labels=c("a","b","c"))
+ggsave(file="./overwinter-CMR/output/Fig6.png",Fig6,width=170,height=85,units="mm")
+ggsave(file="./overwinter-CMR/output/Fig6.jpg",Fig6,width=170,height=85,units="mm", dpi = 500)
 
 
 # Group by site
@@ -389,7 +470,8 @@ field<-data3%>%
   filter(section!="cross")%>%
   filter(Mg.mmol<4) #get rid of outlier
 
-m1.Sr<-lmer(Sr.mmol~factor(pulse)+section+site+factor(mark)+(1|fish.ID),data=field)
+m1.Sr<-glmer(Sr.mmol~factor(pulse)+section+site+(1|fish.ID),data=field,
+             family=Gamma(link = "log"))
 plot(m1.Sr)
 qqnorm(resid(m1.Sr))
 qqline(resid(m1.Sr))
@@ -406,9 +488,10 @@ hist(resid(m1.Mg))
 Anova(m1.Mg,type="III")
 summary(m1.Mg)
 #try gamma
-
-m2.Mg<-glmer(Mg.mmol~factor(pulse)+section+site+(1|fish.ID),data=field,
-             family = Gamma)
+field.model<-field%>%
+  mutate(pulse=as.factor(pulse))
+m2.Mg<-glmer(Mg.mmol~pulse+section+site+(1|fish.ID),data=field.model,
+             family = Gamma(link='log'))
 plot(m2.Mg)
 qqnorm(resid(m2.Mg))
 qqline(resid(m2.Mg))
@@ -416,7 +499,7 @@ hist(resid(m2.Mg))
 
 Anova(m2.Mg,type="III")
 summary(m2.Mg)
-
+effects::predictorEffects(m2.Mg)%>%as.data.frame()
 
 m1.Ba<-lmer(Ba.mmol~factor(pulse)+section+site+factor(mark)+(1|fish.ID),data=field)
 plot(m1.Ba)
@@ -425,8 +508,8 @@ qqline(resid(m1.Ba))
 hist(resid(m1.Ba))
 
 #gamma distribution
-m2.Ba<-glmer(Ba.mmol~factor(pulse)+section+site+(1|fish.ID),data=field,
-             family = Gamma)
+m2.Ba<-glmer(Ba.mmol~pulse+section+site+(1|fish.ID),data=field.model,
+             family = Gamma(link = 'log'))
 plot(m2.Ba)
 qqnorm(resid(m2.Ba))
 qqline(resid(m2.Ba))
@@ -434,7 +517,7 @@ hist(resid(m2.Ba))
 
 Anova(m2.Ba, type="III")
 summary(m2.Ba)
-
+effects::predictorEffects(m2.Ba)%>%as.data.frame()
 
 m3.Ba<-glmer(Ba.mmol~factor(pulse)+section+factor(site)+factor(mark)+(1|fish.ID),data=field,
              family = Gamma)

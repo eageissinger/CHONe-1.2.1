@@ -1,7 +1,7 @@
 ### Mark-recapture ###
 
 # ---- set working directory ----
-setwd("C:/Users/emili/Documents/Research/CHONe-1.2.1/overwinter-CMR/")
+# setwd("C:/Users/emili/Documents/Research/CHONe-1.2.1/overwinter-CMR/")
 
 # ---- load required packages ----
 
@@ -11,15 +11,15 @@ library(mixdist)
 library(tidyverse)
 library(RMark)
 
-source("../pulse-structure/pulse_range_fct.R")
+source("./pulse-structure/pulse_range_fct.R")
 
 # ---- load data ----
-data<-read.csv("../data/data-working/CMR-field-MAY-captures.csv")
-allCMR<-read.csv("../data/data-working/CMR-field-adj.csv")
-CMRpulse<-read.csv("../data/data-working/CMR-pulses.csv")
-pulse0<-read.csv("../data/data-working/pulse_range_age0_final2019-12-06.csv")
-pulse1<-read.csv("../data/data-working/pulse_range_age1_final2019-12-6.csv")
-trips<-read.csv("../data/data-working/newman-trips.csv")
+data<-read.csv("./data/data-working/CMR/CMR-field-MAY-captures.csv")
+allCMR<-read.csv("./data/data-working/CMR/CMR-field-adj.csv")
+CMRpulse<-read.csv("./data/data-working/CMR/CMR-pulses.csv")
+pulse0<-read.csv("./data/data-working/pulse_range_age0_final2019-12-06.csv")
+pulse1<-read.csv("./data/data-working/pulse_range_age1_final2019-12-6.csv")
+trips<-read.csv("./data/data-working/newman-trips.csv")
 
 # ---- check data ----
 names(data)
@@ -125,6 +125,7 @@ cod.id<-bind_rows(pulse.size0,pulse.size1)%>%
 
 # summary statistics on size breakdown for fall and spring
 
+#fall
 cod.id%>%
   separate(animal_id,into= c("Site", "ID"),sep="_")%>%
   mutate(ID=as.numeric(ID))%>%
@@ -133,6 +134,7 @@ cod.id%>%
   group_by(pulse)%>%
   summarise(n())
 
+#spring
 cod.id%>%
   separate(animal_id,into= c("Site", "ID"),sep="_")%>%
   mutate(ID=as.numeric(ID))%>%
@@ -161,8 +163,6 @@ final%>%filter(month!=5 & age!=2)%>%
  # ---- mark analysis ----
 
 # select dat that is within popultion
-# sl >55 mm and age <2
-
 mrkdata<-final%>%
   filter(age<2)%>%
   select(date,year,month,animal_id,sl,mark,pulse)%>%
@@ -224,6 +224,15 @@ W1<-cod%>%filter(ch=="100")%>%
   select(-pulse)%>% # remove current pulse column
   add_column(pulse=c(rep(1, each=39),rep(2,each=46),rep(3,each=3))) # assign pulses to unmeasured fish based on ratio
 
+# summary of week 1
+W1%>%
+  group_by(pulse)%>%
+  summarise(n())
+cod%>%filter(ch=="100")%>%
+  filter(!is.na(sl))%>%
+  group_by(pulse)%>%
+  summarise(min(sl),max(sl),mean(sl), sd(sl))
+
 88*0.442 # pulse 1
 88*0.519 # pulse 2
 88*0.0385 # pulse 3
@@ -240,7 +249,14 @@ W2<-cod%>%filter(ch=="010")%>%
   filter(is.na(sl))%>% #49 unassigned fish
   select(-pulse)%>% # remove current pulse column
   add_column(pulse=c(rep(1, each=24),rep(2,each=25))) # assign pulses to unmeasured fish based on ratio
-
+#summary of week 2
+W2%>%
+  group_by(pulse)%>%
+  summarise(n())
+cod%>%filter(ch=="010")%>%
+  filter(!is.na(sl))%>%
+  group_by(pulse)%>%
+  summarise(min(sl),max(sl),mean(sl), sd(sl))
 49*0.483 # pulse 1
 49*0.517 # pulse 2
 24+25
@@ -343,8 +359,8 @@ pulse.results<-pulse.model()
 nb.processed<-process.data(nb.pulse,time.intervals = c(5,217),
                            groups="pulse")
 pulse.results
-summary(pulse.results[[12]])
-pulse.results[[12]]
+summary(pulse.results[[15]])
+pulse.results[[15]]
 c.hat<-pulse.results[[12]]$results$deviance/pulse.results[[12]]$results$deviance.df
 c.hat
 tail(nb.pulse)
@@ -402,16 +418,17 @@ early.pulse.results
 early.pulse.results[[8]]
 
 
-# rerun only model 15 Phi(~time + pulse) p(~time)
+# rerun only model 8 Phi(~time + pulse) p(~time)
 nb.processed<-process.data(nb13,time.intervals = c(5,217),
                            groups="pulse")
 nb.ddl<-make.design.data(nb.processed)
 Phi.timepluspulse<-list(formula=~time+pulse)
 p.time<-list(formula=~time)
 
-model15<-mark(nb.processed,nb.ddl,model.parameters=list(Phi=Phi.timepluspulse,p=p.time))
-summary(model15)
-#export.MARK(nb.processed, "NB-results",model=early.pulse.results,replace=FALSE)
+model8<-mark(nb.processed,nb.ddl,model.parameters=list(Phi=Phi.timepluspulse,p=p.time))
+summary(model8)
+results(model8)
+export.MARK(nb.processed, "NB-results-final",model=early.pulse.results,replace=FALSE)
 
 
 #adjust.chat(3.32,early.pulse.results)
@@ -428,7 +445,7 @@ tail(nb.pulse)
 names(early.pulse.results)
 round(early.pulse.results$Phi.timepluspulse.p.time$results$real[,1:4],4)
 
-#write.csv(early.pulse.results[[15]]$results$real,"../data/output/CMR-pulse.csv",row.names = FALSE)
+write.csv(early.pulse.results[[8]]$results$real,"./data/output/CMR-pulse.csv",row.names = FALSE)
 
 # ---- format for Mstrata ----
 
