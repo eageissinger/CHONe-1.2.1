@@ -4,12 +4,12 @@
 setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # ---- load data ----
-total<-read.csv("./data/diet_feeding-exp.csv")
-leftover<-read.csv("./data/diet_leftover-exp.csv")
-temp<-read.csv("./data/temperature-exp.csv")
-lw<-read.csv("./data/length-weight-exp.csv")
-condition<-read.csv("./data/condition-exp.csv")
-tanks<-read.csv("./data/tank-assignments-exp.csv")
+total<-read.csv("./data/condition-exp/diet_feeding-exp.csv")
+leftover<-read.csv("./data/condition-exp/diet_leftover-exp.csv")
+temp<-read.csv("./data/condition-exp/CHONE121_tanktemperature_20179424.csv")
+lw<-read.csv("./data/condition-exp/CHONE121_codlengthweight_20170424.csv")
+condition<-read.csv("./data/condition-exp/CHONE121_codcondition_20170424.csv")
+tanks<-read.csv("./data/condition-exp/CHONE121_tankassignments_20161201.csv")
 
 # ---- packages ----
 library(MASS)
@@ -188,6 +188,7 @@ str(diet$ration)
 # first, filter temperature days to start on january 1
 temp1<-temp%>%
   filter(julian_date<300)%>%
+  mutate(temperature=replace(temperature,month==2 & temperature==3.0,0.3))%>%
   group_by(tank,julian_date,date)%>%
   summarise(mean_temp=mean(temperature))%>%
   group_by(date,julian_date)%>%
@@ -810,7 +811,7 @@ ggplot(energy.0,aes(y=FCE,x=julian_date,shape=as.factor(ration),colour=size))+
 fce<-energy.0%>%
   filter(FCE>-2)
 
-m1.2<-lm(FCE~0+factor(trt)+size+daily_temp,data=fce)
+m1.2<-lm(FCE~factor(trt)+size+daily_temp,data=fce)
 plot(m1.2)
 hist(resid(m1.2))
 summary(m1.2)
@@ -847,11 +848,17 @@ F1
 energy.0$F.rate[which(is.nan(energy.0$F.rate))] = NA
 energy.0$F.rate[which(is.infinite(energy.0$F.rate))] = NA
 
-m2<-lm(F.rate~0+factor(trt)+size+daily_temp,data=energy.0)
+m2<-lm(F.rate~factor(trt)+size+daily_temp,data=energy.0)
 plot(m2)
 hist(resid(m2))
 summary(m2)
 Anova(m2,type="III")
+
+rate.summary<-energy.0%>%
+  filter(!is.na(F.rate))%>%
+  group_by(ration)%>%
+  summarise(mean(F.rate),sd(F.rate)/sqrt(n()),
+            min(F.rate),max(F.rate))
 
 energy.02<-energy.0%>%
   mutate(Ration="Starvation")%>%
@@ -1026,7 +1033,7 @@ ggplot(energy.02)+
   theme(axis.title.x= element_text(margin=margin(t=15)))
 
 Fig6a<-energy.02%>%
-  filter(size=="small")%>%
+  filter(size=="large")%>%
   ggplot(aes(y=F.rate,x=daily_temp))+
   geom_jitter(aes(shape=Ration,colour=Ration,fill=Ration))+
   geom_smooth(aes(linetype=Ration,colour=Ration),
@@ -1042,10 +1049,12 @@ Fig6a<-energy.02%>%
   scale_colour_manual(values=c('grey0','grey39','grey20'))+
   scale_fill_manual(values=c('grey0','grey39','white'))+
   scale_shape_manual(values=c(22:24))+
-  theme(plot.margin = unit(c(.25,.25,.25,.5),"cm"))
+  theme(plot.margin = unit(c(.25,.25,.25,.5),"cm"))+
+  ggtitle("Large")+
+  theme(plot.title = element_text(hjust=0.5))
 
 Fig6b<-energy.02%>%
-  filter(size=="large")%>%
+  filter(size=="small")%>%
   ggplot(aes(y=F.rate,x=daily_temp))+
   geom_jitter(aes(shape=Ration,colour=Ration,fill=Ration))+
   geom_smooth(aes(linetype=Ration,colour=Ration),
@@ -1058,9 +1067,11 @@ Fig6b<-energy.02%>%
   theme(axis.text = element_text(size=10))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))+
-  scale_colour_manual(values=c('grey0','grey39','grey20'))+
-  scale_fill_manual(values=c('grey0','grey39','white'))+
-  scale_shape_manual(values=c(22:24))
+  scale_colour_manual(values=c('grey0','grey20','grey20'))+
+  scale_fill_manual(values=c('grey0','grey20','white'))+
+  scale_shape_manual(values=c(22:24))+
+  ggtitle("Small")+
+  theme(plot.title=element_text(hjust=0.5))
 Fig6<-ggarrange(Fig6a,Fig6b+theme(axis.title.y=element_text(colour='white')),
           labels=c("a","b"),ncol=2,nrow=1,
            common.legend=TRUE,legend='top')
@@ -1068,34 +1079,38 @@ ggsave(file="Fig6.png",plot=Fig6,width=168, height=84,units="mm")
 
 
 Fig7a<-fce2%>%
-  filter(size=="small")%>%
+  filter(size=="large")%>%
   ggplot(aes(y=FCE,x=Ration))+
-  geom_boxplot(colour='black',fill='grey90',outlier.shape = NA)+
-  geom_jitter(aes(y=FCE,x=Ration),width=0.25,colour='grey40',alpha=0.75)+
+  geom_boxplot(outlier.shape = NA)+
+  geom_jitter(aes(y=FCE,x=Ration),width=0.25,alpha=0.75)+
   theme_bw(base_rect_size = 1)+
   theme(panel.grid = element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  ylab("Feed conversion efficiency (g · "~d^-1*")")+xlab('Food ration')+
+  ylab(expression(atop("Feed conversion efficiency",paste("(FCE; g · "~d^-1*")"))))+xlab('Food ration')+
   theme(legend.position = 'none')+
   theme(axis.title = element_text(size=12))+
   theme(axis.text = element_text(size=10))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Large")+
+  theme(plot.title = element_text(hjust=0.5))+
   ylim(c(-1,1.5))
 Fig7b<-fce2%>%
-  filter(size=="large")%>%
+  filter(size=="small")%>%
   ggplot(aes(x=Ration,y=FCE))+
-  geom_boxplot(colour='black',fill='grey90',outlier.shape = NA)+
-  geom_jitter(width=0.25,colour='grey40',alpha=0.75)+
+  geom_boxplot(outlier.shape = NA)+
+  geom_jitter(width=0.25,alpha=0.75)+
   theme_bw(base_rect_size = 1)+
   theme(panel.grid = element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  ylab("Feed conversion efficiency (g · "~d^-1*")")+xlab('Food ration')+
+  ylab(expression(atop("Feed conversion efficiency",paste("(FCE; g · "~d^-1*")"))))+xlab('Food ration')+
   theme(legend.position = 'none')+
   theme(axis.title = element_text(size=12))+
   theme(axis.text = element_text(size=10))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Small")+
+  theme(plot.title = element_text(hjust=0.5))+
   ylim(c(-1,1.5))
 
 row1<-ggarrange(Fig7a+theme(axis.text.x=element_text(angle = 45,hjust=1))+
@@ -1108,3 +1123,39 @@ Fig7<-ggarrange(Fig7a,Fig7b+theme(axis.title.y=element_text(colour='white')),
           labels=c("a","b"),ncol=2,nrow=1)
 ggsave(file="Fig7.png",plot=Fig7,width=168, height=84,units="mm")
 
+#---- temperature ----
+ggplot(temp)+geom_point(aes(x=date,y=temperature))
+
+temp.plot<-temp%>%
+  filter(julian_date<300)%>%
+  mutate(temperature=replace(temperature,month==2 & temperature==3.0,0.3))%>%
+  filter(temperature!=4)%>%
+  group_by(tank,julian_date,date)%>%
+  summarise(mean_temp=mean(temperature))%>%
+  group_by(date,julian_date)%>%
+  summarise(daily_temp=mean(mean_temp))%>%
+  ungroup()%>%
+  data.frame()
+
+#take out outliers
+temp.plot<-temp%>%
+  filter(temperature<4.5)
+
+Fig8<-ggplot(temp.plot)+
+  geom_hline(yintercept=0,linetype='dashed',size=1)+
+  geom_point(aes(x=date,y=daily_temp),size=1)+
+  theme_bw(base_rect_size = 2)+
+  theme(panel.grid=element_blank())+
+  ylab("Daily temperature (°C)")+xlab("Date")+
+  theme_bw()+theme(panel.grid = element_blank())+
+  #labs(colour="Ration")+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.title.y=element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  scale_x_date(breaks=date_breaks("months"),labels=date_format("%b-%Y"))+
+  theme(axis.text.x=element_text(angle=30,hjust=1))+
+  scale_y_continuous(breaks=c(-1,-0.5,0,0.5,1,1.5,2,2.5))
+
+ggsave(file="Fig8.png",plot=Fig8,width=100, height=84,units="mm")

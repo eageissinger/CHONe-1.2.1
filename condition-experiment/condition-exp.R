@@ -4,11 +4,11 @@
 setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 #----load data-----
-condition<-read.csv("./data/condition-exp.csv",header=TRUE)
-length_weight<-read.csv("./data/length-weight-exp.csv",header=TRUE)
-tank_survival<-read.csv("./data/tank-survival-exp.csv",header=TRUE)
-temp<-read.csv("./data/temperature-exp.csv",header=TRUE)
-tanks<-read.csv("./data/tank-assignments-exp.csv")
+condition<-read.csv("./data/condition-exp/CHONE121_codcondition_20170424.csv",header=TRUE)
+length_weight<-read.csv("./data/condition-exp/CHONE121_codlengthweight_20170424.csv",header=TRUE)
+tank_survival<-read.csv("./data/condition-exp/CHONE121_codexperimentsurvival_20170424.csv",header=TRUE)
+temp<-read.csv("./data/condition-exp/CHONE121_tanktemperature_20179424.csv",header=TRUE)
+tanks<-read.csv("./data/condition-exp/CHONE121_tankassignments_20161201.csv")
 
 # ----load pacakges -----
 library(car)
@@ -308,7 +308,7 @@ summary(lc.m3)
 Anova(lc.m3,type="III")
 levels(lc$ration)
 
-lc.m4<-lmer(kavg~0+ration+size+ration*julian_date+size*julian_date+(1|tank),data=lc)
+lc.m4<-lmer(kavg~ration+size+ration*julian_date+size*julian_date+(1|tank),data=lc)
 lc.m4
 plot(lc.m4)
 hist(resid(lc.m4))
@@ -316,7 +316,7 @@ qqnorm(resid(lc.m4))
 summary(lc.m4)
 Anova(lc.m4,type="III")
 
-table1<-lc%>%group_by(julian_date,ration)%>%
+  table1<-lc%>%group_by(julian_date,ration)%>%
   summarise(mean=mean(kavg),se=sd(kavg)/sqrt(n()))
 table1.2<-lc%>%
   group_by(julian_date,ration,size)%>%
@@ -339,24 +339,28 @@ LCA$Ration<-factor(LCA$Ration,levels=c("Starvation","Low","Medium","High"))
 
 LCA.plot<-ggplot(LCA,aes(x=julian_date,y=kavg,colour=Ration))+
   geom_point(aes(shape=Ration,colour=Ration,fill=Ration),
-             position = position_dodge(width=4))+
+             position = position_dodge(width=4),size=2)+
   stat_smooth(aes(linetype=Ration),method="lm",se=FALSE)+
   geom_errorbar(aes(ymin=kavg-sek,ymax=kavg+sek),
                 width=0,
                 position = position_dodge(width=4))+
   theme_bw(base_rect_size = 1)+
-  ylab("Fulton's K")+xlab("Day of experiment")+
-  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
-  scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
-  scale_shape_manual(values=c(22:25))+
+  ylab(expression(paste("Fulton's K (K"[WET],')')))+
+                    xlab("Day of experiment")+
+  scale_colour_manual(values=c('black','grey0','grey20','grey20'))+
+  scale_fill_manual(values=c('white','grey0','grey20','white'))+
+  scale_shape_manual(values=c(25,22:24))+
   theme(panel.grid=element_blank())+
   ylim(0.55,1.05)+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
   theme(axis.title = element_text(size=12))+
   theme(axis.text = element_text(size=10))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
-  theme(axis.title.x= element_text(margin=margin(t=15)))
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Small")+
+  theme(plot.title=element_text(hjust=0.5))
   
+
 LCB<-lc%>%
   filter(size=='large')%>%
   mutate(Ration="Starvation")%>%
@@ -367,25 +371,29 @@ LCB$Ration<-factor(LCB$Ration,levels=c("Starvation","Low","Medium","High"))
 
 LCB.plot<-ggplot(LCB,aes(x=julian_date,y=kavg,colour=Ration))+
   geom_point(aes(shape=Ration,colour=Ration,fill=Ration),
-             position=position_dodge(width=4))+
+             position=position_dodge(width=4),size=2)+
   stat_smooth(aes(linetype=Ration),method="lm",se=FALSE)+
   geom_errorbar(aes(ymin=kavg-sek,ymax=kavg+sek),
                 width=0,
                 position = position_dodge(width=4))+
   theme_bw(base_rect_size = 1)+
-  ylab("Fulton's K")+xlab("Day of experiment")+
-  scale_colour_manual(values=c('grey0','grey25','grey39','grey64'))+
-  scale_fill_manual(values=c('grey0','grey25','grey39','grey64'))+
-  scale_shape_manual(values=c(22:25))+
+  ylab(expression(paste("Fulton's K (K"[WET],')')))+
+  #ylab(expression(paste(K[WET])))+
+  xlab("Day of experiment")+
+  scale_colour_manual(values=c('black','grey0','grey20','grey20'))+
+  scale_fill_manual(values=c('white','grey0','grey20','white'))+
+  scale_shape_manual(values=c(25,22:24))+
   theme(panel.grid=element_blank())+
   ylim(0.55,1.05)+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
   theme(axis.title = element_text(size=12))+
   theme(axis.text = element_text(size=10))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
-  theme(axis.title.x= element_text(margin=margin(t=15)))
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Large")+
+  theme(plot.title=element_text(hjust=0.5))
 
-Fig2<-ggarrange(LCA.plot,LCB.plot+theme(axis.title.y=element_text(colour='white')), labels=c("a","b"),ncol=2,nrow=1,
+Fig2<-ggarrange(LCB.plot,LCA.plot+theme(axis.title.y=element_text(colour='white')), labels=c("a","b"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
 ggsave(file="Fig2.png",plot=Fig2,width=168, height=84,units="mm")
 ggsave(file="Fig2.eps",plot=Fig2,width=168, height=84,units="mm")
@@ -480,7 +488,7 @@ table2<-finalK%>%
 # model d.m2, glm with gamma distribution and loglink
 
 
-d.m3<-lm(delta.dry~0+ration+size,data=finalK)
+d.m3<-lm(delta.dry~ration+size,data=finalK)
 plot(d.m3)
 hist(resid(d.m3))
 summary(d.m3)
@@ -577,27 +585,122 @@ K2%>%
   theme(axis.title.x=element_text(margin=margin(t=10)))
 
 
-limitse.dryK<-aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se)
-Fig3<-K2%>%
-  rename(Size=size)%>%
-  ggplot(aes(x=Ration,y=delta.dry,fill=Size))+
-  geom_errorbar(aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se),
-                width=0,
-                position=position_dodge(width=0.25))+
-  geom_point(aes(shape=Size,fill=Size),
-             position=position_dodge(width = 0.25))+
+#limitse.dryK<-aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se)
+#Fig3<-K2%>%
+#  rename(Size=size)%>%
+#  ggplot(aes(x=Ration,y=delta.dry,fill=Size))+
+#  geom_errorbar(aes(ymin=delta.dry-delta.se,ymax=delta.dry+delta.se),
+#                width=0,
+#                position=position_dodge(width=0.25))+
+#  geom_point(aes(shape=Size,fill=Size),
+#             position=position_dodge(width = 0.25))+
+#  theme_bw(base_rect_size = 1)+
+#  ylab(expression(Delta *"Fulton's K"))+xlab("Food ration")+
+#  scale_fill_manual(values=c('grey0','grey64'))+
+#  scale_shape_manual(values=c(22:25))+
+#  theme(panel.grid=element_blank())+
+#  theme(axis.title = element_text(size=12))+
+#  theme(axis.text = element_text(size=10))+
+#  theme(axis.title.y =element_text(margin=margin(r=10)))+
+#  theme(axis.title.x= element_text(margin=margin(t=15)))+
+#  theme(legend.position = "top")
+#ggsave(file="Fig3.png",plot=Fig3,width=84, height=84,units="mm")
+#ggsave(file="Fig3.eps",plot=Fig3,width=84, height=84,units="mm")
+
+finalKplot<-finalK%>%
+  mutate(Ration="Starvation")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%", "Low"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%", "Medium"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%", "High"))
+finalKplot$Ration<-factor(finalKplot$Ration,levels=c("Starvation","Low","Medium","High"))
+
+K.small<-finalKplot%>%
+  filter(size=="small")%>%
+  ggplot(aes(x=Ration,y=delta.dry))+
+  geom_hline(yintercept=0,linetype='dashed',colour='grey20',size=1)+
+  geom_boxplot(colour='black')+
+  geom_jitter(width=0.25,alpha=0.75)+
   theme_bw(base_rect_size = 1)+
-  ylab(expression(Delta *"Fulton's K"))+xlab("Food ration")+
-  scale_fill_manual(values=c('grey0','grey64'))+
-  scale_shape_manual(values=c(22:25))+
-  theme(panel.grid=element_blank())+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab(expression(paste(Delta*"Fulton's K (",Delta*'K'[DRY],')')))+
+  xlab('Food ration')+
+  theme(legend.position = 'none')+
+  ylim(-0.5,0.25)+
   theme(axis.title = element_text(size=12))+
   theme(axis.text = element_text(size=10))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
   theme(axis.title.x= element_text(margin=margin(t=15)))+
-  theme(legend.position = "top")
-ggsave(file="Fig3.png",plot=Fig3,width=84, height=84,units="mm")
-ggsave(file="Fig3.eps",plot=Fig3,width=84, height=84,units="mm")
+  ggtitle("Small")+
+  theme(plot.title=element_text(hjust=0.5))
+
+K.large<-finalKplot%>%
+  filter(size=="large")%>%
+  ggplot(aes(x=Ration,y=delta.dry))+
+  geom_hline(yintercept=0,linetype='dashed',colour='grey20',size=1)+
+  geom_boxplot()+
+  geom_jitter(width=0.25,alpha=0.75)+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab(expression(paste(Delta*"Fulton's K (",Delta*'K'[DRY],')')))+
+  xlab('Food ration')+
+  theme(legend.position = 'none')+
+  ylim(-.5,0.25)+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Large")+
+  theme(plot.title=element_text(hjust=0.5))
+
+Fig3<-ggarrange(K.large+theme(axis.text.x=element_text(angle = 45,hjust=1)),
+                K.small+theme(axis.title.y=element_text(colour='white'))+
+                  theme(axis.text.x=element_text(angle = 45,hjust=1)), labels=c("a","b"),ncol=2,nrow=1)
+ggsave(file="Fig3.png",plot=Fig3,width=168, height=84,units="mm")
+
+App1A<-finalKplot%>%
+  filter(size=="large")%>%
+  ggplot(aes(x=Ration,y=dry))+
+  geom_boxplot()+
+  geom_jitter(width=0.25,alpha=0.75)+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab(expression(paste('K'[DRY])))+
+  xlab('Food ration')+
+  theme(legend.position = 'none')+
+  ylim(0.85,1.55)+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Large")+
+  theme(plot.title=element_text(hjust=0.5))
+App1B<-finalKplot%>%
+  filter(size=="small")%>%
+  ggplot(aes(x=Ration,y=dry))+
+  geom_boxplot()+
+  geom_jitter(width=0.25,alpha=0.75)+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab(expression(paste('K'[DRY])))+
+  xlab('Food ration')+
+  theme(legend.position = 'none')+
+  ylim(0.85,1.55)+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Small")+
+  theme(plot.title=element_text(hjust=0.5))
+
+App1<-ggarrange(App1A+theme(axis.text.x=element_text(angle = 45,hjust=1)),
+                App1B+theme(axis.title.y=element_text(colour='white'))+
+                  theme(axis.text.x=element_text(angle = 45,hjust=1)), labels=c("a","b"),ncol=2,nrow=1)
+ggsave(file="App1.png",plot=App1,width=168, height=84,units="mm")
+
 
 # Wet condition factor
 
@@ -653,7 +756,7 @@ deltaHSI<-finalK%>%
   mutate(dHSI=hsi-change)
 head(deltaHSI)
 
-hsi.m2<-lm(dHSI~0+ration+size,data=deltaHSI)
+hsi.m2<-lm(dHSI~ration+size,data=deltaHSI)
 plot(hsi.m2)
 hist(resid(hsi.m2))
 summary(hsi.m2)
@@ -706,19 +809,21 @@ hsiA<-deltaHSI%>%
   mutate(Ration=replace(Ration,ration=="2.0%", "High"))
 hsiA$Ration<-factor(hsiA$Ration,levels=c("Starvation","Low","Medium","High"))
 hsiA.plot<-ggplot(hsiA,aes(x=Ration,y=dHSI))+
-  geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
-  geom_boxplot(colour='black',fill='grey90')+
-  geom_jitter(width=0.25,colour='grey40',alpha=0.75)+
+  geom_hline(yintercept=0,linetype='dashed',colour='grey20',size=1)+
+  geom_boxplot()+
+  geom_jitter(width=0.25,alpha=0.75)+
   theme_bw(base_rect_size = 1)+
   theme(panel.grid = element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  ylab(expression(Delta*'HSI'))+xlab('Food ration')+
+  ylab(expression(paste(Delta*"Hepatosomatic index (",Delta*'HSI',')')))+xlab('Food ration')+
   theme(legend.position = 'none')+
   ylim(-0.6,0.7)+
   theme(axis.title = element_text(size=12))+
   theme(axis.text = element_text(size=10))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
-  theme(axis.title.x= element_text(margin=margin(t=15)))
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Small")+
+  theme(plot.title = element_text(hjust=0.5))
 
 hsiB<-deltaHSI%>%
   filter(size=='large')%>%
@@ -729,27 +834,72 @@ hsiB<-deltaHSI%>%
 hsiB$Ration<-factor(hsiB$Ration,levels=c("Starvation","Low","Medium","High"))
 
 hsiB.plot<-ggplot(hsiB,aes(x=Ration,y=dHSI))+
-  geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
-  geom_boxplot(colour='black',fill='grey90')+
-  geom_jitter(width=0.25,colour='grey40',alpha=0.75)+
+  geom_hline(yintercept=0,linetype='dashed',colour='grey20',size=1)+
+  geom_boxplot()+
+  geom_jitter(width=0.25,alpha=0.75)+
   theme_bw(base_rect_size = 1)+
   theme(panel.grid = element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  ylab(expression(Delta*'HSI'))+xlab('Food ration')+
+  ylab(expression(paste(Delta*"Hepatosomatic index (",Delta*'HSI',')')))+xlab('Food ration')+
   theme(legend.position = 'none')+
   ylim(-0.6,0.7)+
   theme(axis.title = element_text(size=12))+
   theme(axis.text = element_text(size=10))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
-  theme(axis.title.x= element_text(margin=margin(t=15)))
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Large")+
+  theme(plot.title = element_text(hjust=0.5))
 
 
-Fig4<-ggarrange(hsiA.plot+theme(axis.text.x=element_text(angle = 45,hjust=1)),
-          hsiB.plot+theme(axis.title.y=element_text(colour='white'))+
+Fig4<-ggarrange(hsiB.plot+theme(axis.text.x=element_text(angle = 45,hjust=1)),
+          hsiA.plot+theme(axis.title.y=element_text(colour='white'))+
             theme(axis.text.x=element_text(angle = 45,hjust=1)), labels=c("a","b"),ncol=2,nrow=1)
 ggsave(file="Fig4.png",plot=Fig4,width=168, height=84,units="mm")
 ggsave(file="Fig4.eps",plot=Fig4,width=168, height=84,units="mm")
 # hsi.m1! figure out how to interpret the interaction!
+
+# Full HSI plot
+hsiA.full<-ggplot(hsiA,aes(x=Ration,y=hsi))+
+  #geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
+  geom_boxplot()+
+  geom_jitter(width=0.25,alpha=0.75)+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab(expression('HSI'))+xlab('Food ration')+
+  theme(legend.position = 'none')+
+  scale_y_continuous(limits=c(0.7,1.9),breaks = seq(0.7,1.9,by=0.2))+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Small")+
+  theme(plot.title=element_text(hjust=0.5))
+
+
+hsiB.full<-ggplot(hsiB,aes(x=Ration,y=hsi))+
+  #geom_hline(yintercept=0,linetype='dashed',colour='grey',size=1)+
+  geom_boxplot()+
+  geom_jitter(width=0.25,alpha=0.75)+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab(expression('HSI'))+xlab('Food ration')+
+  theme(legend.position = 'none')+
+  scale_y_continuous(limits=c(0.7,1.9),breaks = seq(0.7,1.9,by=0.2))+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Large")+
+  theme(plot.title = element_text(hjust=0.5))
+
+
+App2<-ggarrange(hsiB.full+theme(axis.text.x=element_text(angle = 45,hjust=1)),
+                hsiA.full+theme(axis.title.y=element_text(colour='white'))+
+                  theme(axis.text.x=element_text(angle = 45,hjust=1)), labels=c("a","b"),ncol=2,nrow=1)
+ggsave(file="App2.png",plot=App2,width=168, height=84,units="mm")
+
 
 # ---- Survival -----
 
@@ -921,16 +1071,34 @@ size.surv<-left_join(condition,tanks)%>%
   filter(date!="2017-03-21")%>%
   filter(date!="2017-03-25")%>%
   filter(date!="2017-04-24")%>%
-  filter(size=='small')%>%
+  filter(notes!="day 0")%>%
   select(julian_date,tank,sl_mm,wet_total_weight_g,size,ration)%>%
-  filter(!is.na(tank))
+  filter(!is.na(tank))%>%
+  filter(ration=="0.0%")
 ggplot(size.surv,aes(x=tank,y=sl_mm,colour=julian_date))+geom_point()
 
-wireframe(julian_date~tank*sl_mm,data=size.surv,
-drape=TRUE,colorkey=TRUE)
-library(rgl)
-plot3d(size.surv$julian_date,size.surv$sl_mm,size.surv$tank,
-       "Julian Date","SL","Tank",col=rainbow(1000))
+size.surv%>%filter(julian_date<32)%>%
+  group_by(size)%>%
+  summarise(mean(sl_mm),n(),se=sd(sl_mm)/sqrt(n()))
+
+size.surv%>%filter(julian_date>31 & julian_date<60)%>%
+  group_by(size)%>%
+  summarise(mean(sl_mm),n(),se=sd(sl_mm)/sqrt(n()))
+
+size.surv%>%filter(julian_date>59 & julian_date<85)%>%
+  group_by(size)%>%
+  summarise(mean(sl_mm),n(),se=sd(sl_mm)/sqrt(n()))
+
+# size of live cod
+size.live<-length_weight%>%
+  filter(ration=="0.0%")%>%
+  mutate(date=replace(date,date=="2017-01-30","2017-01-31"))%>%
+  mutate(date=replace(date,date=="2017-02-27","2017-02-28"))%>%
+  group_by(date,size)%>%
+  summarise(mean(length_mm),sd(length_mm)/sqrt(n()),
+            n())
+
+size.live
 
 # create a table
 table1<-size.surv%>%
@@ -970,7 +1138,9 @@ SA.plot<-ggplot(SA)+
   theme(axis.title = element_text(size=12))+
   theme(axis.text = element_text(size=10))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
-  theme(axis.title.x= element_text(margin=margin(t=15)))
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Small")+
+  theme(plot.title=element_text(hjust=0.5))
 
 SB<-survival%>%
   filter(size=="large")%>%
@@ -994,9 +1164,11 @@ SB.plot<-ggplot(SB)+
   theme(axis.title = element_text(size=12))+
   theme(axis.text = element_text(size=10))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
-  theme(axis.title.x= element_text(margin=margin(t=15)))
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Large")+
+  theme(plot.title=element_text(hjust=0.5))
 
-Fig1<-ggarrange(SA.plot,SB.plot+theme(axis.title.y=element_text(colour='white')), labels=c("a","b"),ncol=2,nrow=1,
+Fig1<-ggarrange(SB.plot,SA.plot+theme(axis.title.y=element_text(colour='white')), labels=c("a","b"),ncol=2,nrow=1,
           common.legend=TRUE,legend='top')
 ggsave(file="Fig1.png",plot=Fig1,width=168, height=84,units="mm")
 ggsave(file="Fig1.eps",plot=Fig1,width=168, height=84,units="mm")
@@ -1046,7 +1218,8 @@ hist(resid(sgrw.m1))
 qqnorm(resid(sgrw.m1))
 Anova(sgrw.m1,type="III")
 
-sgrw.m2<-lm(sgr_w~0+ration+size,data=sgr_all)
+#use this one!
+sgrw.m2<-glm(sgr_w~ration+size+julian_date,data=sgr_all,family=gaussian(link="identity"))
 plot(sgrw.m2)
 hist(resid(sgrw.m2))
 Anova(sgrw.m2,type="III")
@@ -1076,7 +1249,7 @@ plot(sgrl.m1)
 Anova(sgrl.m1,type="III")
 
 # take out size
-sgrl.m2<-lm(sgr_sl~0+ration+size,data=sgr_all)
+sgrl.m2<-glm(sgr_sl~ration+size+julian_date,family=gaussian(link="identity"),data=sgr_all)
 
 plot(sgrl.m2)
 hist(resid(sgrl.m2))
@@ -1130,104 +1303,202 @@ sgr_adjusted<-bind_rows(sgrlarge,sgrsmall)
 sgr_adjusted$Ration<-factor(sgr_adjusted$Ration,levels=c("Starvation","Low","Medium","High"))
 #write.csv(sgr_adjusted,'./data/data-working/sgr.csv',row.names=FALSE)
 #sgr_adjusted2<-read.csv('./data/data-working/sgr2.csv')
-w<-sgr_adjusted%>%
-  rename(Size=size)%>%
-  ggplot(aes(x=percent_adj,sgr_weight,fill=Size))+
-  geom_hline(yintercept=0,linetype='dashed',colour='red',size=1)+
-  geom_smooth(aes(x=percent,y=sgr_weight,linetype=Size),se=FALSE,colour='grey1')+
-  geom_pointrange(aes(shape=Size,ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),size=.5)+
-  theme_bw(base_rect_size = 2)+
-  xlab("Food ration (% body weight)")+ylab("Specific growth rate")+
-  theme(axis.title=element_text(size=20))+
-  theme(legend.key=element_blank())+
-  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
-  theme(axis.text.x=element_text(size=20,face='bold'))+
-  theme(axis.text.y=element_text(size=20,face='bold'))+
-  theme(legend.title=element_text(size=18,face='bold'))+
-  theme(legend.position=c(0.85,0.23))+
-  scale_fill_manual(values=c('grey0','grey64'))+
-  scale_shape_manual(values=c(22:23))+
-  theme(panel.grid = element_blank())+
-  theme(legend.text = element_text(size=14))+
-  theme(legend.key.size=unit(.8,"cm"))+
-  ggtitle('Weight')+
-  theme(plot.title = element_text(size=24,face='bold',hjust=0.5))+
-  theme(axis.title.y=element_text(margin=margin(r=5)))
+# w<-sgr_adjusted%>%
+#   rename(Size=size)%>%
+#   ggplot(aes(x=percent_adj,sgr_weight,fill=Size))+
+#   geom_hline(yintercept=0,linetype='dashed',colour='red',size=1)+
+#   geom_smooth(aes(x=percent,y=sgr_weight,linetype=Size),se=FALSE,colour='grey1')+
+#   geom_pointrange(aes(shape=Size,ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),size=.5)+
+#   theme_bw(base_rect_size = 2)+
+#   xlab("Food ration (% body weight)")+ylab("Specific growth rate")+
+#   theme(axis.title=element_text(size=20))+
+#   theme(legend.key=element_blank())+
+#   theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
+#   theme(axis.text.x=element_text(size=20,face='bold'))+
+#   theme(axis.text.y=element_text(size=20,face='bold'))+
+#   theme(legend.title=element_text(size=18,face='bold'))+
+#   theme(legend.position=c(0.85,0.23))+
+#   scale_fill_manual(values=c('grey0','grey64'))+
+#   scale_shape_manual(values=c(22:23))+
+#   theme(panel.grid = element_blank())+
+#   theme(legend.text = element_text(size=14))+
+#   theme(legend.key.size=unit(.8,"cm"))+
+#   ggtitle('Weight')+
+#   theme(plot.title = element_text(size=24,face='bold',hjust=0.5))+
+#   theme(axis.title.y=element_text(margin=margin(r=5)))
+# 
+# l<-sgr_adjusted%>%
+#   rename(Size=size)%>%
+#   ggplot(aes(x=percent_adj,sgr_length,fill=Size))+
+#   geom_hline(yintercept=0,linetype='dashed',colour='red',size=1)+
+#   geom_smooth(aes(x=percent,y=sgr_length,linetype=Size),se=FALSE,colour='grey1')+
+#   geom_pointrange(aes(shape=Size,ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),size=.5)+
+#   theme_bw(base_rect_size = 2)+
+#   xlab("Food ration (% body weight)")+ylab("SGR")+
+#   theme(axis.title=element_text(size=20,face='bold'))+
+#   theme(legend.key=element_blank())+
+#   theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
+#   theme(axis.text.x=element_text(size=20,face='bold'))+
+#   theme(axis.text.y=element_text(size=20,face='bold'))+
+#   theme(legend.title=element_text(size=18,face='bold'))+
+#   theme(legend.position=c(0.8,0.23))+
+#   scale_fill_manual(values=c('grey0','grey64'))+
+#   scale_shape_manual(values=c(22:23))+
+#   theme(panel.grid = element_blank())+
+#   theme(legend.text = element_text(size=14))+
+#   theme(legend.key.size=unit(.8,"cm"))+
+#   ggtitle("Length")+
+#   theme(plot.title = element_text(size=24,face='bold',hjust=0.5))+
+#   theme(axis.title.x=element_text(margin=margin(t=20)))+
+#   theme(axis.title.y=element_text(margin=margin(r=5)))
+# ggarrange(w+theme(legend.position = 'none')+theme(axis.title.x = element_blank()),
+#           l+theme(axis.title.y=element_text(colour='white'))+theme(axis.title.x=element_blank()),
+#           ncol=2,nrow=1)
+# 
+# W<-sgr_adjusted%>%
+#   rename(Size=size)%>%
+#   ggplot(aes(x=Ration,y=sgr_weight,fill=Size))+
+#   geom_errorbar(aes(ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),
+#                 width=0,
+#                 position=position_dodge(width=0.25))+
+#   geom_point(aes(shape=Size,fill=Size),
+#              position=position_dodge(width = 0.25))+
+#   theme_bw(base_rect_size = 1)+
+#   ylab("Specific growth rate (% g · "~day^-1*")")+xlab("Food ration")+
+#   scale_fill_manual(values=c('grey0','grey64'))+
+#   scale_shape_manual(values=c(22:25))+
+#   theme(panel.grid=element_blank())+
+#   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+#   theme(axis.title = element_text(size=11))+
+#   theme(axis.title.y=element_text(size=10))+
+#   theme(axis.text = element_text(size=9))+
+#   theme(axis.title.y =element_text(margin=margin(r=10)))+
+#   theme(axis.title.x= element_text(margin=margin(t=15)))
+# 
+# L<-sgr_adjusted%>%
+#   rename(Size=size)%>%
+#   ggplot(aes(x=Ration,y=sgr_length,fill=Size))+
+#   geom_errorbar(aes(ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),
+#                 width=0,
+#                 position=position_dodge(width=0.25))+
+#   geom_point(aes(shape=Size,fill=Size),
+#              position=position_dodge(width = 0.25))+
+#   theme_bw(base_rect_size = 1)+
+#   ylab("Specific growth rate (% mm · "~day^-1*")")+xlab("Food ration")+
+#   scale_fill_manual(values=c('grey0','grey64'))+
+#   scale_shape_manual(values=c(22:25))+
+#   theme(panel.grid=element_blank())+
+#   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+#   theme(axis.title = element_text(size=11))+
+#   theme(axis.title.y=element_text(size=10))+
+#   theme(axis.text = element_text(size=9))+
+#   theme(axis.title.y =element_text(margin=margin(r=10)))+
+#   theme(axis.title.x= element_text(margin=margin(t=15)))
 
-l<-sgr_adjusted%>%
-  rename(Size=size)%>%
-  ggplot(aes(x=percent_adj,sgr_length,fill=Size))+
-  geom_hline(yintercept=0,linetype='dashed',colour='red',size=1)+
-  geom_smooth(aes(x=percent,y=sgr_length,linetype=Size),se=FALSE,colour='grey1')+
-  geom_pointrange(aes(shape=Size,ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),size=.5)+
-  theme_bw(base_rect_size = 2)+
-  xlab("Food ration (% body weight)")+ylab("SGR")+
-  theme(axis.title=element_text(size=20,face='bold'))+
-  theme(legend.key=element_blank())+
-  theme(plot.title=element_text(size=20,face="bold",hjust=0.5))+
-  theme(axis.text.x=element_text(size=20,face='bold'))+
-  theme(axis.text.y=element_text(size=20,face='bold'))+
-  theme(legend.title=element_text(size=18,face='bold'))+
-  theme(legend.position=c(0.8,0.23))+
-  scale_fill_manual(values=c('grey0','grey64'))+
-  scale_shape_manual(values=c(22:23))+
-  theme(panel.grid = element_blank())+
-  theme(legend.text = element_text(size=14))+
-  theme(legend.key.size=unit(.8,"cm"))+
-  ggtitle("Length")+
-  theme(plot.title = element_text(size=24,face='bold',hjust=0.5))+
-  theme(axis.title.x=element_text(margin=margin(t=20)))+
-  theme(axis.title.y=element_text(margin=margin(r=5)))
-ggarrange(w+theme(legend.position = 'none')+theme(axis.title.x = element_blank()),
-          l+theme(axis.title.y=element_text(colour='white'))+theme(axis.title.x=element_blank()),
-          ncol=2,nrow=1)
+# Fig5<-ggarrange(W+theme(axis.text.x = element_text(angle=45,hjust=1)),
+#           L+theme(axis.text.x = element_text(angle=45,hjust=1)),
+#           labels=c("a","b"),ncol=2,nrow=1,
+#           common.legend=TRUE,legend='right')
+# ggsave(file="Fig5.png",plot=Fig5,width=168, height=84,units="mm")
+# ggsave(file="Fig5.eps",plot=Fig5,width=168, height=84,units="mm")
 
-W<-sgr_adjusted%>%
-  rename(Size=size)%>%
-  ggplot(aes(x=Ration,y=sgr_weight,fill=Size))+
-  geom_errorbar(aes(ymin=sgr_weight-sgr_se_w,ymax=sgr_weight+sgr_se_w),
-                width=0,
-                position=position_dodge(width=0.25))+
-  geom_point(aes(shape=Size,fill=Size),
-             position=position_dodge(width = 0.25))+
+sgrsum2<-sgrsum%>%
+  mutate(Ration="Starvation")%>%
+  mutate(Ration=replace(Ration,ration=="0.5%", "Low"))%>%
+  mutate(Ration=replace(Ration,ration=="1.0%", "Medium"))%>%
+  mutate(Ration=replace(Ration,ration=="2.0%", "High"))
+sgrsum2$Ration<-factor(sgrsum2$Ration,levels=c("Starvation","Low","Medium","High"))
+
+W1<-sgrsum2%>%
+  filter(size=="large")%>%
+  ggplot(aes(x=Ration,y=sgr_weight))+
+  geom_hline(yintercept=0,linetype='dashed',colour='grey20',size=1)+
+  geom_boxplot()+
+  geom_jitter(width=0.25,alpha=0.75)+
   theme_bw(base_rect_size = 1)+
-  ylab("Specific growth rate (% g · "~day^-1*")")+xlab("Food ration")+
-  scale_fill_manual(values=c('grey0','grey64'))+
-  scale_shape_manual(values=c(22:25))+
-  theme(panel.grid=element_blank())+
+  theme(panel.grid = element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  theme(axis.title = element_text(size=11))+
-  theme(axis.title.y=element_text(size=10))+
-  theme(axis.text = element_text(size=9))+
+  ylab(expression(atop("Specific growth rate", paste('(SGR'[ W],' ; % g ·', day^-1*')'))))+
+  xlab('Food ration')+
+  theme(legend.position = 'none')+
+  ylim(-.5,.625)+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
-  theme(axis.title.x= element_text(margin=margin(t=15)))
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Large")+
+  theme(plot.title=element_text(hjust=0.5))
 
-L<-sgr_adjusted%>%
-  rename(Size=size)%>%
-  ggplot(aes(x=Ration,y=sgr_length,fill=Size))+
-  geom_errorbar(aes(ymin=sgr_length-sgr_se_sl,ymax=sgr_length+sgr_se_sl),
-                width=0,
-                position=position_dodge(width=0.25))+
-  geom_point(aes(shape=Size,fill=Size),
-             position=position_dodge(width = 0.25))+
+W2<-sgrsum2%>%
+  filter(size=="small")%>%
+  ggplot(aes(x=Ration,y=sgr_weight))+
+  geom_hline(yintercept=0,linetype='dashed',colour='grey20',size=1)+
+  geom_boxplot(outlier.shape = NA)+
+  geom_jitter(width=0.25,alpha=0.75)+
   theme_bw(base_rect_size = 1)+
-  ylab("Specific growth rate (% mm · "~day^-1*")")+xlab("Food ration")+
-  scale_fill_manual(values=c('grey0','grey64'))+
-  scale_shape_manual(values=c(22:25))+
-  theme(panel.grid=element_blank())+
+  theme(panel.grid = element_blank())+
   theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
-  theme(axis.title = element_text(size=11))+
-  theme(axis.title.y=element_text(size=10))+
-  theme(axis.text = element_text(size=9))+
+  ylab(expression(atop("Specific growth rate", paste('(SGR'[ W],' ; % g ·', day^-1*')'))))+
+  xlab('Food ration')+
+  theme(legend.position = 'none')+
+  ylim(-.5,0.625)+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
   theme(axis.title.y =element_text(margin=margin(r=10)))+
-  theme(axis.title.x= element_text(margin=margin(t=15)))
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Small")+
+  theme(plot.title=element_text(hjust=0.5))
 
-Fig5<-ggarrange(W+theme(axis.text.x = element_text(angle=45,hjust=1)),
-          L+theme(axis.text.x = element_text(angle=45,hjust=1)),
-          labels=c("a","b"),ncol=2,nrow=1,
-          common.legend=TRUE,legend='right')
-ggsave(file="Fig5.png",plot=Fig5,width=168, height=84,units="mm")
-ggsave(file="Fig5.eps",plot=Fig5,width=168, height=84,units="mm")
+L1<-sgrsum2%>%
+  filter(size=="large")%>%
+  ggplot(aes(x=Ration,y=sgr_length))+
+  geom_hline(yintercept=0,linetype='dashed',colour='grey20',size=1)+
+  geom_boxplot()+
+  geom_jitter(width=0.25,alpha=0.75)+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab(expression(atop("Specific growth rate", paste('(SGR'[ L],' ; % mm ·', day^-1*')'))))+
+  xlab('Food ration')+
+  theme(legend.position = 'none')+
+  ylim(-.01,0.15)+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Large")+
+  theme(plot.title=element_text(hjust=0.5,colour='white'))
+
+L2<-sgrsum2%>%
+  filter(size=="small")%>%
+  ggplot(aes(x=Ration,y=sgr_length))+
+  geom_hline(yintercept=0,linetype='dashed',colour='grey20',size=1)+
+  geom_boxplot(outlier.shape = NA)+
+  geom_jitter(width=0.25,alpha=0.75)+
+  theme_bw(base_rect_size = 1)+
+  theme(panel.grid = element_blank())+
+  theme(plot.margin=unit(c(0.5,0.5,0.5,0.5),"cm"))+
+  ylab(expression(atop("Specific growth rate", paste('(SGR'[ L],' ; % mm ·', day^-1*')'))))+
+  xlab('Food ration')+
+  theme(legend.position = 'none')+
+  ylim(-.01,0.15)+
+  theme(axis.title = element_text(size=12))+
+  theme(axis.text = element_text(size=10))+
+  theme(axis.title.y =element_text(margin=margin(r=10)))+
+  theme(axis.title.x= element_text(margin=margin(t=15)))+
+  ggtitle("Small")+
+  theme(plot.title=element_text(hjust=0.5,colour='white'))
+
+Fig5<-ggarrange(W1+theme(axis.text.x = element_text(angle=45,hjust=1))+
+                  theme(axis.title.x = element_text(colour='white')),
+                W2+theme(axis.text.x = element_text(angle=45,hjust=1))+
+                  theme(axis.title.x = element_text(colour='white'))+
+                  theme(axis.title.y=element_text(colour='white')),
+                L1+theme(axis.text.x = element_text(angle=45,hjust=1)),
+                L2+theme(axis.text.x = element_text(angle=45,hjust=1))+
+                  theme(axis.title.y = element_text(colour='white')),
+                labels=c("a","b","c","d"),ncol=2,nrow=2)
+ggsave(file="Fig5.png",plot=Fig5,width=168, height=168,units="mm")
 table4<-sgr_adjusted%>%
   group_by(ration,size)%>%
   summarise(mean(sgr_weight),se=sd(sgr_weight/sqrt(n())),

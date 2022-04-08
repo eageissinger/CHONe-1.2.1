@@ -1,9 +1,9 @@
 # ---- set working directory -----
-setwd("C:/Users/USER/Documents/Research/CHONe-1.2.1/")
+setwd("C:/Users/user/Documents/Research/CHONe-1.2.1/")
 
 # load data ----
-tank_survival<-read.csv("./data/data-working/tank-survival-exp.csv",header=TRUE)
-temp<-read.csv("./data/data-working/temperature-exp.csv")
+tank_survival<-read.csv("./data/condition-exp/CHONE121_codexperimentsurvival_20170424.csv",header=TRUE)
+temp<-read.csv("./data/condition-exp/CHONE121_tanktemperature_20179424.csv")
 
 # ---- load packages ----
 library(tidyverse)
@@ -49,6 +49,16 @@ mydata$ration<-relevel(mydata$ration,"2.0%","1.0%","0.5%","0.0%")
 so<-with(mydata,Surv(time,status))
 head(so,80)
 
+# sample size for each time period
+
+sample.size<-tank_survival%>%
+  group_by(year,month,day,size,ration)%>%
+  summarise(sum(number))%>%
+  mutate(date=ymd(paste(year,month,day,sep="-")))%>%
+  mutate(jdate=yday(date))
+
+sample.size%>%filter(jdate==80)
+sample.size%>%filter(jdate==60)
 # General
 
 s_fit<-survfit(Surv(time,status)~1,data=mydata)
